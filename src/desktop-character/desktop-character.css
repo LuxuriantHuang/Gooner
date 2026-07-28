@@ -1,0 +1,70 @@
+:root {
+  --global-color: #202428;
+  --top-color: var(--global-color);
+  --bottom-color: var(--global-color);
+  --left-color: var(--global-color);
+  --right-color: var(--global-color);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--global-color);
+}
+
+#atmosphere,
+#blur-source,
+#character {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#atmosphere {
+  background:
+    linear-gradient(to bottom, var(--top-color), transparent 45%),
+    linear-gradient(to top, var(--bottom-color), transparent 45%),
+    linear-gradient(to right, var(--left-color), transparent 45%),
+    linear-gradient(to left, var(--right-color), transparent 45%),
+    var(--global-color);
+}
+
+#blur-source {
+  object-fit: cover;
+  filter: blur(44px) saturate(1.15);
+  transform: scale(1.16);
+  opacity: 0;
+}
+
+#character {
+  object-fit: contain;
+  object-position: center center;
+}
+
+body.mode-diffuse #blur-source {
+  opacity: 0.72;
+}
+
+body.mode-diffuse #atmosphere {
+  opacity: 0.72;
+}
+
+body.mode-mask #atmosphere {
+  background: var(--global-color);
+  box-shadow: inset 0 0 90px 35px color-mix(in srgb, var(--global-color), white 12%);
+}
+
+body.mode-composed #atmosphere,
+body.mode-composed #blur-source {
+  display: none;
+}
+
+body.mode-composed #character {
+  object-fit: fill;
+  object-position: center;
+}

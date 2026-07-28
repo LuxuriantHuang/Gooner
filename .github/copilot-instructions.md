@@ -28,6 +28,11 @@
 - Validate app startup with `npm run dev` after behavioral code changes when practical.
 - Build Windows packages with `npm run dist`.
 
+## Wallpaper Focus Restore Guard
+- Focus-restore behavior is regression-sensitive. Follow `.github/wallpaper-focus-restore-guard.md` whenever touching wallpaper focus logic.
+- Required sequence: unfocus restores original wallpapers; refocus reapplies last applied wallpapers; new wallpaper appears only on scheduler interval.
+- Do not reintroduce refocus-triggered immediate `tick()` (except first-run bootstrap when no last-applied wallpaper exists).
+
 ## Persisted Settings Rules
 - Any new user-facing setting must be fully persistent in the same change: add a default value, normalize and migrate it in `src/main/config-store.js`, collect it from the renderer form, apply it back into the form on load, and pass it to the owning runtime surface.
 - Do not rely on UI-only state for settings that affect popup behavior or appearance.

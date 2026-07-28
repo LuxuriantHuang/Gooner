@@ -129,6 +129,10 @@ function renderMedia(media) {
       await fitWindowToMedia(element.videoWidth, element.videoHeight);
       refreshCurrentMediaFit();
 
+      if (window.viewerPopup && window.viewerPopup.mediaLoaded) {
+        window.viewerPopup.mediaLoaded();
+      }
+
       if (media.chaosVideo && element.duration > 0) {
         const safeDuration = Math.max(0, element.duration - 5);
         if (safeDuration > 0) {
@@ -144,10 +148,18 @@ function renderMedia(media) {
     element.addEventListener('load', async () => {
       await fitWindowToMedia(element.naturalWidth, element.naturalHeight);
       refreshCurrentMediaFit();
+      if (window.viewerPopup && window.viewerPopup.mediaLoaded) {
+        window.viewerPopup.mediaLoaded();
+      }
     });
   }
 
-  element.addEventListener('error', () => showMessage(t('viewer.loadFailed')));
+  element.addEventListener('error', () => {
+    showMessage(t('viewer.loadFailed'));
+    if (window.viewerPopup && window.viewerPopup.mediaLoaded) {
+      window.viewerPopup.mediaLoaded();
+    }
+  });
   currentMediaElement = element;
   stage.replaceChildren(element);
 }

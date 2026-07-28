@@ -63,13 +63,12 @@ const defaultAiPopupAppearanceConfig = {
 
 const defaultAiConfig = {
   provider: 'deepseek',
-  model: 'deepseek-chat',
+  model: 'auto',
   apiKey: '',
-  systemPrompt: '',
-  knowledgeBase: '',
-  contextMemory: '',
-  oneTimeReplyGuidance: '',
-  profile: defaultAiProfileConfig,
+  cards: [],
+  popupCardId: '',
+  interactionCardId: '',
+  pollutionCardId: '',
   popupScheduleEnabled: false,
   singlePopupMode: true,
   immediateReplyEnabled: true,
@@ -80,6 +79,49 @@ const defaultAiConfig = {
   interactionIncludeForegroundApp: false,
   interactionTone: 'teasing',
   popupAppearance: defaultAiPopupAppearanceConfig
+};
+
+const defaultOnlineMediaConfig = {
+  enabled: false,
+  sourceUrl: ''
+};
+
+const defaultPollutionConfig = {
+  enabled: false,
+  clipboardEnabled: false,
+  inputEnabled: false,
+  modePhrase: false,
+  modeCorpus: false,
+  modeAi: false,
+  phrases: '乖乖听话, 放弃挣扎, 主人爱你',
+  corpusPath: '',
+  corpusMinLength: 10,
+  clipboardChance: 20,
+  inputIntervalMin: 10,
+  inputIntervalMax: 30
+};
+
+const defaultVisualInterventionConfig = {
+  enabled: false,
+  ghostEnabled: false,
+  xrayEnabled: false,
+  waterfallEnabled: false,
+  ghostOpacity: 5, // percentage
+  ghostIntervalMinutes: 5,
+  ghostIntervalSeconds: 0,
+  xrayRadius: 200,
+  xrayOpacity: 60, // percentage
+  waterfallSpeed: 50,
+  waterfallCount: 15,
+  waterfallSize: 150,
+  waterfallOpacity: 60,
+  flashEnabled: false,
+  flashIntervalHours: 0,
+  flashIntervalMinutes: 1,
+  flashIntervalSeconds: 0,
+  flashJitterHours: 0,
+  flashJitterMinutes: 0,
+  flashJitterSeconds: 30
 };
 
 const defaultWebsiteLibraryConfig = {
@@ -102,7 +144,20 @@ const defaultWallpaperConfig = {
   enabled: false,
   intervalMinutes: 60,
   minResolution: 0,
-  maxRatioDeviation: 0.20
+  maxRatioDeviation: 0.20,
+  characterEnabled: false,
+  characterFolderPath: '',
+  characterMode: 'diffuse',
+  characterLayerMode: 'system-wallpaper',
+  focusRestoreEnabled: false
+};
+
+const defaultDesktopCharacterConfig = {
+  enabled: false,
+  folderPath: '',
+  intervalMinutes: 30,
+  mode: 'diffuse',
+  layerMode: 'system-wallpaper'
 };
 
 const defaultConfig = {
@@ -135,6 +190,7 @@ const defaultConfig = {
   gradual: false,
   alwaysOnTop: true,
   fullscreen: false,
+  popupOpacity: 100,
   muted: true,
   closeVideoOnEnded: false,
   chaosVideo: false,
@@ -170,7 +226,24 @@ const defaultConfig = {
   websiteLibrary: defaultWebsiteLibraryConfig,
   processRules: defaultProcessRulesConfig,
   wallpaper: defaultWallpaperConfig,
+  desktopCharacter: defaultDesktopCharacterConfig,
+  onlineMedia: defaultOnlineMediaConfig,
   ai: defaultAiConfig,
+  pollution: defaultPollutionConfig,
+  hardcoreMode: false,
+  autoStartOnBoot: false,
+  autoRunScheduler: false,
+  silentMode: false,
+  popupsEnabled: true,
+  uiLayout: {
+    sectionOrder: ['core', 'media', 'system', 'config'],
+    cardOrder: {
+      core: ['popup', 'wallpaper', 'ai-popup', 'ghost', 'xray', 'waterfall', 'flash', 'pollution'],
+      media: ['folders', 'desktop-char', 'online-media'],
+      system: ['interaction', 'process-rules', 'hardcore', 'autostart', 'silent'],
+      config: ['profiles', 'global-settings', 'shortcuts', 'stats']
+    }
+  },
   windowBounds: {
     width: 980,
     height: 720
@@ -196,10 +269,25 @@ function cloneDefaultConfig() {
       }))
     },
     wallpaper: { ...defaultWallpaperConfig },
+    desktopCharacter: { ...defaultDesktopCharacterConfig },
+    onlineMedia: { ...defaultOnlineMediaConfig },
+    pollution: { ...defaultPollutionConfig },
+    visualIntervention: { ...defaultVisualInterventionConfig },
+    websiteLibrary: { ...defaultWebsiteLibraryConfig },
     ai: {
       ...defaultAiConfig,
-      profile: { ...defaultAiProfileConfig },
+      cards: [],
       popupAppearance: { ...defaultAiPopupAppearanceConfig }
+    },
+    uiLayout: {
+      sectionOrder: [...defaultConfig.uiLayout.sectionOrder],
+      cardOrder: (function() {
+        var co = {};
+        for (var k in defaultConfig.uiLayout.cardOrder) {
+          co[k] = [...defaultConfig.uiLayout.cardOrder[k]];
+        }
+        return co;
+      })()
     },
     windowBounds: { ...defaultConfig.windowBounds }
   };
@@ -259,14 +347,24 @@ function getConfigContentScore(config) {
       score += 3;
     }
   }
-  for (const key of ['apiKey', 'systemPrompt', 'knowledgeBase', 'contextMemory']) {
+  for (const key of ['apiKey']) {
     if (typeof ai[key] === 'string' && ai[key].trim()) {
-      score += key === 'apiKey' ? 12 : 6;
+      score += 12;
     }
   }
-  for (const value of Object.values(profile)) {
-    if (String(value || '').trim()) {
-      score += 3;
+  const cards = Array.isArray(ai.cards) ? ai.cards : [];
+  if (cards.length > 0) {
+    score += cards.length * 6;
+  } else {
+    for (const key of ['systemPrompt', 'knowledgeBase', 'contextMemory']) {
+      if (typeof ai[key] === 'string' && ai[key].trim()) {
+        score += 6;
+      }
+    }
+    for (const value of Object.values(profile)) {
+      if (String(value || '').trim()) {
+        score += 3;
+      }
     }
   }
 
@@ -403,7 +501,16 @@ function normalizeAiProvider(value) {
 }
 
 function normalizeAiModel(value) {
-  return value === 'deepseek-reasoner' ? value : defaultAiConfig.model;
+  if (typeof value !== 'string') {
+    return defaultAiConfig.model;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return defaultAiConfig.model;
+  }
+
+  return normalized.slice(0, 120);
 }
 
 function normalizeAiAge(value) {
@@ -493,6 +600,20 @@ function normalizeAiPopupAppearance(input, root = {}) {
   };
 }
 
+function normalizeAiCardConfig(input) {
+  const next = input && typeof input === 'object' ? input : {};
+  return {
+    id: typeof next.id === 'string' && next.id.trim() ? next.id.trim() : `card_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+    name: normalizeSingleLineText(next.name, 48) || 'Default',
+    avatar: normalizeSingleLineText(next.avatar, 2048),
+    systemPrompt: normalizeText(next.systemPrompt, 4000),
+    knowledgeBase: normalizeText(next.knowledgeBase, 12000),
+    contextMemory: normalizeText(next.contextMemory, 4000),
+    oneTimeReplyGuidance: normalizeText(next.oneTimeReplyGuidance, 1000),
+    profile: normalizeAiProfile(next.profile)
+  };
+}
+
 function normalizeAiConfig(input, root = {}) {
   const next = input && typeof input === 'object' ? input : {};
   const interactionHours = Math.round(clampNumber(next.interactionIntervalHours, 0, 24, defaultAiConfig.interactionIntervalHours));
@@ -503,15 +624,37 @@ function normalizeAiConfig(input, root = {}) {
     interactionSeconds = 1;
   }
 
+  let cards = Array.isArray(next.cards) ? next.cards.map(normalizeAiCardConfig) : [];
+  
+  const hasLegacyFields = next.systemPrompt || next.knowledgeBase || next.contextMemory || next.oneTimeReplyGuidance || (next.profile && Object.values(next.profile).some(v => v));
+  
+  if (hasLegacyFields && cards.length === 0) {
+    cards.push(normalizeAiCardConfig({
+      id: 'default',
+      name: 'Default',
+      systemPrompt: next.systemPrompt,
+      knowledgeBase: next.knowledgeBase,
+      contextMemory: next.contextMemory,
+      oneTimeReplyGuidance: next.oneTimeReplyGuidance,
+      profile: next.profile
+    }));
+  } else if (cards.length === 0) {
+    cards.push(normalizeAiCardConfig({ id: 'default', name: 'Default' }));
+  }
+
+  const defaultCardId = cards[0]?.id || '';
+  const popupCardId = typeof next.popupCardId === 'string' && next.popupCardId.trim() ? next.popupCardId.trim() : defaultCardId;
+  const interactionCardId = typeof next.interactionCardId === 'string' && next.interactionCardId.trim() ? next.interactionCardId.trim() : defaultCardId;
+  const pollutionCardId = typeof next.pollutionCardId === 'string' && next.pollutionCardId.trim() ? next.pollutionCardId.trim() : defaultCardId;
+
   return {
     provider: normalizeAiProvider(next.provider),
     model: normalizeAiModel(next.model),
     apiKey: normalizeText(next.apiKey, 300),
-    systemPrompt: normalizeText(next.systemPrompt, 4000),
-    knowledgeBase: normalizeText(next.knowledgeBase, 12000),
-    contextMemory: normalizeText(next.contextMemory, 4000),
-    oneTimeReplyGuidance: normalizeText(next.oneTimeReplyGuidance, 1000),
-    profile: normalizeAiProfile(next.profile),
+    cards,
+    popupCardId,
+    interactionCardId,
+    pollutionCardId,
     popupScheduleEnabled: Boolean(next.popupScheduleEnabled),
     singlePopupMode: next.singlePopupMode !== false,
     immediateReplyEnabled: next.immediateReplyEnabled !== false,
@@ -632,12 +775,105 @@ function normalizeProcessRules(input) {
 
 function normalizeWallpaperConfig(input) {
   const next = input && typeof input === 'object' ? input : {};
+  const validLayerModes = new Set([
+    'system-wallpaper',
+    'progman-worker', 'progman-behind-icons', 'progman-front',
+    'top-level-behind-icons', 'top-level-bottom', 'top-level-front', 'top-level-icon-cutouts'
+  ]);
+  const inputLayerMode = typeof next.characterLayerMode === 'string' ? next.characterLayerMode.trim() : '';
+  const characterLayerMode = validLayerModes.has(inputLayerMode) || (inputLayerMode.startsWith('worker-') && inputLayerMode.length > 7)
+    ? inputLayerMode
+    : defaultWallpaperConfig.characterLayerMode;
   return {
     enabled: Boolean(next.enabled),
     intervalMinutes: Math.round(clampNumber(next.intervalMinutes, 1, 10080, defaultWallpaperConfig.intervalMinutes)),
     minResolution: Math.round(clampNumber(next.minResolution, 0, 8000, defaultWallpaperConfig.minResolution)),
-    maxRatioDeviation: Number(clampNumber(next.maxRatioDeviation, 0, 1.0, defaultWallpaperConfig.maxRatioDeviation))
+    maxRatioDeviation: Number(clampNumber(next.maxRatioDeviation, 0, 1.0, defaultWallpaperConfig.maxRatioDeviation)),
+    characterEnabled: Boolean(next.characterEnabled),
+    characterFolderPath: typeof next.characterFolderPath === 'string' ? next.characterFolderPath.trim() : '',
+    characterMode: ['diffuse', 'directional', 'mask'].includes(next.characterMode) ? next.characterMode : defaultWallpaperConfig.characterMode,
+    characterLayerMode,
+    focusRestoreEnabled: Boolean(next.focusRestoreEnabled)
   };
+}
+
+function normalizeDesktopCharacterConfig(input) {
+  const next = input && typeof input === 'object' ? input : {};
+  const validLayerModes = new Set([
+    'system-wallpaper',
+    'progman-worker', 'progman-behind-icons', 'progman-front',
+    'top-level-behind-icons', 'top-level-bottom', 'top-level-front', 'top-level-icon-cutouts'
+  ]);
+  const inputLayerMode = typeof next.layerMode === 'string' ? next.layerMode.trim() : '';
+  const layerMode = validLayerModes.has(inputLayerMode) || (inputLayerMode.startsWith('worker-') && inputLayerMode.length > 7)
+    ? inputLayerMode
+    : defaultDesktopCharacterConfig.layerMode;
+  return {
+    enabled: Boolean(next.enabled),
+    folderPath: typeof next.folderPath === 'string' ? next.folderPath.trim() : '',
+    intervalMinutes: Math.round(clampNumber(next.intervalMinutes, 1, 10080, defaultDesktopCharacterConfig.intervalMinutes)),
+    mode: ['diffuse', 'directional', 'mask'].includes(next.mode) ? next.mode : defaultDesktopCharacterConfig.mode,
+    layerMode
+  };
+}
+
+function normalizeUiLayout(input) {
+  const defaultSectionOrder = ['core', 'media', 'system', 'config'];
+  const defaultCardOrder = {
+    core: ['popup', 'wallpaper', 'ai-popup', 'ghost', 'xray', 'waterfall', 'flash', 'pollution'],
+    media: ['folders', 'desktop-char', 'online-media'],
+    system: ['interaction', 'process-rules', 'hardcore', 'autostart', 'silent'],
+    config: ['profiles', 'global-settings', 'shortcuts', 'stats']
+  };
+
+  if (!input || typeof input !== 'object') {
+    return {
+      sectionOrder: [...defaultSectionOrder],
+      cardOrder: (function () { var co = {}; for (var k in defaultCardOrder) { co[k] = [...defaultCardOrder[k]]; } return co; })()
+    };
+  }
+
+  // Normalize sectionOrder
+  var sectionOrder = Array.isArray(input.sectionOrder)
+    ? (function () {
+      var seen = {};
+      var result = [];
+      for (var i = 0; i < input.sectionOrder.length; i++) {
+        if (defaultSectionOrder.indexOf(input.sectionOrder[i]) !== -1 && !seen[input.sectionOrder[i]]) {
+          seen[input.sectionOrder[i]] = true;
+          result.push(input.sectionOrder[i]);
+        }
+      }
+      for (var j = 0; j < defaultSectionOrder.length; j++) {
+        if (!seen[defaultSectionOrder[j]]) result.push(defaultSectionOrder[j]);
+      }
+      return result;
+    })()
+    : [...defaultSectionOrder];
+
+  // Normalize cardOrder
+  var cardOrder = {};
+  for (var si = 0; si < defaultSectionOrder.length; si++) {
+    var secKey = defaultSectionOrder[si];
+    var defaultList = defaultCardOrder[secKey] || [];
+    var inputList = (input.cardOrder && Array.isArray(input.cardOrder[secKey]))
+      ? input.cardOrder[secKey]
+      : [];
+    var seen2 = {};
+    var result2 = [];
+    for (var ci = 0; ci < inputList.length; ci++) {
+      if (defaultList.indexOf(inputList[ci]) !== -1 && !seen2[inputList[ci]]) {
+        seen2[inputList[ci]] = true;
+        result2.push(inputList[ci]);
+      }
+    }
+    for (var cj = 0; cj < defaultList.length; cj++) {
+      if (!seen2[defaultList[cj]]) result2.push(defaultList[cj]);
+    }
+    cardOrder[secKey] = result2;
+  }
+
+  return { sectionOrder: sectionOrder, cardOrder: cardOrder };
 }
 
 function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
@@ -707,6 +943,7 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.gradual = Boolean(next.gradual);
   next.alwaysOnTop = Boolean(next.alwaysOnTop);
   next.fullscreen = Boolean(next.fullscreen);
+  next.popupOpacity = Math.round(clampNumber(next.popupOpacity, 10, 100, defaultConfig.popupOpacity));
   next.muted = Boolean(next.muted);
   next.closeVideoOnEnded = Boolean(next.closeVideoOnEnded);
   next.chaosVideo = Boolean(next.chaosVideo);
@@ -714,6 +951,7 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.randomCloseButton = Boolean(next.randomCloseButton);
   next.disableManualClose = Boolean(next.disableManualClose);
   next.developerMode = Boolean(next.developerMode);
+  next.popupsEnabled = Boolean(next.popupsEnabled);
   next.closeButtonText = normalizeCloseButtonText(next.closeButtonText);
   next.closeButtonFontSize = Math.round(clampNumber(next.closeButtonFontSize, 10, 36, defaultConfig.closeButtonFontSize));
   next.closeButtonBorderRadius = Math.round(clampNumber(next.closeButtonBorderRadius, 0, 32, defaultConfig.closeButtonBorderRadius));
@@ -798,7 +1036,9 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.videoCompensationThreshold = Number(clampNumber(next.videoCompensationThreshold, 1, 10, hasCompensationThreshold ? sharedCompensationThreshold : 2.0));
   next.websiteLibrary = normalizeWebsiteLibrary(next.websiteLibrary);
   next.processRules = normalizeProcessRules(next.processRules);
+  next.uiLayout = normalizeUiLayout(next.uiLayout);
   next.wallpaper = normalizeWallpaperConfig(next.wallpaper);
+  next.desktopCharacter = normalizeDesktopCharacterConfig(next.desktopCharacter);
   next.ai = normalizeAiConfig(next.ai, next);
   next.windowBounds = normalizeWindowBounds(next.windowBounds);
 
@@ -853,6 +1093,34 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   delete next.compensationThreshold;
   delete next.aiPopupWidth;
   delete next.aiPopupHeight;
+
+  const vcInput = input?.visualIntervention || {};
+  
+  if (vcInput.ambientMode !== undefined) {
+    if (vcInput.ambientMode === 'ghost') vcInput.ghostEnabled = true;
+    else if (vcInput.ambientMode === 'spotlight') vcInput.xrayEnabled = true;
+    else if (vcInput.ambientMode === 'waterfall') vcInput.waterfallEnabled = true;
+    delete vcInput.ambientMode;
+  }
+  if (vcInput.spotlightRadius !== undefined) {
+    vcInput.xrayRadius = vcInput.spotlightRadius;
+    delete vcInput.spotlightRadius;
+  }
+
+  if (vcInput.flashChance !== undefined) {
+    if (vcInput.flashChance > 0) {
+      vcInput.flashIntervalMinutes = Math.max(1, Math.round(100 / vcInput.flashChance));
+      vcInput.flashIntervalHours = 0;
+      vcInput.flashIntervalSeconds = 0;
+    }
+    delete vcInput.flashChance;
+  }
+
+  const vcNext = { ...defaultVisualInterventionConfig, ...vcInput };
+  delete vcNext.mediaPath;
+  delete vcNext.mediaPaths;
+  next.visualIntervention = vcNext;
+
   return next;
 }
 
@@ -940,12 +1208,21 @@ async function writeConfigPathState(app, configPath) {
   await fs.writeFile(statePath, JSON.stringify({ configPath: nextPath }, null, 2), 'utf8');
 }
 
+function getResolvedAiCard(aiConfig, cardId) {
+  const cards = Array.isArray(aiConfig?.cards) ? aiConfig.cards : [];
+  if (cards.length === 0) return null;
+  const target = cards.find(c => c.id === cardId);
+  return target || cards[0];
+}
+
 module.exports = {
   clampNumber,
   cloneDefaultConfig,
   defaultConfig,
+  getConfigContentScore,
   getConfigPath,
   getConfigPathStatePath,
+  getResolvedAiCard,
   loadConfigFile,
   normalizeAiConfig,
   normalizeConfig,

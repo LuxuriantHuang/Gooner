@@ -104,7 +104,8 @@ function bindAutoClose(popup, config) {
 
       step += 1;
       const progress = Math.min(1, step / totalFadeSteps);
-      const targetOpacity = Math.max(0, 1 - progress);
+      const baseOpacity = config.popupOpacity !== undefined ? config.popupOpacity / 100 : 1;
+      const targetOpacity = Math.max(0, baseOpacity * (1 - progress));
       popup.setOpacity(targetOpacity);
       if (popup.webContents && !popup.webContents.isDestroyed()) {
         popup.webContents.send('viewer:setOpacity', targetOpacity);
@@ -165,9 +166,9 @@ function getAiPopupBounds(screen, appearance = {}, config = {}, display = null) 
   const width = Math.round(clampNumber(appearance.popupWidth, 320, area.width, clampNumber(config.aiPopupWidth, 320, area.width, 420)));
   const height = Math.round(clampNumber(appearance.popupHeight, 96, area.height, clampNumber(config.aiPopupHeight, 96, area.height, 320)));
 
-  // Allow up to 25% overflow beyond screen edges for a more random feel
-  const overflowX = Math.floor(width * 0.25);
-  const overflowY = Math.floor(height * 0.25);
+  // Allow up to 30% overflow beyond screen edges for a more random feel
+  const overflowX = Math.floor(width * 0.3);
+  const overflowY = Math.floor(height * 0.3);
 
   return {
     width,
@@ -182,7 +183,11 @@ function showPopupWithoutStealingFocus(popup) {
     return;
   }
 
+  const wasAlwaysOnTop = popup.isAlwaysOnTop();
   popup.showInactive();
+  if (wasAlwaysOnTop) {
+    popup.setAlwaysOnTop(true, 'screen-saver');
+  }
 }
 
 class WindowManager {
@@ -255,9 +260,9 @@ class WindowManager {
     const height = config.fullscreen
       ? area.height
       : Math.round(clampNumber(sizeConfig.baseHeight + heightOffset, 120, area.height, Math.min(sizeConfig.baseHeight, area.height)));
-    // Allow up to 25% overflow beyond screen edges for a more random feel
-    const overflowX = Math.floor(width * 0.25);
-    const overflowY = Math.floor(height * 0.25);
+    // Allow up to 30% overflow beyond screen edges for a more random feel
+    const overflowX = Math.floor(width * 0.3);
+    const overflowY = Math.floor(height * 0.3);
     const x = config.fullscreen ? area.x : randomInt(area.x - overflowX, Math.max(area.x - overflowX, area.x + area.width - width + overflowX));
     const y = config.fullscreen ? area.y : randomInt(area.y - overflowY, Math.max(area.y - overflowY, area.y + area.height - height + overflowY));
     const viewerId = String(this.nextViewerId++);
@@ -302,6 +307,7 @@ class WindowManager {
       fullscreen: config.fullscreen,
       skipTaskbar: true,
       transparent: true,
+      opacity: config.popupOpacity !== undefined ? config.popupOpacity / 100 : 1,
       backgroundColor: '#00000000',
       autoHideMenuBar: true,
       webPreferences: {
@@ -315,6 +321,18 @@ class WindowManager {
     popup.setMenuBarVisibility(false);
     if (config.alwaysOnTop) {
       popup.setAlwaysOnTop(true, 'screen-saver');
+      const enforceAlwaysOnTop = () => {
+        if (!popup.isDestroyed()) {
+          popup.setAlwaysOnTop(true, 'screen-saver');
+        }
+      };
+      popup.on('restore', enforceAlwaysOnTop);
+      popup.on('show', enforceAlwaysOnTop);
+      popup.on('focus', enforceAlwaysOnTop);
+    }
+
+    if (config.disableManualClose && getPopupLifetimeMs(config) > 0) {
+      popup.setIgnoreMouseEvents(true);
     }
 
     this.popupWindows.add(popup);
@@ -328,11 +346,39 @@ class WindowManager {
       this.viewerPayloads.delete(viewerId);
       this.sendState();
     });
-    popup.once('ready-to-show', () => showPopupWithoutStealingFocus(popup));
+    popup.__isReadyToShow = false;
+    popup.__isMediaLoaded = false;
+
+    const tryShow = () => {
+      if (!popup.isDestroyed() && popup.__isReadyToShow && popup.__isMediaLoaded && !popup.isVisible()) {
+        showPopupWithoutStealingFocus(popup);
+      }
+    };
+
+    popup.once('ready-to-show', () => {
+      popup.__isReadyToShow = true;
+      tryShow();
+    });
+
+    setTimeout(() => {
+      if (!popup.isDestroyed() && !popup.isVisible()) {
+        showPopupWithoutStealingFocus(popup);
+      }
+    }, 5000);
     popup.loadFile(path.join(this.baseDir, '..', 'viewer', 'viewer.html'), { query: { id: viewerId } });
     statsStore.incrementPopup(app, media.type);
     this.sendState();
     return true;
+  }
+
+  markViewerMediaLoaded(webContents) {
+    const popup = BrowserWindow.fromWebContents(webContents);
+    if (popup && this.popupWindows.has(popup)) {
+      popup.__isMediaLoaded = true;
+      if (popup.__isReadyToShow && !popup.isDestroyed() && !popup.isVisible()) {
+        showPopupWithoutStealingFocus(popup);
+      }
+    }
   }
 
   createAiTextPopup(payload = {}, config = null, options = {}) {
@@ -378,6 +424,7 @@ class WindowManager {
       closable: true,
       alwaysOnTop: Boolean(config?.alwaysOnTop),
       transparent: true,
+      opacity: config?.popupOpacity !== undefined ? config.popupOpacity / 100 : 1,
       skipTaskbar: true,
       backgroundColor: '#00000000',
       autoHideMenuBar: true,
@@ -392,6 +439,17 @@ class WindowManager {
     popup.setMenuBarVisibility(false);
     if (config?.alwaysOnTop) {
       popup.setAlwaysOnTop(true, 'screen-saver');
+      const enforceAlwaysOnTop = () => {
+        if (!popup.isDestroyed()) {
+          popup.setAlwaysOnTop(true, 'screen-saver');
+        }
+      };
+      popup.on('restore', enforceAlwaysOnTop);
+      popup.on('show', enforceAlwaysOnTop);
+      popup.on('focus', enforceAlwaysOnTop);
+    }
+    if (config?.disableManualClose && getPopupLifetimeMs(config || {}) > 0) {
+      popup.setIgnoreMouseEvents(true);
     }
     this.aiTextWindows.add(popup);
     bindAutoClose(popup, config);

@@ -4,10 +4,17 @@
   "description": "A local, user-controlled media popup tool for Windows.",
   "main": "src/main/main.js",
   "scripts": {
+    "build:native": "node scripts/build-desktop-host.js",
+    "test:wallpaper-focus": "node --test test/wallpaper-focus-state.test.js",
+    "predev": "npm run build:native",
     "dev": "electron .",
+    "prestart": "npm run build:native",
     "start": "electron .",
+    "predist": "npm run build:native",
     "dist": "electron-builder --win",
-    "dist:cn": "set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/&& set ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/&& electron-builder --win"
+    "predist:cn": "npm run build:native",
+    "dist:cn": "set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/&& set ELECTRON_BUILDER_BINARIES_MIRROR=https://npmmirror.com/mirrors/electron-builder-binaries/&& electron-builder --win",
+    "lint:i18n": "node scripts/lint-i18n.js"
   },
   "keywords": [
     "electron",
@@ -29,6 +36,9 @@
     "files": [
       "src/**/*",
       "package.json"
+    ],
+    "asarUnpack": [
+      "src/native/desktop-host.exe"
     ],
     "win": {
       "target": "nsis",

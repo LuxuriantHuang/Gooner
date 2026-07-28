@@ -10,53 +10,15 @@ function getProfilesIndexPath(app) {
   return path.join(app.getPath('userData'), 'profiles.json');
 }
 
-const PRESET_TEMPLATES = {
-  'work': {
-    name: '工作专注 (Work Focus)',
-    config: {
-      popupLifetimeMinutes: 1,
-      popupLifetimeSeconds: 0,
-      burstCount: 1,
-      minWindows: 1,
-      maxWindows: 1,
-      scheduler: {
-        intervalHours: 0,
-        intervalMinutes: 45,
-        intervalSeconds: 0
-      }
-    }
-  },
-  'casual': {
-    name: '休闲摸鱼 (Casual Relax)',
-    config: {
-      popupLifetimeMinutes: 3,
-      popupLifetimeSeconds: 0,
-      burstCount: 2,
-      minWindows: 1,
-      maxWindows: 3,
-      scheduler: {
-        intervalHours: 0,
-        intervalMinutes: 15,
-        intervalSeconds: 0
-      }
-    }
-  },
-  'insane': {
-    name: '疯狂模式 (Insane Popups)',
-    config: {
-      popupLifetimeMinutes: 5,
-      popupLifetimeSeconds: 0,
-      burstCount: 5,
-      minWindows: 3,
-      maxWindows: 'unlimited',
-      scheduler: {
-        intervalHours: 0,
-        intervalMinutes: 3,
-        intervalSeconds: 0
-      }
-    }
+const DEFAULT_PROFILES = require('../shared/default-profiles');
+
+// Keep PRESET_TEMPLATES exported as it was, but construct it from DEFAULT_PROFILES excluding 'default'
+const PRESET_TEMPLATES = {};
+for (const [id, profile] of Object.entries(DEFAULT_PROFILES)) {
+  if (id !== 'default') {
+    PRESET_TEMPLATES[id] = profile;
   }
-};
+}
 
 async function readProfilesIndex(app) {
   try {
@@ -97,10 +59,7 @@ async function createProfile(app, profileId, name, templateId = null, currentCon
   
   if (templateId && PRESET_TEMPLATES[templateId]) {
     const template = PRESET_TEMPLATES[templateId];
-    newConfig = { ...newConfig, ...template.config };
-    if (template.config.scheduler && newConfig.scheduler) {
-      newConfig.scheduler = { ...newConfig.scheduler, ...template.config.scheduler };
-    }
+    newConfig = JSON.parse(JSON.stringify(template.config)); // Completely use the template's config
   }
 
   await fs.writeFile(profilePath, JSON.stringify(newConfig, null, 2), 'utf8');
@@ -130,13 +89,39 @@ async function deleteProfile(app, profileId) {
   }
 }
 
+async function renameProfile(app, profileId, newName) {
+  const index = await readProfilesIndex(app);
+  if (!index[profileId]) {
+    throw new Error(`Profile ${profileId} not found`);
+  }
+  index[profileId].name = newName;
+  await writeProfilesIndex(app, index);
+}
+
 async function initProfiles(app, currentConfig) {
   try {
     await fs.access(getProfilesIndexPath(app));
+    return false; // Not a first-time init
   } catch {
     console.log('Initializing predefined profiles...');
+    
+    // Overwrite the main config.json with the 'default' bundled profile ONLY if no existing user data
+    const { getConfigContentScore } = require('./config-store');
+    const hasData = currentConfig && getConfigContentScore(currentConfig) > 0;
+    
+    if (!hasData) {
+      const defaultProfileConfig = DEFAULT_PROFILES['default']?.config;
+      if (defaultProfileConfig) {
+        const configPath = getConfigPath(app);
+        await fs.writeFile(configPath, JSON.stringify(defaultProfileConfig, null, 2), 'utf8');
+        console.log('Default config overwritten with preset.');
+      }
+    } else {
+      console.log('Preserved existing config.json data as default profile.');
+    }
+
     await writeProfilesIndex(app, {
-      'default': { name: '默认模式 (Default)', path: getConfigPath(app) }
+      'default': { name: DEFAULT_PROFILES['default']?.name || '默认模式 (Default)', path: getConfigPath(app) }
     });
     
     for (const [id, template] of Object.entries(PRESET_TEMPLATES)) {
@@ -146,6 +131,7 @@ async function initProfiles(app, currentConfig) {
         console.error(`Failed to create preset profile ${id}:`, err);
       }
     }
+    return true; // Indicates we initialized profiles
   }
 }
 
@@ -153,6 +139,7 @@ module.exports = {
   listProfiles,
   createProfile,
   deleteProfile,
+  renameProfile,
   initProfiles,
   PRESET_TEMPLATES
 };

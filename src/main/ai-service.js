@@ -1,5 +1,11 @@
+const { net } = require('electron');
 const { translate } = require('../shared/i18n');
 const { normalizeSingleLineText, normalizeText, uiTextTargets } = require('./config-store');
+
+const AUTO_MODEL_KEY = 'auto';
+const DEFAULT_DEEPSEEK_MODEL = 'deepseek-chat';
+const MODEL_LIST_CACHE_TTL_MS = 10 * 60 * 1000;
+const modelListCache = new Map();
 
 const errorKeyMap = {
   missing_api_key: 'ai.error.missingKey',
@@ -13,14 +19,14 @@ function getUiTextTargetDefinition(targetKey) {
   return uiTextTargets.get(targetKey) || null;
 }
 
-function buildUiTextGenerationMessages(aiConfig, targetKey, locale) {
+function buildUiTextGenerationMessages(cardConfig, targetKey, locale) {
   const target = getUiTextTargetDefinition(targetKey);
   const currentLabel = translate(locale, target.translationKey);
   const systemPrompt = [
     'You rewrite short interface button labels for a desktop application.',
     'Return only the final label text with no quotes, bullets, explanations, or markdown.',
     'Keep the result concise, natural, and suitable for a clickable button.',
-    aiConfig.systemPrompt
+    cardConfig?.systemPrompt
   ].filter(Boolean).join('\n\n');
 
   const userPrompt = [
@@ -28,8 +34,8 @@ function buildUiTextGenerationMessages(aiConfig, targetKey, locale) {
     `Target key: ${targetKey}`,
     `Target description: ${target.description}`,
     `Current default label: ${currentLabel}`,
-    aiConfig.knowledgeBase ? `Reference knowledge:\n${aiConfig.knowledgeBase}` : '',
-    aiConfig.contextMemory ? `Lightweight context memory:\n${aiConfig.contextMemory}` : '',
+    cardConfig?.knowledgeBase ? `Reference knowledge:\n${cardConfig.knowledgeBase}` : '',
+    cardConfig?.contextMemory ? `Lightweight context memory:\n${cardConfig.contextMemory}` : '',
     'Keep Chinese labels under 12 characters when possible, or under 28 Latin characters.',
     'Return a single label only.'
   ].filter(Boolean).join('\n\n');
@@ -44,8 +50,8 @@ function sanitizeUiTextResponse(value) {
   return normalizeSingleLineText(String(value || '').replace(/^["'“”]+|["'“”]+$/g, ''), 48);
 }
 
-function buildProfileContext(aiConfig) {
-  const profile = aiConfig?.profile && typeof aiConfig.profile === 'object' ? aiConfig.profile : {};
+function buildProfileContext(cardConfig) {
+  const profile = cardConfig?.profile && typeof cardConfig.profile === 'object' ? cardConfig.profile : {};
   const details = [
     profile.age ? `Age: ${profile.age}` : '',
     profile.name ? `Name: ${profile.name}` : '',
@@ -79,21 +85,21 @@ function buildProfileContext(aiConfig) {
   return sections.join('\n\n');
 }
 
-function buildPopupTextGenerationMessages(aiConfig, locale) {
+function buildPopupTextGenerationMessages(cardConfig, locale) {
   const systemPrompt = [
     'You generate standalone text content for a popup window in a local desktop media popup tool.',
     'Return only the popup text body with no markdown fences, speaker labels, or meta explanations.',
     'The result should read like finished content suitable for direct display in a popup window.',
     'Prefer concise, readable output that usually fits in 1 to 4 short paragraphs.',
-    aiConfig.systemPrompt
+    cardConfig?.systemPrompt
   ].filter(Boolean).join('\n\n');
 
   const userPrompt = [
     `Target locale: ${locale}`,
-    aiConfig.knowledgeBase ? `Reference knowledge:\n${aiConfig.knowledgeBase}` : '',
-    aiConfig.contextMemory ? `Lightweight context memory:\n${aiConfig.contextMemory}` : '',
-    aiConfig.oneTimeReplyGuidance ? `One-time newest user reply guidance (apply for this generation only):\n${aiConfig.oneTimeReplyGuidance}` : '',
-    buildProfileContext(aiConfig),
+    cardConfig?.knowledgeBase ? `Reference knowledge:\n${cardConfig.knowledgeBase}` : '',
+    cardConfig?.contextMemory ? `Lightweight context memory:\n${cardConfig.contextMemory}` : '',
+    cardConfig?.oneTimeReplyGuidance ? `One-time newest user reply guidance (apply for this generation only):\n${cardConfig.oneTimeReplyGuidance}` : '',
+    buildProfileContext(cardConfig),
     'Generate one popup text only.',
     'Do not describe what you are doing.',
     'Do not include markdown formatting.'
@@ -105,7 +111,7 @@ function buildPopupTextGenerationMessages(aiConfig, locale) {
   ];
 }
 
-function buildContextInteractionMessages(aiConfig, locale, runtimeContext = {}) {
+function buildContextInteractionMessages(aiConfig, cardConfig, locale, runtimeContext = {}) {
   const contextLines = [
     runtimeContext.localTime ? `Local time: ${runtimeContext.localTime}` : '',
     runtimeContext.timezone ? `Timezone: ${runtimeContext.timezone}` : '',
@@ -129,16 +135,16 @@ function buildContextInteractionMessages(aiConfig, locale, runtimeContext = {}) 
     'The message must be display-ready, concise, and usually 1 to 3 short paragraphs when the action includes text.',
     'Do not ask questions or simulate a conversation.',
     toneInstructions[aiConfig.interactionTone] || toneInstructions.teasing,
-    aiConfig.systemPrompt
+    cardConfig?.systemPrompt
   ].filter(Boolean).join('\n\n');
 
   const userPrompt = [
     `Target locale: ${locale}`,
     contextLines.length > 0 ? `Current runtime context:\n${contextLines.join('\n')}` : '',
-    aiConfig.knowledgeBase ? `Reference knowledge:\n${aiConfig.knowledgeBase}` : '',
-    aiConfig.contextMemory ? `Lightweight context memory:\n${aiConfig.contextMemory}` : '',
-    aiConfig.oneTimeReplyGuidance ? `One-time newest user reply guidance (apply for this generation only):\n${aiConfig.oneTimeReplyGuidance}` : '',
-    buildProfileContext(aiConfig),
+    cardConfig?.knowledgeBase ? `Reference knowledge:\n${cardConfig.knowledgeBase}` : '',
+    cardConfig?.contextMemory ? `Lightweight context memory:\n${cardConfig.contextMemory}` : '',
+    cardConfig?.oneTimeReplyGuidance ? `One-time newest user reply guidance (apply for this generation only):\n${cardConfig.oneTimeReplyGuidance}` : '',
+    buildProfileContext(cardConfig),
     'Write one contextual popup message that lightly reacts to the current state.',
     'Action rules: use "text_only" for a text popup only; use "text_and_media" for text plus one extra media popup; use "media_only" when the interaction should be visual without AI text; use "skip" when this round should do nothing.',
     'When action is "media_only" or "skip", keep the message empty.',
@@ -212,12 +218,166 @@ function createAiError(code, detail) {
   return error;
 }
 
-async function requestDeepSeekUiText({ aiConfig, targetKey, locale }) {
+function normalizeModelId(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim();
+}
+
+function getCachedModelList(apiKey) {
+  const cacheKey = normalizeModelId(apiKey);
+  if (!cacheKey) {
+    return null;
+  }
+
+  const cached = modelListCache.get(cacheKey);
+  if (!cached) {
+    return null;
+  }
+
+  if ((Date.now() - cached.timestamp) > MODEL_LIST_CACHE_TTL_MS) {
+    modelListCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.models;
+}
+
+function setCachedModelList(apiKey, models) {
+  const cacheKey = normalizeModelId(apiKey);
+  if (!cacheKey) {
+    return;
+  }
+
+  modelListCache.set(cacheKey, {
+    timestamp: Date.now(),
+    models
+  });
+}
+
+function normalizeModelItems(data) {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  const seen = new Set();
+  return data
+    .map((item) => {
+      if (!item || typeof item !== 'object') {
+        return null;
+      }
+
+      const id = normalizeModelId(item.id);
+      if (!id) {
+        return null;
+      }
+
+      if (seen.has(id)) {
+        return null;
+      }
+
+      seen.add(id);
+
+      return {
+        id,
+        created: Number.isFinite(Number(item.created)) ? Number(item.created) : 0
+      };
+    })
+    .filter(Boolean)
+    .sort((left, right) => {
+      if (right.created !== left.created) {
+        return right.created - left.created;
+      }
+
+      return right.id.localeCompare(left.id);
+    });
+}
+
+async function listDeepSeekModels({ apiKey, forceRefresh = false }) {
+  const normalizedApiKey = normalizeModelId(apiKey);
+  if (!normalizedApiKey) {
+    throw createAiError('missing_api_key');
+  }
+
+  if (typeof net.fetch !== 'function') {
+    throw createAiError('fetch_unavailable');
+  }
+
+  if (!forceRefresh) {
+    const cached = getCachedModelList(normalizedApiKey);
+    if (cached) {
+      return cached;
+    }
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const response = await net.fetch('https://api.deepseek.com/models', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${normalizedApiKey}`
+      },
+      signal: controller.signal
+    });
+
+    const bodyText = await response.text();
+    let body = null;
+
+    try {
+      body = bodyText ? JSON.parse(bodyText) : null;
+    } catch {
+      body = null;
+    }
+
+    if (!response.ok) {
+      const detail = body?.error?.message || body?.message || bodyText || `HTTP ${response.status}`;
+      throw createAiError('request_failed', detail);
+    }
+
+    const models = normalizeModelItems(body?.data);
+    if (models.length === 0) {
+      throw createAiError('empty_response');
+    }
+
+    setCachedModelList(normalizedApiKey, models);
+    return models;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw createAiError('timeout');
+    }
+    if (error?.code) {
+      throw error;
+    }
+    throw createAiError('request_failed', error?.message || 'Unknown error');
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function resolveDeepSeekModel(aiConfig) {
+  const explicitModel = normalizeModelId(aiConfig?.model);
+  if (explicitModel && explicitModel !== AUTO_MODEL_KEY) {
+    return explicitModel;
+  }
+
+  try {
+    const models = await listDeepSeekModels({ apiKey: aiConfig?.apiKey });
+    return models[0]?.id || DEFAULT_DEEPSEEK_MODEL;
+  } catch {
+    return DEFAULT_DEEPSEEK_MODEL;
+  }
+}
+
+async function requestDeepSeekUiText({ aiConfig, cardConfig, targetKey, locale }) {
   if (!aiConfig.apiKey) {
     throw createAiError('missing_api_key');
   }
 
-  if (typeof fetch !== 'function') {
+  if (typeof net.fetch !== 'function') {
     throw createAiError('fetch_unavailable');
   }
 
@@ -225,15 +385,17 @@ async function requestDeepSeekUiText({ aiConfig, targetKey, locale }) {
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const model = await resolveDeepSeekModel(aiConfig);
+
+    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${aiConfig.apiKey}`
       },
       body: JSON.stringify({
-        model: aiConfig.model,
-        messages: buildUiTextGenerationMessages(aiConfig, targetKey, locale),
+        model,
+        messages: buildUiTextGenerationMessages(cardConfig, targetKey, locale),
         stream: false,
         temperature: 0.7
       }),
@@ -277,12 +439,12 @@ async function requestDeepSeekUiText({ aiConfig, targetKey, locale }) {
   }
 }
 
-async function requestDeepSeekPopupText({ aiConfig, locale }) {
+async function requestDeepSeekPopupText({ aiConfig, cardConfig, locale }) {
   if (!aiConfig.apiKey) {
     throw createAiError('missing_api_key');
   }
 
-  if (typeof fetch !== 'function') {
+  if (typeof net.fetch !== 'function') {
     throw createAiError('fetch_unavailable');
   }
 
@@ -290,15 +452,17 @@ async function requestDeepSeekPopupText({ aiConfig, locale }) {
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const model = await resolveDeepSeekModel(aiConfig);
+
+    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${aiConfig.apiKey}`
       },
       body: JSON.stringify({
-        model: aiConfig.model,
-        messages: buildPopupTextGenerationMessages(aiConfig, locale),
+        model,
+        messages: buildPopupTextGenerationMessages(cardConfig, locale),
         stream: false,
         temperature: 0.9
       }),
@@ -342,12 +506,12 @@ async function requestDeepSeekPopupText({ aiConfig, locale }) {
   }
 }
 
-async function requestDeepSeekContextInteractionText({ aiConfig, locale, runtimeContext }) {
+async function requestDeepSeekContextInteractionText({ aiConfig, cardConfig, locale, runtimeContext }) {
   if (!aiConfig.apiKey) {
     throw createAiError('missing_api_key');
   }
 
-  if (typeof fetch !== 'function') {
+  if (typeof net.fetch !== 'function') {
     throw createAiError('fetch_unavailable');
   }
 
@@ -355,15 +519,17 @@ async function requestDeepSeekContextInteractionText({ aiConfig, locale, runtime
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const model = await resolveDeepSeekModel(aiConfig);
+
+    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${aiConfig.apiKey}`
       },
       body: JSON.stringify({
-        model: aiConfig.model,
-        messages: buildContextInteractionMessages(aiConfig, locale, runtimeContext),
+        model,
+        messages: buildContextInteractionMessages(aiConfig, cardConfig, locale, runtimeContext),
         stream: false,
         temperature: 0.85
       }),
@@ -418,6 +584,7 @@ module.exports = {
   buildUiTextGenerationMessages,
   getAiErrorKey,
   getUiTextTargetDefinition,
+  listDeepSeekModels,
   requestDeepSeekContextInteractionText,
   requestDeepSeekPopupText,
   requestDeepSeekUiText,

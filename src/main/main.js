@@ -2,6 +2,7 @@ const { app, BrowserWindow, dialog, globalShortcut, ipcMain, screen, shell } = r
 const { execFile } = require('node:child_process');
 const path = require('path');
 const { promisify } = require('node:util');
+const fs = require('fs');
 const { resolveLanguage, translate } = require('../shared/i18n');
 const {
   cloneDefaultConfig,
@@ -15,14 +16,18 @@ const {
   readConfigCandidate,
   writeConfigPathState,
   writeConfigFile,
-  writeConfigFileSync
+  writeConfigFileSync,
+  getResolvedAiCard
 } = require('./config-store');
-const { getAiErrorKey, requestDeepSeekContextInteractionText, requestDeepSeekPopupText } = require('./ai-service');
-const { scanFolders } = require('./media-library');
+const { getAiErrorKey, listDeepSeekModels, requestDeepSeekContextInteractionText, requestDeepSeekPopupText } = require('./ai-service');
+const { scanFolders, getMediaType } = require('./media-library');
 const { Scheduler } = require('./scheduler');
 const { WallpaperService } = require('./wallpaper-service');
+const { DesktopCharacterService } = require('./desktop-character-service');
 const { WindowManager } = require('./window-manager');
 const profileManager = require('./profile-manager');
+const pollution = require('./pollution');
+const visualOverlay = require('./visual-overlay');
 const {
   initStats,
   getStats,
@@ -34,6 +39,46 @@ const {
 } = require('./stats-store');
 
 app.commandLine.appendSwitch('disable-accelerated-video-decode');
+
+// --- Start File Logger ---
+let logStream;
+try {
+  const logPath = path.join(app.getPath('userData'), 'startup.log');
+  // Append mode, so we can see crashes across launches
+  logStream = fs.createWriteStream(logPath, { flags: 'a' });
+  const originalLog = console.log;
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  
+  function writeLog(level, ...args) {
+    try {
+      const msg = `[${new Date().toISOString()}] [${level}] ` + args.map(a => {
+        if (typeof a === 'object') {
+          try { return JSON.stringify(a); } catch (e) { return String(a); }
+        }
+        return String(a);
+      }).join(' ') + '\n';
+      if (logStream) logStream.write(msg);
+    } catch (e) { /* ignore log error */ }
+    
+    if (level === 'ERROR') originalError(...args);
+    else if (level === 'WARN') originalWarn(...args);
+    else originalLog(...args);
+  }
+  
+  console.log = (...args) => writeLog('INFO', ...args);
+  console.error = (...args) => writeLog('ERROR', ...args);
+  console.warn = (...args) => writeLog('WARN', ...args);
+  
+  console.log('\n\n=== APPLICATION START ===');
+  console.log('App Version:', app.getVersion());
+  console.log('Electron Version:', process.versions.electron);
+  console.log('Node Version:', process.versions.node);
+  console.log('OS Platform:', process.platform);
+} catch (err) {
+  console.error('Failed to initialize logger:', err);
+}
+// --- End File Logger ---
 
 const execFileAsync = promisify(execFile);
 const foregroundAppCommand = [
@@ -74,6 +119,7 @@ let websiteQueueIndex = 0;
 let shortcutRegistration = {};
 let scheduler = null;
 let wallpaperService = null;
+let desktopCharacterService = null;
 let windowManager = null;
 let interactionTimer = null;
 let interactionInFlight = false;
@@ -90,6 +136,39 @@ let processRuleState = {
 };
 let activeConfigPath = '';
 let originalConfigPathBeforeAutoSwitch = null;
+
+function isHiddenStartupLaunch() {
+  return Array.isArray(process.argv) && process.argv.includes('--hidden');
+}
+
+async function startBootstrapServices() {
+  const startupDelayMs = isHiddenStartupLaunch() ? 6000 : 0;
+  if (startupDelayMs > 0) {
+    console.log(`[Main] Hidden startup detected; delaying bootstrap services for ${startupDelayMs}ms.`);
+    await new Promise((resolve) => setTimeout(resolve, startupDelayMs));
+  }
+
+  try {
+    await scanMedia();
+  } catch (error) {
+    console.error('Initial media scan failed:', error);
+  }
+
+  if (wallpaperService) {
+    wallpaperService.start().catch((error) => {
+      console.error('Wallpaper bootstrap failed:', error);
+    });
+  }
+
+  if (config.autoRunScheduler && scheduler && !scheduler.isRunning) {
+    try {
+      await startScheduler();
+      sendState();
+    } catch (error) {
+      console.error('Auto-run scheduler failed:', error);
+    }
+  }
+}
 
 async function switchActiveConfigPath(targetPath) {
   if (!targetPath) return false;
@@ -184,8 +263,9 @@ async function generateImmediateAiReply(popupId, replyText) {
   const locale = getAiLocale(config.language);
 
   try {
-    const result = await requestDeepSeekPopupText({ aiConfig, locale });
-    await consumeOneTimeReplyGuidance();
+    const cardConfig = getResolvedAiCard(aiConfig, aiConfig.popupCardId);
+    const result = await requestDeepSeekPopupText({ aiConfig, cardConfig, locale });
+    await consumeOneTimeReplyGuidance(cardConfig?.id);
 
     const popupResult = windowManager.createAiTextPopup({
       text: result.text,
@@ -210,18 +290,18 @@ async function generateImmediateAiReply(popupId, replyText) {
   }
 }
 
-async function consumeOneTimeReplyGuidance() {
+async function consumeOneTimeReplyGuidance(cardId) {
   const aiConfig = normalizeAiConfig(config.ai);
-  if (!aiConfig.oneTimeReplyGuidance) {
+  const cardIndex = aiConfig.cards.findIndex(c => c.id === cardId);
+  if (cardIndex === -1 || !aiConfig.cards[cardIndex].oneTimeReplyGuidance) {
     return;
   }
 
+  aiConfig.cards[cardIndex].oneTimeReplyGuidance = '';
+
   await saveConfig({
     ...config,
-    ai: {
-      ...aiConfig,
-      oneTimeReplyGuidance: ''
-    }
+    ai: aiConfig
   });
 }
 
@@ -734,12 +814,14 @@ async function executeContextInteraction(options = {}) {
   }
 
   try {
+    const cardConfig = getResolvedAiCard(aiConfig, aiConfig.interactionCardId);
     const result = await requestDeepSeekContextInteractionText({
       aiConfig,
+      cardConfig,
       locale,
       runtimeContext
     });
-    await consumeOneTimeReplyGuidance();
+    await consumeOneTimeReplyGuidance(cardConfig?.id);
 
     let textPopupShown = false;
     let mediaPopupShown = false;
@@ -900,6 +982,15 @@ function registerActionShortcuts() {
       console.warn(`Invalid shortcut: ${accelerator}`, error);
     }
   }
+
+  if (config.hardcoreMode) {
+    globalShortcut.register('CommandOrControl+Alt+Shift+F12', () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.show();
+        mainWindow.webContents.send('hardcore:unlock');
+      }
+    });
+  }
 }
 
 function getStoredMainWindowBounds() {
@@ -921,6 +1012,27 @@ function getStoredMainWindowBounds() {
 
   if (storedBounds.y !== undefined) {
     bounds.y = Math.min(Math.max(area.y, storedBounds.y), area.y + area.height - height);
+  }
+
+  // 保底校验：检查计算出的窗口坐标是否真的在当前连接的任意显示器工作区内有足够交集。
+  // 当副屏被拔掉后，getDisplayMatching 可能仍返回一个"幽灵"坐标，导致窗口落在屏幕外。
+  if (bounds.x !== undefined && bounds.y !== undefined) {
+    const allDisplays = screen.getAllDisplays();
+    const VISIBLE_THRESHOLD = 50; // 窗口至少要有 50px 在某个屏幕内才算"可见"
+    const isVisible = allDisplays.some((d) => {
+      const wa = d.workArea;
+      const overlapX = Math.min(bounds.x + bounds.width, wa.x + wa.width) - Math.max(bounds.x, wa.x);
+      const overlapY = Math.min(bounds.y + bounds.height, wa.y + wa.height) - Math.max(bounds.y, wa.y);
+      return overlapX >= VISIBLE_THRESHOLD && overlapY >= VISIBLE_THRESHOLD;
+    });
+
+    if (!isVisible) {
+      // 窗口完全在屏幕外，重置到主屏中心
+      console.log('[Main] Stored window bounds are off-screen, resetting to primary display center.');
+      const primary = screen.getPrimaryDisplay().workArea;
+      bounds.x = Math.round(primary.x + (primary.width - bounds.width) / 2);
+      bounds.y = Math.round(primary.y + (primary.height - bounds.height) / 2);
+    }
   }
 
   return bounds;
@@ -977,10 +1089,53 @@ function getMediaFolderWeight(mediaPath, weightMap) {
 async function scanMedia() {
   const folderPaths = getFolderPaths();
   const { media, errors } = await scanFolders(folderPaths, config.recursive);
+
+  if (config.onlineMedia && config.onlineMedia.enabled && config.onlineMedia.sourceUrl) {
+    try {
+      const { net } = require('electron');
+      const response = await net.fetch(config.onlineMedia.sourceUrl);
+      if (response.ok) {
+        const text = await response.text();
+        const lines = text.split(/\r?\n/);
+        for (const line of lines) {
+          const url = line.trim();
+          if (!url || url.startsWith('#')) {
+            continue;
+          }
+          let type = getMediaType(url) || 'image';
+          media.push({
+            path: url, // Treat URL as path for weight mapping (it won't match any local folder, which is fine, weight=1 by default)
+            name: url.split('/').pop() || url,
+            type: type,
+            url: url
+          });
+        }
+      } else {
+        errors.push({ path: config.onlineMedia.sourceUrl, message: `HTTP Error: ${response.status}` });
+      }
+    } catch (error) {
+      errors.push({ path: config.onlineMedia.sourceUrl, message: error.message });
+    }
+  }
+
   mediaLibrary = media;
   resetMediaQueue();
   sendState({ lastScanErrors: errors });
   return { media: mediaLibrary, errors };
+}
+
+function mediaRelevantConfigChanged(oldCfg, newCfg) {
+  if (!oldCfg || !newCfg) return true;
+
+  // 影响媒体队列的配置项
+  if (oldCfg.order !== newCfg.order) return true;
+  if (JSON.stringify(oldCfg.folders) !== JSON.stringify(newCfg.folders)) return true;            // 文件夹权重
+  if (JSON.stringify(oldCfg.websiteLibrary) !== JSON.stringify(newCfg.websiteLibrary)) return true; // 网站库
+  if (oldCfg.popupsEnabled !== newCfg.popupsEnabled) return true;                                 // 弹窗开关
+  if (oldCfg.hardcoreMode !== newCfg.hardcoreMode) return true;                                   // 硬核模式影响调度
+  if (oldCfg.silentMode !== newCfg.silentMode) return true;                                       // 静默模式
+
+  return false;
 }
 
 function resetMediaQueue() {
@@ -1131,8 +1286,9 @@ async function createPopup(item) {
     const aiConfig = normalizeAiConfig(config.ai);
 
     try {
-      const result = await requestDeepSeekPopupText({ aiConfig, locale: item.locale || getAiLocale(config.language) });
-      await consumeOneTimeReplyGuidance();
+      const cardConfig = getResolvedAiCard(aiConfig, aiConfig.popupCardId);
+      const result = await requestDeepSeekPopupText({ aiConfig, cardConfig, locale: item.locale || getAiLocale(config.language) });
+      await consumeOneTimeReplyGuidance(cardConfig?.id);
       return windowManager.createAiTextPopup({
         text: result.text,
         locale: item.locale || getAiLocale(config.language),
@@ -1155,16 +1311,19 @@ async function startScheduler() {
   resetPlaySession();
   const state = await scheduler.start();
   refreshInteractionTimer();
+  visualOverlay.onSchedulerStateChange(true);
   return state;
 }
 
 function pauseScheduler() {
   stopInteractionTimer();
+  visualOverlay.onSchedulerStateChange(false);
   return scheduler.pause();
 }
 
 function stopScheduler() {
   stopInteractionTimer();
+  visualOverlay.onSchedulerStateChange(false);
   return scheduler?.stop() || getPublicState();
 }
 
@@ -1185,6 +1344,7 @@ function getPublicState(extra = {}) {
     mediaCount: mediaLibrary.length,
     scheduledItemCount: getScheduledItemCount(),
     popupCount: windowManager?.popupCount || 0,
+    popupsEnabled: config?.popupsEnabled !== false,
     shortcutRegistration,
     ...extra
   };
@@ -1198,9 +1358,13 @@ function sendState(extra) {
 
 async function createMainWindow() {
   await loadConfig();
-  await profileManager.initProfiles(app, config);
+  if (await profileManager.initProfiles(app, config)) {
+    await loadConfig();
+  }
   initStats(app);
   _seedMay2026(app);
+  pollution.onConfigChange(config);
+  visualOverlay.onConfigChange(config);
 
   setInterval(() => {
     incrementUptime(app, 10);
@@ -1211,11 +1375,15 @@ async function createMainWindow() {
 
   windowManager = createWindowManager();
   scheduler = createScheduler();
+  // 先创建角色服务，再传给壁纸服务作为子模块
+  desktopCharacterService = new DesktopCharacterService({
+    getConfig: () => config
+  });
   wallpaperService = new WallpaperService({
     getConfig: () => config,
-    getMediaLibrary: () => mediaLibrary
+    getMediaLibrary: () => mediaLibrary,
+    getDesktopCharacterService: () => desktopCharacterService
   });
-  wallpaperService.start();
 
   mainWindow = new BrowserWindow({
     ...getStoredMainWindowBounds(),
@@ -1235,12 +1403,32 @@ async function createMainWindow() {
 
   mainWindow.setMenuBarVisibility(false);
 
-  mainWindow.on('close', () => {
+  if (config.hardcoreMode || config.silentMode) {
+    mainWindow.setSkipTaskbar(true);
+    mainWindow.hide();
+  }
+
+  app.setLoginItemSettings({
+    openAtLogin: config.autoStartOnBoot,
+    openAsHidden: config.silentMode || config.hardcoreMode,
+    args: ['--hidden']
+  });
+
+  mainWindow.on('close', (event) => {
     persistMainWindowBounds();
     if (!isQuitting) {
+      event.preventDefault();
+      isQuitting = true;
       stopScheduler();
-      wallpaperService.stop();
-      app.quit();
+      // 先恢复原壁纸，避免提前停止 native host 后退回缓慢的 PowerShell 写入。
+      (async () => {
+        try {
+          await wallpaperService.stop();
+        } finally {
+          await desktopCharacterService.stop();
+          app.quit();
+        }
+      })();
     }
   });
 
@@ -1256,6 +1444,10 @@ async function createMainWindow() {
   registerActionShortcuts();
   refreshProcessRuleMonitor();
   sendState();
+
+  startBootstrapServices().catch((error) => {
+    console.error('Bootstrap services failed:', error);
+  });
 }
 
 ipcMain.handle('config:get', () => getPublicState());
@@ -1282,6 +1474,15 @@ ipcMain.handle('profiles:create', async (event, { profileId, name, templateId })
     refreshProcessRuleMonitor();
     sendState();
     return { ok: true, state: getPublicState() };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+});
+
+ipcMain.handle('profiles:rename', async (event, { profileId, newName }) => {
+  try {
+    await profileManager.renameProfile(app, profileId, newName);
+    return { ok: true };
   } catch (err) {
     return { ok: false, error: err.message };
   }
@@ -1341,13 +1542,29 @@ ipcMain.handle('config:save', async (event, nextConfig) => {
   const oldConfig = config;
   const saved = await saveConfig(nextConfig);
   wallpaperService.onConfigChange(oldConfig, config);
-  resetMediaQueue();
-  resetWebsiteQueue();
-  if (scheduler.isRunning) {
-    scheduler.scheduleNextTick();
+
+  // 只在媒体相关配置确实变更时才重建队列，避免拖动排序等纯 UI 操作打断当前播放
+  const mediaKeysChanged = mediaRelevantConfigChanged(oldConfig, saved);
+  if (mediaKeysChanged) {
+    resetMediaQueue();
+    resetWebsiteQueue();
+    if (scheduler.isRunning) {
+      scheduler.scheduleNextTick();
+    }
+  }
+  if (oldConfig.popupsEnabled !== config.popupsEnabled && scheduler) {
+    scheduler.onPopupsEnabledChanged(config.popupsEnabled);
   }
   refreshProcessRuleMonitor();
   refreshInteractionTimer();
+  pollution.onConfigChange(saved);
+  visualOverlay.onConfigChange(saved);
+  app.setLoginItemSettings({
+    openAtLogin: config.autoStartOnBoot,
+    openAsHidden: config.silentMode || config.hardcoreMode,
+    args: ['--hidden']
+  });
+
   return getPublicState({ config: saved });
 });
 
@@ -1356,8 +1573,9 @@ ipcMain.handle('ai:generatePopupText', async (_event, payload = {}) => {
   const locale = getAiLocale(payload.locale || config.language);
 
   try {
-    const result = await requestDeepSeekPopupText({ aiConfig, locale });
-    await consumeOneTimeReplyGuidance();
+    const cardConfig = getResolvedAiCard(aiConfig, aiConfig.popupCardId);
+    const result = await requestDeepSeekPopupText({ aiConfig, cardConfig, locale });
+    await consumeOneTimeReplyGuidance(cardConfig?.id);
     return {
       ok: true,
       text: result.text,
@@ -1368,6 +1586,40 @@ ipcMain.handle('ai:generatePopupText', async (_event, payload = {}) => {
       ok: false,
       errorKey: getAiErrorKey(error),
       detail: error.detail || ''
+    };
+  }
+});
+
+ipcMain.handle('ai:listModels', async (_event, payload = {}) => {
+  const aiConfig = normalizeAiConfig(payload.aiConfig || config.ai);
+  const apiKeyInput = normalizeText(payload.apiKey, 300);
+  const apiKey = apiKeyInput || aiConfig.apiKey;
+
+  if (!apiKey) {
+    return {
+      ok: false,
+      models: [],
+      errorKey: 'ai.error.missingKey',
+      detail: ''
+    };
+  }
+
+  try {
+    const models = await listDeepSeekModels({
+      apiKey,
+      forceRefresh: Boolean(payload.forceRefresh)
+    });
+
+    return {
+      ok: true,
+      models: models.map((modelItem) => modelItem.id)
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      models: [],
+      errorKey: getAiErrorKey(error),
+      detail: error?.detail || ''
     };
   }
 });
@@ -1444,6 +1696,44 @@ ipcMain.handle('folders:choose', async () => {
   return folders;
 });
 
+ipcMain.handle('desktop-character:chooseFolder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: translate(getActiveLanguage(), 'dialog.chooseDesktopCharacterFolderTitle'),
+    properties: ['openDirectory']
+  });
+  return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
+});
+
+ipcMain.handle('dialog:chooseImage', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择头像图片',
+    properties: ['openFile'],
+    filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'] }]
+  });
+  if (!result.canceled && result.filePaths.length > 0) {
+    return result.filePaths[0];
+  }
+  return null;
+});
+
+ipcMain.handle('file:saveAvatar', async (_event, base64Data, cardId) => {
+  try {
+    const avatarsDir = path.join(app.getPath('userData'), 'avatars');
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
+    }
+    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Image, 'base64');
+    const filename = `avatar_${cardId}_${Date.now()}.png`;
+    const destPath = path.join(avatarsDir, filename);
+    fs.writeFileSync(destPath, buffer);
+    return destPath;
+  } catch (error) {
+    console.error('Failed to save avatar:', error);
+    return null;
+  }
+});
+
 ipcMain.handle('folders:open', async (_event, folderPath) => {
   const targetPath = typeof folderPath === 'string' ? folderPath.trim() : '';
   if (!targetPath) {
@@ -1478,7 +1768,59 @@ ipcMain.handle('wallpaper:test', async () => {
   return 'Wallpaper service is not running.';
 });
 
+ipcMain.handle('desktop-character:refresh', async () => {
+  if (!wallpaperService) return 'Wallpaper service is not running.';
+  // 强制触发角色壁纸刷新
+  const msg = await wallpaperService.tickCharacter();
+  return msg;
+});
+
+ipcMain.handle('media:testOnline', async () => {
+  if (!config?.onlineMedia?.enabled || !config?.onlineMedia?.sourceUrl) {
+    return '错误：网络在线媒体功能未开启，或未填写 URL。';
+  }
+  try {
+    const url = config.onlineMedia.sourceUrl.trim();
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return '错误：源 URL 必须以 http:// 或 https:// 开头。';
+    }
+
+    const { net } = require('electron');
+    const response = await net.fetch(url);
+    if (!response.ok) {
+      return `错误：请求失败，状态码 ${response.status}`;
+    }
+    const text = await response.text();
+    const lines = text.split(/\r?\n/).map(line => line.trim()).filter(line => line && !line.startsWith('#'));
+    
+    if (lines.length === 0) {
+      return '错误：文件中没有找到有效的链接。';
+    }
+
+    const randomUrl = lines[Math.floor(Math.random() * lines.length)];
+    let type = getMediaType(randomUrl) || 'image';
+
+    const mediaItem = {
+      path: randomUrl,
+      name: randomUrl.split('/').pop() || randomUrl,
+      type: type,
+      url: randomUrl
+    };
+
+    const success = await windowManager.createViewerPopup(mediaItem, { ...config, maxWindows: 'unlimited', maxVideoWindows: -1 });
+    
+    if (success !== false) {
+      return `测试成功：正在显示 ${randomUrl}`;
+    } else {
+      return '测试失败：无法创建弹窗。';
+    }
+  } catch (error) {
+    return `测试出错：${error.message}`;
+  }
+});
+
 ipcMain.handle('viewer:getMedia', (_event, viewerId) => windowManager.getViewerPayload(viewerId));
+ipcMain.handle('viewer:mediaLoaded', (event) => windowManager.markViewerMediaLoaded(event.sender));
 ipcMain.handle('viewer:showInFolder', (_event, filePath) => {
   if (filePath && typeof filePath === 'string') {
     shell.showItemInFolder(filePath);
@@ -1576,7 +1918,12 @@ ipcMain.handle('viewer:fitWindow', (event, mediaWidth, mediaHeight) => {
 ipcMain.handle('window:minimize', (event) => {
   const targetWindow = BrowserWindow.fromWebContents(event.sender);
   if (targetWindow && !targetWindow.isDestroyed()) {
-    targetWindow.minimize();
+    if (config.silentMode || config.hardcoreMode) {
+      targetWindow.setSkipTaskbar(true);
+      targetWindow.hide();
+    } else {
+      targetWindow.minimize();
+    }
   }
 });
 
@@ -1587,15 +1934,49 @@ ipcMain.handle('window:close', (event) => {
   }
 });
 
-app.whenReady().then(createMainWindow);
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (!config.hardcoreMode) {
+        mainWindow.setSkipTaskbar(false);
+        mainWindow.show();
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        // 保底：如果窗口跑到屏幕外（如副屏拔掉），强制回到主屏中央
+        const b = mainWindow.getBounds();
+        const allDisplays = screen.getAllDisplays();
+        const isVisible = allDisplays.some((d) => {
+          const wa = d.workArea;
+          return (
+            Math.min(b.x + b.width, wa.x + wa.width) - Math.max(b.x, wa.x) >= 50 &&
+            Math.min(b.y + b.height, wa.y + wa.height) - Math.max(b.y, wa.y) >= 50
+          );
+        });
+        if (!isVisible) mainWindow.center();
+        mainWindow.focus();
+      }
+    }
+  });
+
+  app.whenReady().then(createMainWindow);
+}
 
 app.on('window-all-closed', () => {
   stopProcessRuleMonitor();
   stopScheduler();
-  wallpaperService?.stop();
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  const stopPromise = wallpaperService ? wallpaperService.stop() : Promise.resolve();
+  stopPromise.then(() => {
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
+  }).catch(() => {
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
+  });
 });
 
 app.on('activate', () => {
@@ -1612,5 +1993,9 @@ app.on('before-quit', () => {
   globalShortcut.unregisterAll();
   stopProcessRuleMonitor();
   stopScheduler();
-  wallpaperService?.stop();
+  // wallpaperService.stop() 是 async，但 before-quit 无法等待
+  // 壁纸恢复已在 close 事件中处理，这里只做清理
+  if (wallpaperService) {
+    wallpaperService.stop().catch(() => {});
+  }
 });

@@ -1,3032 +1,2599 @@
-const elements = {
-  statusText: document.querySelector('#statusText'),
-  mediaCount: document.querySelector('#mediaCount'),
-  popupCount: document.querySelector('#popupCount'),
-  runState: document.querySelector('#runState'),
-  folderList: document.querySelector('#folderList'),
-  logOutput: document.querySelector('#logOutput'),
-  addFoldersButton: document.querySelector('#addFoldersButton'),
-  scanButton: document.querySelector('#scanButton'),
-  saveButton: document.querySelector('#saveButton'),
-  switchConfigFileButton: document.querySelector('#switchConfigFileButton'),
-  saveConfigAsButton: document.querySelector('#saveConfigAsButton'),
-  profileSelector: document.querySelector('#profileSelector'),
-  startButton: document.querySelector('#startButton'),
-  pauseButton: document.querySelector('#pauseButton'),
-  stopButton: document.querySelector('#stopButton'),
-  closeAllButton: document.querySelector('#closeAllButton'),
-  toggleLogButton: document.querySelector('#toggleLogButton'),
-  collapseLogButton: document.querySelector('#collapseLogButton'),
-  logDrawer: document.querySelector('#logDrawer'),
-  minimizeWindowButton: document.querySelector('#minimizeWindowButton'),
-  closeWindowButton: document.querySelector('#closeWindowButton'),
-  themeToggleButton: document.querySelector('#themeToggleButton'),
-  recursive: document.querySelector('#recursive'),
-  gradual: document.querySelector('#gradual'),
-  alwaysOnTop: document.querySelector('#alwaysOnTop'),
-  fullscreen: document.querySelector('#fullscreen'),
-  muted: document.querySelector('#muted'),
-  closeVideoOnEnded: document.querySelector('#closeVideoOnEnded'),
-  chaosVideo: document.querySelector('#chaosVideo'),
-  clickToClose: document.querySelector('#clickToClose'),
-  randomCloseButton: document.querySelector('#randomCloseButton'),
-  disableManualClose: document.querySelector('#disableManualClose'),
-  developerMode: document.querySelector('#developerMode'),
-  closeButtonText: document.querySelector('#closeButtonText'),
-  closeButtonFontSize: document.querySelector('#closeButtonFontSize'),
-  closeButtonBorderRadius: document.querySelector('#closeButtonBorderRadius'),
-  closeButtonPaddingX: document.querySelector('#closeButtonPaddingX'),
-  closeButtonPaddingY: document.querySelector('#closeButtonPaddingY'),
-  closeButtonOffsetX: document.querySelector('#closeButtonOffsetX'),
-  closeButtonOffsetY: document.querySelector('#closeButtonOffsetY'),
-  closeButtonBackgroundColor: document.querySelector('#closeButtonBackgroundColor'),
-  closeButtonTextColor: document.querySelector('#closeButtonTextColor'),
-  closeButtonBorderColor: document.querySelector('#closeButtonBorderColor'),
-  closeButtonHoverBackgroundColor: document.querySelector('#closeButtonHoverBackgroundColor'),
-  closeButtonHoverTextColor: document.querySelector('#closeButtonHoverTextColor'),
-  popupDisplayList: document.querySelector('#popupDisplayList'),
-  unlimitedWindows: document.querySelector('#unlimitedWindows'),
-  unlimitedWarning: document.querySelector('#unlimitedWarning'),
-  intervalHours: document.querySelector('#intervalHours'),
-  intervalMinutes: document.querySelector('#intervalMinutes'),
-  intervalSeconds: document.querySelector('#intervalSeconds'),
-  jitterHours: document.querySelector('#jitterHours'),
-  jitterMinutes: document.querySelector('#jitterMinutes'),
-  jitterSeconds: document.querySelector('#jitterSeconds'),
-  popupLifetimeHours: document.querySelector('#popupLifetimeHours'),
-  popupLifetimeMinutes: document.querySelector('#popupLifetimeMinutes'),
-  popupLifetimeSeconds: document.querySelector('#popupLifetimeSeconds'),
-  popupLifetimeJitterHours: document.querySelector('#popupLifetimeJitterHours'),
-  popupLifetimeJitterMinutes: document.querySelector('#popupLifetimeJitterMinutes'),
-  popupLifetimeJitterSeconds: document.querySelector('#popupLifetimeJitterSeconds'),
-  popupLifetimeJitterMode: document.querySelector('#popupLifetimeJitterMode'),
-  burstCount: document.querySelector('#burstCount'),
-  minWindows: document.querySelector('#minWindows'),
-  maxWindows: document.querySelector('#maxWindows'),
-  maxVideoWindows: document.querySelector('#maxVideoWindows'),
-  order: document.querySelector('#order'),
-  wallpaperEnabled: document.querySelector('#wallpaperEnabled'),
-  wallpaperIntervalMinutes: document.querySelector('#wallpaperIntervalMinutes'),
-  wallpaperMinResolution: document.querySelector('#wallpaperMinResolution'),
-  wallpaperMaxRatioDeviation: document.querySelector('#wallpaperMaxRatioDeviation'),
-  testWallpaperButton: document.querySelector('#testWallpaperButton'),
-  processRulesEnabled: document.querySelector('#processRulesEnabled'),
-  processRulesBlacklist: document.querySelector('#processRulesBlacklist'),
-  processRulesWhitelist: document.querySelector('#processRulesWhitelist'),
-  processRulesAutoStartOnWhitelist: document.querySelector('#processRulesAutoStartOnWhitelist'),
-  processRulesStopOnBlacklist: document.querySelector('#processRulesStopOnBlacklist'),
-  processRulesStopOnWhitelistExit: document.querySelector('#processRulesStopOnWhitelistExit'),
-  processRulesCheckIntervalSeconds: document.querySelector('#processRulesCheckIntervalSeconds'),
-  processRulesStatus: document.querySelector('#processRulesStatus'),
-  chooseBlacklistProcessButton: document.querySelector('#chooseBlacklistProcessButton'),
-  chooseWhitelistProcessButton: document.querySelector('#chooseWhitelistProcessButton'),
-  autoProfileConfigPath: document.querySelector('#autoProfileConfigPath'),
-  chooseAutoProfileConfigButton: document.querySelector('#chooseAutoProfileConfigButton'),
-  clearAutoProfileConfigButton: document.querySelector('#clearAutoProfileConfigButton'),
-  autoProfileProcesses: document.querySelector('#autoProfileProcesses'),
-  chooseAutoProfileProcessButton: document.querySelector('#chooseAutoProfileProcessButton'),
-  processPickerOverlay: document.querySelector('#processPickerOverlay'),
-  processPickerTitle: document.querySelector('#processPickerTitle'),
-  processPickerCloseButton: document.querySelector('#processPickerCloseButton'),
-  processPickerSearch: document.querySelector('#processPickerSearch'),
-  processPickerList: document.querySelector('#processPickerList'),
-  processPickerStatus: document.querySelector('#processPickerStatus'),
-  processPickerRefreshButton: document.querySelector('#processPickerRefreshButton'),
-  processPickerAddButton: document.querySelector('#processPickerAddButton'),
-  websiteSaveButton: document.querySelector('#websiteSaveButton'),
-  websiteShowPopupButton: document.querySelector('#websiteShowPopupButton'),
-  websiteLibraryEnabled: document.querySelector('#websiteLibraryEnabled'),
-  websiteLibraryText: document.querySelector('#websiteLibraryText'),
-  websiteLibrarySearch: document.querySelector('#websiteLibrarySearch'),
-  websiteLibraryStats: document.querySelector('#websiteLibraryStats'),
-  websiteLibraryList: document.querySelector('#websiteLibraryList'),
-  language: document.querySelector('#language'),
-  startShortcut: document.querySelector('#startShortcut'),
-  pauseShortcut: document.querySelector('#pauseShortcut'),
-  stopShortcut: document.querySelector('#stopShortcut'),
-  closeAllShortcut: document.querySelector('#closeAllShortcut'),
-  aiProvider: document.querySelector('#aiProvider'),
-  aiModel: document.querySelector('#aiModel'),
-  aiApiKey: document.querySelector('#aiApiKey'),
-  aiSinglePopupMode: document.querySelector('#aiSinglePopupMode'),
-  aiImmediateReplyEnabled: document.querySelector('#aiImmediateReplyEnabled'),
-  aiInteractionEnabled: document.querySelector('#aiInteractionEnabled'),
-  aiInteractionIntervalHours: document.querySelector('#aiInteractionIntervalHours'),
-  aiInteractionIntervalMinutes: document.querySelector('#aiInteractionIntervalMinutes'),
-  aiInteractionIntervalSeconds: document.querySelector('#aiInteractionIntervalSeconds'),
-  aiInteractionTone: document.querySelector('#aiInteractionTone'),
-  aiInteractionIncludeForegroundApp: document.querySelector('#aiInteractionIncludeForegroundApp'),
-  aiSystemPrompt: document.querySelector('#aiSystemPrompt'),
-  aiKnowledgeBase: document.querySelector('#aiKnowledgeBase'),
-  aiContextMemory: document.querySelector('#aiContextMemory'),
-  aiProfileAge: document.querySelector('#aiProfileAge'),
-  aiProfileName: document.querySelector('#aiProfileName'),
-  aiProfileCompanionName: document.querySelector('#aiProfileCompanionName'),
-  aiProfileCompanionRole: document.querySelector('#aiProfileCompanionRole'),
-  aiProfileAppearance: document.querySelector('#aiProfileAppearance'),
-  aiProfileDailyPersona: document.querySelector('#aiProfileDailyPersona'),
-  aiSceneLibrary: document.querySelector('#aiSceneLibrary'),
-  aiPopupScheduleEnabled: document.querySelector('#aiPopupScheduleEnabled'),
-  aiShowPopupButton: document.querySelector('#aiShowPopupButton'),
-  aiTestInteractionButton: document.querySelector('#aiTestInteractionButton'),
-  aiSaveAppearanceButton: document.querySelector('#aiSaveAppearanceButton'),
-  aiStatus: document.querySelector('#aiStatus'),
-  aiPopupWidth: document.querySelector('#aiPopupWidth'),
-  aiPopupHeight: document.querySelector('#aiPopupHeight'),
-  aiPopupPreviewScale: document.querySelector('#aiPopupPreviewScale'),
-  aiPopupPreviewSize: document.querySelector('#aiPopupPreviewSize'),
-  aiPopupBodyBackgroundColor: document.querySelector('#aiPopupBodyBackgroundColor'),
-  aiPopupBodyBackgroundOpacity: document.querySelector('#aiPopupBodyBackgroundOpacity'),
-  aiPopupTextColor: document.querySelector('#aiPopupTextColor'),
-  aiPopupTextOpacity: document.querySelector('#aiPopupTextOpacity'),
-  aiPopupTextFontSize: document.querySelector('#aiPopupTextFontSize'),
-  aiPopupTextLineHeight: document.querySelector('#aiPopupTextLineHeight'),
-  aiPopupTextAlign: document.querySelector('#aiPopupTextAlign'),
-  aiPopupCardBackgroundColor: document.querySelector('#aiPopupCardBackgroundColor'),
-  aiPopupCardBackgroundOpacity: document.querySelector('#aiPopupCardBackgroundOpacity'),
-  aiPopupCardBorderColor: document.querySelector('#aiPopupCardBorderColor'),
-  aiPopupCardBorderOpacity: document.querySelector('#aiPopupCardBorderOpacity'),
-  aiPopupCardBorderWidth: document.querySelector('#aiPopupCardBorderWidth'),
-  aiPopupCardBorderRadius: document.querySelector('#aiPopupCardBorderRadius'),
-  aiPopupCardPaddingX: document.querySelector('#aiPopupCardPaddingX'),
-  aiPopupCardPaddingY: document.querySelector('#aiPopupCardPaddingY'),
-  aiPopupCardShadowColor: document.querySelector('#aiPopupCardShadowColor'),
-  aiPopupCardShadowOpacity: document.querySelector('#aiPopupCardShadowOpacity'),
-  aiPopupCardShadowBlur: document.querySelector('#aiPopupCardShadowBlur'),
-  aiPopupCardShadowSpread: document.querySelector('#aiPopupCardShadowSpread'),
-  aiPopupCardShadowOffsetX: document.querySelector('#aiPopupCardShadowOffsetX'),
-  aiPopupCardShadowOffsetY: document.querySelector('#aiPopupCardShadowOffsetY'),
-  aiPopupTextShadowColor: document.querySelector('#aiPopupTextShadowColor'),
-  aiPopupTextShadowOpacity: document.querySelector('#aiPopupTextShadowOpacity'),
-  aiPopupTextShadowBlur: document.querySelector('#aiPopupTextShadowBlur'),
-  aiPopupTextShadowSpread: document.querySelector('#aiPopupTextShadowSpread'),
-  aiPopupTextShadowOffsetX: document.querySelector('#aiPopupTextShadowOffsetX'),
-  aiPopupTextShadowOffsetY: document.querySelector('#aiPopupTextShadowOffsetY'),
-  aiPopupCloseButtonFontSize: document.querySelector('#aiPopupCloseButtonFontSize'),
-  aiPopupCloseButtonBorderRadius: document.querySelector('#aiPopupCloseButtonBorderRadius'),
-  aiPopupCloseButtonPaddingX: document.querySelector('#aiPopupCloseButtonPaddingX'),
-  aiPopupCloseButtonPaddingY: document.querySelector('#aiPopupCloseButtonPaddingY'),
-  aiPopupCloseButtonOffsetX: document.querySelector('#aiPopupCloseButtonOffsetX'),
-  aiPopupCloseButtonOffsetY: document.querySelector('#aiPopupCloseButtonOffsetY'),
-  aiPopupCloseButtonBackgroundColor: document.querySelector('#aiPopupCloseButtonBackgroundColor'),
-  aiPopupCloseButtonBackgroundOpacity: document.querySelector('#aiPopupCloseButtonBackgroundOpacity'),
-  aiPopupCloseButtonTextColor: document.querySelector('#aiPopupCloseButtonTextColor'),
-  aiPopupCloseButtonTextOpacity: document.querySelector('#aiPopupCloseButtonTextOpacity'),
-  aiPopupCloseButtonBorderColor: document.querySelector('#aiPopupCloseButtonBorderColor'),
-  aiPopupCloseButtonBorderOpacity: document.querySelector('#aiPopupCloseButtonBorderOpacity'),
-  aiPopupCloseButtonHoverBackgroundColor: document.querySelector('#aiPopupCloseButtonHoverBackgroundColor'),
-  aiPopupCloseButtonHoverBackgroundOpacity: document.querySelector('#aiPopupCloseButtonHoverBackgroundOpacity'),
-  aiPopupCloseButtonHoverTextColor: document.querySelector('#aiPopupCloseButtonHoverTextColor'),
-  aiPopupCloseButtonHoverTextOpacity: document.querySelector('#aiPopupCloseButtonHoverTextOpacity'),
-  aiPopupPreview: document.querySelector('#aiPopupPreview'),
-  aiPopupPreviewCloseButton: document.querySelector('#aiPopupPreviewCloseButton'),
-  aiPopupPreviewText: document.querySelector('#aiPopupPreviewText'),
-  separateMediaSizeSettings: document.querySelector('#separateMediaSizeSettings'),
-  sharedSizePanel: document.querySelector('#sharedSizePanel'),
-  separateSizePanels: document.querySelector('#separateSizePanels'),
-  sharedBaseWidth: document.querySelector('#sharedBaseWidth'),
-  sharedBaseHeight: document.querySelector('#sharedBaseHeight'),
-  sharedSizeJitter: document.querySelector('#sharedSizeJitter'),
-  sharedSizeJitterMode: document.querySelector('#sharedSizeJitterMode'),
-  sharedCompensationMultiplier: document.querySelector('#sharedCompensationMultiplier'),
-  sharedCompensationThreshold: document.querySelector('#sharedCompensationThreshold'),
-  imageBaseWidth: document.querySelector('#imageBaseWidth'),
-  imageBaseHeight: document.querySelector('#imageBaseHeight'),
-  imageSizeJitter: document.querySelector('#imageSizeJitter'),
-  imageSizeJitterMode: document.querySelector('#imageSizeJitterMode'),
-  imageCompensationMultiplier: document.querySelector('#imageCompensationMultiplier'),
-  imageCompensationThreshold: document.querySelector('#imageCompensationThreshold'),
-  videoBaseWidth: document.querySelector('#videoBaseWidth'),
-  videoBaseHeight: document.querySelector('#videoBaseHeight'),
-  videoSizeJitter: document.querySelector('#videoSizeJitter'),
-  videoSizeJitterMode: document.querySelector('#videoSizeJitterMode'),
-  videoCompensationMultiplier: document.querySelector('#videoCompensationMultiplier'),
-  videoCompensationThreshold: document.querySelector('#videoCompensationThreshold'),
-  navItems: Array.from(document.querySelectorAll('.nav-item[data-page]')),
-  pages: Array.from(document.querySelectorAll('.page')),
-  sectionNavItems: Array.from(document.querySelectorAll('.section-nav-item[data-section-target]')),
-  sectionPanels: Array.from(document.querySelectorAll('.section-panel[data-section-panel]'))
-};
+// ═══════════════════════════════════════════════════════
+// Gooner · 工业矩阵 — 渲染进程 app.js
+// ═══════════════════════════════════════════════════════
 
-let currentConfig = null;
-let currentState = null;
-let currentLocale = (window.appI18n && window.appI18n.resolveLanguage('system', navigator.language)) || 'zh-CN';
-let shortcutTransientFeedback = {};
-let autoSaveInFlight = null;
-let autoSaveTimer = null;
-let processPickerTarget = null;
-let processPickerItems = [];
+(function () {
+  "use strict";
 
-const AUTO_SAVE_DELAY_MS = 300;
-const AUTO_SAVE_EXCLUDED_IDS = new Set(['language', 'startShortcut', 'pauseShortcut', 'stopShortcut', 'closeAllShortcut', 'websiteLibraryEnabled', 'websiteLibraryText', 'websiteLibrarySearch']);
+  // ── SVG 图标库 ──
+  const I = {
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/>',
+    image: '<rect x="3" y="4" width="18" height="16" rx="1"/><circle cx="8" cy="9" r="1.5"/><path d="m3 17 5-5 4 4 3-3 6 6"/>',
+    chat: '<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4ZM8 10h8M8 14h5"/>',
+    ghost: '<path d="M9 3h6l1 4H8Zm-6 18 4-4 4 4 4-4 4 4 4-4v4H3Z"/><circle cx="12" cy="10" r="2"/><circle cx="9" cy="10" r="1"/><circle cx="15" cy="10" r="1"/>',
+    xray: '<circle cx="12" cy="12" r="8" opacity=".6"/><circle cx="12" cy="12" r="3"/><path d="M3 12h2M19 12h2M12 3v2M12 19v2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M16.3 7.7l-1.4 1.4M7.7 16.3l-1.4 1.4"/>',
+    fall: '<rect x="8" y="2" width="8" height="10" rx="1"/><path d="M12 12v3M10 18l2 2 2-2M8 8h2M14 8h2"/>',
+    flash: '<path d="M13 2 3 14h6l-2 8 10-12h-6l2-8Z"/>',
+    keyboard: '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h1M11 10h1M15 10h1M8 14h8"/>',
+    folder: '<path d="M3 6h7l2 2h9v10H3Z"/>',
+    user: '<circle cx="12" cy="8" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/><path d="M6 5 4 3M18 5l2-2"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
+    spark: '<path d="M12 3v3M5.6 5.6l2.1 2.1M3 12h3M18 12h3M16.3 7.7l2.1-2.1M8 16a5 5 0 1 1 8 0l-2 2v2h-4v-2Z"/>',
+    shield: '<path d="M12 3 4 6v5c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6Zm-3 9 2 2 4-4"/>',
+    lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+    monitor: '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8M12 18v4"/><path d="M8 10h8M13 7l3 3-3 3"/>',
+    hidden: '<path d="M3 12s4-7 9-7c2 0 3.8 1 5.3 2.2M21 12s-4 7-9 7c-2 0-3.8-1-5.3-2.2M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>',
+    chart: '<path d="M18 20V10M12 20V4M6 20v-6"/>',
+    profile: '<path d="M4 6h2l2-2h8l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="3"/>',
+    play: '<polygon points="6,3 20,12 6,21"/>',
+    pause: '<rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/>',
+    stop: '<rect x="4" y="4" width="16" height="16" rx="1"/>',
+    x: '<path d="M6 6l12 12M18 6l-12 12"/>'
+  };
 
-const directionModeButtons = Array.from(document.querySelectorAll('.symbol-toggle[data-target]'));
-const shortcutFields = [
-  {
-    key: 'startShortcut',
-    labelKey: 'shortcuts.start',
-    input: elements.startShortcut,
-    status: document.querySelector('#startShortcutStatus')
-  },
-  {
-    key: 'pauseShortcut',
-    labelKey: 'shortcuts.pause',
-    input: elements.pauseShortcut,
-    status: document.querySelector('#pauseShortcutStatus')
-  },
-  {
-    key: 'stopShortcut',
-    labelKey: 'shortcuts.stop',
-    input: elements.stopShortcut,
-    status: document.querySelector('#stopShortcutStatus')
-  },
-  {
-    key: 'closeAllShortcut',
-    labelKey: 'shortcuts.closeAll',
-    input: elements.closeAllShortcut,
-    status: document.querySelector('#closeAllShortcutStatus')
-  }
-];
-const { resolveLanguage, translate } = window.appI18n || {
-  resolveLanguage: (value, fallback) => value || fallback || 'zh-CN',
-  translate: (_locale, key) => key
-};
+  function icon(name) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (I[name] || '') + '</svg>'; }
+  function arrowRight() { return '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>'; }
 
-function t(key, params) {
-  return translate(currentLocale, key, params);
-}
+  // ── 卡片定义 ──
+  // { id, name, meta, icon, hint, configKey, tone, count, section, idx }
+  let CARD_DEFS = [
+    // 核心功能 (section: "core")
+    { id: "popup", name: "媒体弹窗", meta: "popup.engine", icon: "bell", hint: "全局总开关。关闭后停止创建新弹窗，并关闭当前所有媒体窗口。", configKey: "popupsEnabled", tone: "", section: "core" },
+    { id: "wallpaper", name: "自动换壁纸", meta: "wallpaper", icon: "image", hint: "按设定间隔自动更换桌面壁纸，支持普通图片与智能角色随机切换。", configKey: "wallpaperEnabled", tone: "", section: "core" },
+    { id: "ai-popup", name: "AI 文本弹窗", meta: "gen.text", icon: "chat", hint: "生成短文本并以独立窗口展示，含主动互动子模块。", configKey: "aiPopupScheduleEnabled", tone: "", section: "core" },
+    { id: "ghost", name: "幽灵底片", meta: "ghost.gallery", icon: "ghost", hint: "半透明图片持续覆盖屏幕，按设定间隔自动切换新图片。可调透明度和切换频率。", configKey: "visualGhostEnabled", tone: "", section: "core" },
+    { id: "xray", name: "X 光模式", meta: "xray.reveal", icon: "xray", hint: "鼠标周围圆形区域显示完整图片，其余部分被遮罩。可调半径和遮罩透明度。", configKey: "visualXrayEnabled", tone: "", section: "core" },
+    { id: "waterfall", name: "媒体瀑布", meta: "media.waterfall", icon: "fall", hint: "图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。", configKey: "visualWaterfallEnabled", tone: "", section: "core" },
+    { id: "flash", name: "潜意识闪烁", meta: "subliminal.flash", icon: "flash", hint: "按随机间隔在屏幕上短暂闪烁图片。⚠ 光敏性癫痫患者请勿开启。", configKey: "visualFlashEnabled", tone: "danger", section: "core" },
+    { id: "pollution", name: "输入干预", meta: "input.control", icon: "keyboard", hint: "剪贴板污染 + 输入框注入。所有细分能力可在详情中单独开关。", configKey: "pollutionEnabled", tone: "", section: "core" },
 
-function getMediaPopup() {
-  return window.mediaPopup;
-}
+    // 智能与系统 (section: "system")
+    { id: "process-rules", name: "进程规则", meta: "process.gate", icon: "shield", hint: "根据运行中软件的允许/排除名单，自动启停弹窗调度。", configKey: "processRulesEnabled", tone: "", section: "system" },
+    { id: "hardcore", name: "强控模式", meta: "restricted.ui", icon: "lock", hint: "隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。", configKey: "hardcoreMode", tone: "danger", section: "system" },
+    { id: "autostart", name: "开机自启", meta: "auto.launch", icon: "monitor", hint: "Windows 登录后自动运行应用，可在系统设置中随时关闭。", configKey: "autoStartOnBoot", tone: "", section: "system" },
+    { id: "silent", name: "静默模式", meta: "silent.boot", icon: "hidden", hint: "启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。", configKey: "silentMode", tone: "", section: "system" },
 
-function getConfigFileDisplayName(configPath) {
-  const value = String(configPath || '').trim();
-  if (!value) {
-    return t('config.file.default');
-  }
-
-  return value.replace(/\\/g, '/').split('/').filter(Boolean).pop() || value;
-}
-let cachedProfiles = [];
-
-async function loadProfiles(activePath) {
-  if (!elements.profileSelector) return;
-  try {
-    cachedProfiles = await mediaPopup.listProfiles();
-    
-    // Update main selector
-    elements.profileSelector.innerHTML = '';
-    
-    let activeProfileId = '';
-    cachedProfiles.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.name;
-      elements.profileSelector.appendChild(opt);
-      if (activePath && p.path === activePath) {
-        activeProfileId = p.id;
-      }
-    });
-
-    const createOpt = document.createElement('option');
-    createOpt.value = '__create_new__';
-    createOpt.textContent = '[+] 新建档案...';
-    elements.profileSelector.appendChild(createOpt);
-
-    if (activeProfileId) {
-      elements.profileSelector.value = activeProfileId;
-    }
-
-    // Update auto profile selector
-    if (elements.autoProfileConfigPath) {
-      const currentAutoVal = elements.autoProfileConfigPath.value;
-      elements.autoProfileConfigPath.innerHTML = '<option value="">(不自动切换)</option>';
-      cachedProfiles.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.path;
-        opt.textContent = p.name;
-        elements.autoProfileConfigPath.appendChild(opt);
-      });
-      elements.autoProfileConfigPath.value = currentAutoVal;
-    }
-
-  } catch (err) {
-    console.error('Failed to load profiles', err);
-  }
-}
-
-function renderConfigFileInfo(configPath) {
-  loadProfiles(configPath);
-}
-function normalizeWebsiteUrlInput(value) {
-  if (typeof value !== 'string') {
-    return '';
-  }
-
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return '';
-  }
-
-  const withProtocol = /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(trimmed) ? trimmed : `https://${trimmed}`;
-
-  try {
-    const url = new URL(withProtocol);
-    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-      return '';
-    }
-
-    return url.toString();
-  } catch (_error) {
-    return '';
-  }
-}
-
-function getWebsiteFallbackLabel(urlText) {
-  try {
-    const url = new URL(urlText);
-    const pathname = url.pathname === '/' ? '' : url.pathname.replace(/\/$/, '');
-    return `${url.hostname}${pathname}` || url.hostname;
-  } catch (_error) {
-    return urlText;
-  }
-}
-
-function splitWebsiteLine(value) {
-  const separatorIndex = value.indexOf('|');
-  if (separatorIndex === -1) {
-    return ['', value.trim()];
-  }
-
-  return [
-    value.slice(0, separatorIndex).trim(),
-    value.slice(separatorIndex + 1).trim()
+    // 系统配置 (section: "config")
+    { id: "stats", name: "生涯记录", meta: "sys.stats", icon: "chart", hint: "播放时长、弹窗数量、每日活跃日历热力图。", configKey: null, tone: "", section: "config" }
   ];
-}
 
-function parseWebsiteLibraryText(text) {
-  const lines = String(text || '').split(/\r?\n/);
-  const entries = [];
-  const invalidLines = [];
+  let SECTIONS = [
+    { key: "core", name: "核心功能", cls: "core-section" },
+    { key: "system", name: "智能与系统", cls: "" },
+    { key: "config", name: "系统配置", cls: "" }
+  ];
 
-  lines.forEach((line, index) => {
-    let trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) {
+  // ── 全局状态 ──
+  let currentConfig = null;
+  let currentAiConfig = { cards: [] };
+  let aiActiveEditCardId = "";
+  let aiModalTargetFeature = "";
+  let currentState = null;
+  let cachedProfiles = [];
+  let currentLocale = (window.appI18n && window.appI18n.resolveLanguage("system", navigator.language)) || "zh-CN";
+  let shortcutTransientFeedback = {};
+  let autoSaveTimer = null;
+  let processPickerTarget = null;
+  let processPickerItems = [];
+  let renameTargetProfileId = "";
+  let aiModelOptions = [];
+  let aiModelStatusText = "";
+  let aiModelStatusError = false;
+  let aiModelRequestToken = 0;
+  let cardNum = 0;
+
+  const AUTO_SAVE_DELAY_MS = 300;
+
+  // ── i18n ──
+  const { resolveLanguage, translate } = window.appI18n || {
+    resolveLanguage: (v, fb) => v || fb || "zh-CN",
+    translate: (_l, k) => k
+  };
+  function t(key, params) { return translate(currentLocale, key, params); }
+
+  // ── IPC 桥接 ──
+  function getMediaPopup() { return window.mediaPopup; }
+
+  // ── 日志 ──
+  function log(msg) {
+    const el = document.getElementById("logOutput");
+    if (!el) return;
+    const time = new Date().toLocaleTimeString();
+    el.textContent = "[" + time + "] " + msg + "\n" + el.textContent;
+    el.textContent = el.textContent.trim();
+  }
+
+  // ── 自动保存 ──
+  async function saveConfig() {
+    const mp = getMediaPopup();
+    if (!mp || !mp.saveConfig) return { blocked: true };
+    try {
+      const result = await mp.saveConfig(currentConfig);
+      if (result && result.ok) log("配置已保存");
+      return result || { ok: true };
+    } catch (e) { console.error("saveConfig error", e); return { blocked: true }; }
+  }
+
+  async function scheduleAutoSave(opts) {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    if (opts && opts.immediate) {
+      await saveConfig();
       return;
     }
+    autoSaveTimer = setTimeout(() => saveConfig(), AUTO_SAVE_DELAY_MS);
+  }
 
-    let enabled = true;
-    if (trimmed.startsWith('!')) {
-      enabled = false;
-      trimmed = trimmed.slice(1).trim();
+  // ── 获取卡片开关状态 ──
+  function getCardState(card) {
+    if (!currentConfig) return false;
+    if (card.id === "folders") return true;
+    if (card.id === "stats") return true;
+    if (card.id === "hardcore") return currentConfig.hardcoreMode || false;
+    if (card.id === "autostart") return currentConfig.autoStartOnBoot || false;
+    if (card.id === "silent") return currentConfig.silentMode || false;
+    if (card.id === "interaction") {
+      const ai = currentConfig.ai || {};
+      return ai.interactionEnabled || false;
     }
-
-    const [rawLabel, rawUrl] = splitWebsiteLine(trimmed);
-    const url = normalizeWebsiteUrlInput(rawUrl || rawLabel);
-    if (!url) {
-      invalidLines.push(index + 1);
-      return;
+    if (card.id === "ai-popup") {
+      const ai = currentConfig.ai || {};
+      return ai.popupScheduleEnabled || false;
     }
-
-    const label = (rawUrl ? rawLabel : '').replace(/\|/g, ' ').trim() || getWebsiteFallbackLabel(url);
-    entries.push({ label, url, enabled });
-  });
-
-  return {
-    entries,
-    invalidLines
-  };
-}
-
-function serializeWebsiteLibrary(entries = []) {
-  return entries
-    .map((entry) => `${entry.enabled === false ? '! ' : ''}${entry.label || getWebsiteFallbackLabel(entry.url)} | ${entry.url}`)
-    .join('\n');
-}
-
-function getWebsiteLibrary(config = currentConfig) {
-  const library = config?.websiteLibrary || {};
-  return {
-    enabled: Boolean(library.enabled),
-    entries: Array.isArray(library.entries)
-      ? library.entries.map((entry) => ({
-        label: entry.label || getWebsiteFallbackLabel(entry.url || ''),
-        url: entry.url || '',
-        enabled: entry.enabled !== false
-      }))
-      : []
-  };
-}
-
-function getProcessRules(config = currentConfig) {
-  const rules = config?.processRules || {};
-  return {
-    enabled: Boolean(rules.enabled),
-    blacklist: Array.isArray(rules.blacklist) ? rules.blacklist : [],
-    whitelist: Array.isArray(rules.whitelist) ? rules.whitelist : [],
-    autoStartOnWhitelist: Boolean(rules.autoStartOnWhitelist),
-    stopOnBlacklist: Boolean(rules.stopOnBlacklist),
-    stopOnWhitelistExit: Boolean(rules.stopOnWhitelistExit),
-    checkIntervalSeconds: Number.isFinite(Number(rules.checkIntervalSeconds)) ? Number(rules.checkIntervalSeconds) : 5
-  };
-}
-
-function parseProcessRuleText(value) {
-  return String(value || '')
-    .split(/\r?\n/)
-    .map((item) => item.replace(/\s+/g, ' ').trim())
-    .filter(Boolean);
-}
-
-function serializeProcessRuleList(items = []) {
-  return items.join('\n');
-}
-
-function normalizeProcessRuleInputName(value) {
-  return String(value || '')
-    .trim()
-    .replace(/^"|"$/g, '')
-    .replace(/\.exe$/i, '')
-    .toLowerCase();
-}
-
-function getProcessPickerTargetInput() {
-  if (processPickerTarget === 'blacklist') {
-    return elements.processRulesBlacklist;
-  }
-
-  if (processPickerTarget === 'whitelist') {
-    return elements.processRulesWhitelist;
-  }
-
-  if (processPickerTarget === 'autoProfile') {
-    return elements.autoProfileProcesses;
-  }
-
-  return null;
-}
-
-function getProcessRuleStatusText(state) {
-  if (!state?.enabled) {
-    return t('processRules.status.disabled');
-  }
-
-  const blacklistMatches = Array.isArray(state.blacklistMatches) ? state.blacklistMatches : [];
-  const whitelistMatches = Array.isArray(state.whitelistMatches) ? state.whitelistMatches : [];
-
-  if (state.reason === 'blacklist') {
-    return t('processRules.status.blacklist', { names: blacklistMatches.join(', ') });
-  }
-
-  if (state.reason === 'waitingWhitelist') {
-    return t('processRules.status.waitingWhitelist');
-  }
-
-  if (state.reason === 'error') {
-    return t('processRules.status.error');
-  }
-
-  if (whitelistMatches.length > 0) {
-    return t('processRules.status.whitelist', { names: whitelistMatches.join(', ') });
-  }
-
-  return t('processRules.status.allowed');
-}
-
-function getSelectedProcessNamesFromPicker() {
-  if (!elements.processPickerList) {
-    return [];
-  }
-
-  return Array.from(elements.processPickerList.querySelectorAll('input[type="checkbox"]:checked'))
-    .map((input) => input.value)
-    .filter(Boolean);
-}
-
-function renderProcessPickerList() {
-  if (!elements.processPickerList) {
-    return;
-  }
-
-  const keyword = String(elements.processPickerSearch?.value || '').trim().toLowerCase();
-  const targetInput = getProcessPickerTargetInput();
-  const existing = new Set(parseProcessRuleText(targetInput?.value || '').map(normalizeProcessRuleInputName));
-  const matched = processPickerItems.filter((item) => !keyword
-    || item.name.toLowerCase().includes(keyword)
-    || item.path.toLowerCase().includes(keyword));
-
-  elements.processPickerList.replaceChildren();
-
-  if (!matched.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = processPickerItems.length ? t('processRules.noProcessMatches') : t('processRules.noProcesses');
-    elements.processPickerList.append(empty);
-    if (elements.processPickerStatus) {
-      elements.processPickerStatus.textContent = t('processRules.pickerStats', { count: 0, selected: 0 });
+    if (card.configKey) {
+      const key = card.configKey;
+      // 处理嵌套 config
+      if (key === "visualGhostEnabled") return !!(currentConfig.visualIntervention && currentConfig.visualIntervention.ghostEnabled);
+      if (key === "visualXrayEnabled") return !!(currentConfig.visualIntervention && currentConfig.visualIntervention.xrayEnabled);
+      if (key === "visualWaterfallEnabled") return !!(currentConfig.visualIntervention && currentConfig.visualIntervention.waterfallEnabled);
+      if (key === "visualFlashEnabled") return !!(currentConfig.visualIntervention && currentConfig.visualIntervention.flashEnabled);
+      if (key === "wallpaperEnabled") return !!(currentConfig.wallpaper && (currentConfig.wallpaper.enabled || currentConfig.wallpaper.characterEnabled));
+      if (key === "processRulesEnabled") return !!(currentConfig.processRules && currentConfig.processRules.enabled);
+      return !!(currentConfig[key]);
     }
-    return;
-  }
-
-  for (const item of matched) {
-    const row = document.createElement('label');
-    row.className = 'process-picker-row';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.value = item.name;
-    checkbox.checked = existing.has(normalizeProcessRuleInputName(item.name));
-    checkbox.addEventListener('change', () => {
-      if (elements.processPickerStatus) {
-        elements.processPickerStatus.textContent = t('processRules.pickerStats', {
-          count: matched.length,
-          selected: getSelectedProcessNamesFromPicker().length
-        });
-      }
-    });
-
-    const iconWrap = document.createElement('span');
-    iconWrap.className = 'process-picker-icon';
-
-    if (item.icon) {
-      const icon = document.createElement('img');
-      icon.src = item.icon;
-      icon.alt = '';
-      icon.loading = 'lazy';
-      iconWrap.append(icon);
-    } else {
-      iconWrap.textContent = item.name.slice(0, 1).toUpperCase();
-    }
-
-    const meta = document.createElement('span');
-    meta.className = 'process-picker-meta';
-
-    const label = document.createElement('span');
-    label.className = 'process-picker-name';
-    label.textContent = item.name;
-
-    const path = document.createElement('span');
-    path.className = 'process-picker-path';
-    path.textContent = item.path || t('processRules.pathUnavailable');
-    path.title = item.path || '';
-
-    meta.append(label, path);
-
-    row.append(checkbox, iconWrap, meta);
-    elements.processPickerList.append(row);
-  }
-
-  if (elements.processPickerStatus) {
-    elements.processPickerStatus.textContent = t('processRules.pickerStats', {
-      count: matched.length,
-      selected: getSelectedProcessNamesFromPicker().length
-    });
-  }
-}
-
-async function loadProcessPickerList() {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.listProcesses) {
-    log(t('log.processPickerUnavailable'));
-    processPickerItems = [];
-    renderProcessPickerList();
-    return;
-  }
-
-  if (elements.processPickerStatus) {
-    elements.processPickerStatus.textContent = t('processRules.loading');
-  }
-
-  const result = await mediaPopup.listProcesses();
-  if (!result?.ok) {
-    processPickerItems = [];
-    if (elements.processPickerStatus) {
-      elements.processPickerStatus.textContent = t('processRules.loadFailed');
-    }
-    log(t('processRules.loadFailed'));
-    renderProcessPickerList();
-    return;
-  }
-
-  const processMap = new Map();
-  for (const rawItem of result.processes || []) {
-    const item = typeof rawItem === 'string'
-      ? { name: rawItem, path: '', icon: '' }
-      : {
-        name: String(rawItem?.name || '').trim(),
-        path: String(rawItem?.path || '').trim(),
-        icon: String(rawItem?.icon || '').trim()
-      };
-    if (!item.path) {
-      continue;
-    }
-    const key = normalizeProcessRuleInputName(item.name);
-    const current = processMap.get(key);
-    if (key && (!current || (!current.icon && item.icon) || (!current.path && item.path))) {
-      processMap.set(key, item);
-    }
-  }
-
-  processPickerItems = Array.from(processMap.values())
-    .sort((left, right) => left.name.localeCompare(right.name, undefined, { sensitivity: 'base' }));
-  renderProcessPickerList();
-}
-
-async function openProcessPicker(target) {
-  processPickerTarget = target;
-  if (elements.processPickerTitle) {
-    elements.processPickerTitle.textContent = target === 'blacklist' ? t('processRules.pickerTitleBlacklist') : target === 'whitelist' ? t('processRules.pickerTitleWhitelist') : t('processRules.pickerTitleAutoProfile');
-  }
-  if (elements.processPickerSearch) {
-    elements.processPickerSearch.value = '';
-  }
-  if (elements.processPickerOverlay) {
-    elements.processPickerOverlay.hidden = false;
-  }
-  await loadProcessPickerList();
-  elements.processPickerSearch?.focus();
-}
-
-function closeProcessPicker() {
-  processPickerTarget = null;
-  processPickerItems = [];
-  if (elements.processPickerOverlay) {
-    elements.processPickerOverlay.hidden = true;
-  }
-}
-
-async function addSelectedProcessesToRuleList() {
-  const targetInput = getProcessPickerTargetInput();
-  if (!targetInput) {
-    return;
-  }
-
-  const selected = getSelectedProcessNamesFromPicker();
-  if (!selected.length) {
-    if (elements.processPickerStatus) {
-      elements.processPickerStatus.textContent = t('processRules.selectAtLeastOne');
-    }
-    return;
-  }
-
-  const existing = parseProcessRuleText(targetInput.value);
-  const seen = new Set(existing.map(normalizeProcessRuleInputName));
-  const nextItems = [...existing];
-  let addedCount = 0;
-
-  for (const name of selected) {
-    const normalized = normalizeProcessRuleInputName(name);
-    if (!normalized || seen.has(normalized)) {
-      continue;
-    }
-    seen.add(normalized);
-    nextItems.push(name);
-    addedCount += 1;
-  }
-
-  targetInput.value = serializeProcessRuleList(nextItems);
-  await scheduleAutoSave({ immediate: true });
-  log(t('log.processesAddedToRules', { count: addedCount }));
-  closeProcessPicker();
-}
-
-function formatDisplayResolution(display) {
-  const area = display?.workArea || display?.bounds || {};
-  const width = Number.isFinite(area.width) ? Math.round(area.width) : 0;
-  const height = Number.isFinite(area.height) ? Math.round(area.height) : 0;
-  const parts = [];
-
-  if (width > 0 && height > 0) {
-    parts.push(`${width}×${height}`);
-  }
-
-  const scaleFactor = Number(display?.scaleFactor);
-  if (Number.isFinite(scaleFactor) && scaleFactor > 0 && Math.abs(scaleFactor - 1) > 0.01) {
-    parts.push(`${Math.round(scaleFactor * 100)}%`);
-  }
-
-  return parts.join(' · ');
-}
-
-function getPopupDisplayIds() {
-  if (!elements.popupDisplayList) {
-    return [];
-  }
-
-  return Array.from(elements.popupDisplayList.querySelectorAll('input[type="checkbox"]:checked'))
-    .map((input) => Number(input.dataset.displayId))
-    .filter((item) => Number.isFinite(item));
-}
-
-function renderPopupDisplayList(displays = []) {
-  if (!elements.popupDisplayList) {
-    return;
-  }
-
-  elements.popupDisplayList.replaceChildren();
-
-  if (!displays.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = t('appearance.display.empty');
-    elements.popupDisplayList.append(empty);
-    return;
-  }
-
-  const selectedIds = new Set(Array.isArray(currentConfig?.popupDisplayIds) ? currentConfig.popupDisplayIds : []);
-  const selectedDisplayIds = selectedIds.size && displays.some((display) => selectedIds.has(display.id))
-    ? selectedIds
-    : new Set(displays.map((display) => display.id));
-
-  for (const [index, display] of displays.entries()) {
-    const row = document.createElement('label');
-    row.className = 'switch-row';
-
-    const label = document.createElement('span');
-    label.className = 'switch-name';
-    label.textContent = `${t('appearance.display.item', { index: index + 1 })}${display.isPrimary ? ` ${t('appearance.display.primary')}` : ''}${formatDisplayResolution(display) ? ` · ${formatDisplayResolution(display)}` : ''}`;
-
-    const state = document.createElement('span');
-    state.className = 'switch-state';
-
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.dataset.displayId = String(display.id);
-    input.checked = selectedDisplayIds.has(display.id);
-    input.addEventListener('change', () => {
-      void scheduleAutoSave({ immediate: true });
-    });
-
-    const toggle = document.createElement('i');
-
-    row.append(label, state, input, toggle);
-    elements.popupDisplayList.append(row);
-  }
-}
-
-function log(message) {
-  const time = new Date().toLocaleTimeString();
-  elements.logOutput.textContent = `[${time}] ${message}\n${elements.logOutput.textContent}`.trim();
-}
-
-function applyStaticTranslations() {
-  document.documentElement.lang = currentLocale;
-  document.title = t('app.title');
-
-  for (const node of document.querySelectorAll('[data-i18n]')) {
-    node.textContent = t(node.dataset.i18n);
-  }
-
-  for (const node of document.querySelectorAll('[data-i18n-title]')) {
-    node.title = t(node.dataset.i18nTitle);
-  }
-
-  for (const node of document.querySelectorAll('[data-i18n-aria-label]')) {
-    node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel));
-  }
-
-  for (const node of document.querySelectorAll('[data-i18n-placeholder]')) {
-    node.setAttribute('placeholder', t(node.dataset.i18nPlaceholder));
-  }
-
-  if (!elements.logOutput.dataset.localized) {
-    elements.logOutput.textContent = t('log.waiting');
-    elements.logOutput.dataset.localized = 'true';
-  }
-}
-
-function getAiConfig(config = currentConfig) {
-  const ai = config?.ai || {};
-  const profile = ai.profile || {};
-  const popupAppearance = ai.popupAppearance || {};
-  const numberOr = (value, fallback) => (Number.isFinite(Number(value)) ? Number(value) : fallback);
-
-  return {
-    provider: ai.provider || 'deepseek',
-    model: ai.model || 'deepseek-chat',
-    apiKey: ai.apiKey || '',
-    singlePopupMode: ai.singlePopupMode !== false,
-    immediateReplyEnabled: ai.immediateReplyEnabled !== false,
-    interactionEnabled: Boolean(ai.interactionEnabled),
-    interactionIntervalHours: numberOr(ai.interactionIntervalHours, 0),
-    interactionIntervalMinutes: numberOr(ai.interactionIntervalMinutes, 10),
-    interactionIntervalSeconds: numberOr(ai.interactionIntervalSeconds, 0),
-    interactionTone: ai.interactionTone || 'teasing',
-    interactionIncludeForegroundApp: Boolean(ai.interactionIncludeForegroundApp),
-    systemPrompt: ai.systemPrompt || '',
-    knowledgeBase: ai.knowledgeBase || '',
-    contextMemory: ai.contextMemory || '',
-    profile: {
-      age: Number.isFinite(profile.age) ? String(profile.age) : '',
-      name: profile.name || '',
-      companionName: profile.companionName || '',
-      companionRole: profile.companionRole || '',
-      appearance: profile.appearance || '',
-      dailyPersona: profile.dailyPersona || '',
-      sceneLibrary: profile.sceneLibrary || ''
-    },
-    popupScheduleEnabled: Boolean(ai.popupScheduleEnabled),
-    popupAppearance: {
-      popupWidth: numberOr(popupAppearance.popupWidth, 420),
-      popupHeight: numberOr(popupAppearance.popupHeight, 320),
-      bodyBackgroundColor: popupAppearance.bodyBackgroundColor || '#050505',
-      bodyBackgroundOpacity: numberOr(popupAppearance.bodyBackgroundOpacity, 1),
-      textColor: popupAppearance.textColor || '#f4f7fb',
-      textOpacity: numberOr(popupAppearance.textOpacity, 1),
-      textFontSize: numberOr(popupAppearance.textFontSize, 16),
-      textLineHeight: numberOr(popupAppearance.textLineHeight, 1.5),
-      textAlign: popupAppearance.textAlign || 'left',
-      cardBackgroundColor: popupAppearance.cardBackgroundColor || '#050505',
-      cardBackgroundOpacity: numberOr(popupAppearance.cardBackgroundOpacity, 1),
-      cardBorderColor: popupAppearance.cardBorderColor || '#1f2b33',
-      cardBorderOpacity: numberOr(popupAppearance.cardBorderOpacity, 1),
-      cardBorderWidth: numberOr(popupAppearance.cardBorderWidth, 0),
-      cardBorderRadius: numberOr(popupAppearance.cardBorderRadius, 8),
-      cardPaddingX: numberOr(popupAppearance.cardPaddingX, 2),
-      cardPaddingY: numberOr(popupAppearance.cardPaddingY, 0),
-      cardShadowColor: popupAppearance.cardShadowColor || '#000000',
-      cardShadowOpacity: numberOr(popupAppearance.cardShadowOpacity, 0.45),
-      cardShadowBlur: numberOr(popupAppearance.cardShadowBlur, 24),
-      cardShadowSpread: numberOr(popupAppearance.cardShadowSpread, 0),
-      cardShadowOffsetX: numberOr(popupAppearance.cardShadowOffsetX, 0),
-      cardShadowOffsetY: numberOr(popupAppearance.cardShadowOffsetY, 8),
-      textShadowColor: popupAppearance.textShadowColor || '#000000',
-      textShadowOpacity: numberOr(popupAppearance.textShadowOpacity, 0.55),
-      textShadowBlur: numberOr(popupAppearance.textShadowBlur, 10),
-      textShadowSpread: numberOr(popupAppearance.textShadowSpread, 0),
-      textShadowOffsetX: numberOr(popupAppearance.textShadowOffsetX, 0),
-      textShadowOffsetY: numberOr(popupAppearance.textShadowOffsetY, 2),
-      closeButtonFontSize: numberOr(popupAppearance.closeButtonFontSize, 13),
-      closeButtonBorderRadius: numberOr(popupAppearance.closeButtonBorderRadius, 6),
-      closeButtonPaddingX: numberOr(popupAppearance.closeButtonPaddingX, 12),
-      closeButtonPaddingY: numberOr(popupAppearance.closeButtonPaddingY, 6),
-      closeButtonOffsetX: numberOr(popupAppearance.closeButtonOffsetX, 6),
-      closeButtonOffsetY: numberOr(popupAppearance.closeButtonOffsetY, 6),
-      closeButtonBackgroundColor: popupAppearance.closeButtonBackgroundColor || '#000000',
-      closeButtonBackgroundOpacity: numberOr(popupAppearance.closeButtonBackgroundOpacity, 1),
-      closeButtonTextColor: popupAppearance.closeButtonTextColor || '#ffffff',
-      closeButtonTextOpacity: numberOr(popupAppearance.closeButtonTextOpacity, 1),
-      closeButtonBorderColor: popupAppearance.closeButtonBorderColor || '#ffffff',
-      closeButtonBorderOpacity: numberOr(popupAppearance.closeButtonBorderOpacity, 1),
-      closeButtonHoverBackgroundColor: popupAppearance.closeButtonHoverBackgroundColor || '#2f3b45',
-      closeButtonHoverBackgroundOpacity: numberOr(popupAppearance.closeButtonHoverBackgroundOpacity, 1),
-      closeButtonHoverTextColor: popupAppearance.closeButtonHoverTextColor || '#ffffff',
-      closeButtonHoverTextOpacity: numberOr(popupAppearance.closeButtonHoverTextOpacity, 1)
-    }
-  };
-}
-
-function clampOpacity(value, fallback = 1) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) {
-    return fallback;
-  }
-  return Math.min(1, Math.max(0, number));
-}
-
-function hexToRgba(hexColor, opacity = 1) {
-  if (typeof hexColor !== 'string' || !/^#[0-9a-fA-F]{6}$/.test(hexColor)) {
-    return `rgba(0, 0, 0, ${clampOpacity(opacity, 1)})`;
-  }
-
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${clampOpacity(opacity, 1)})`;
-}
-
-function getAiPopupAppearanceFromInputs() {
-  const fallback = getAiConfig().popupAppearance;
-  const numberOr = (value, backup) => (Number.isFinite(Number(value)) ? Number(value) : backup);
-
-  return {
-    popupWidth: numberOr(elements.aiPopupWidth.value, fallback.popupWidth),
-    popupHeight: numberOr(elements.aiPopupHeight.value, fallback.popupHeight),
-    bodyBackgroundColor: elements.aiPopupBodyBackgroundColor.value || fallback.bodyBackgroundColor,
-    bodyBackgroundOpacity: clampOpacity(elements.aiPopupBodyBackgroundOpacity.value, fallback.bodyBackgroundOpacity),
-    textColor: elements.aiPopupTextColor.value || fallback.textColor,
-    textOpacity: clampOpacity(elements.aiPopupTextOpacity.value, fallback.textOpacity),
-    textFontSize: numberOr(elements.aiPopupTextFontSize.value, fallback.textFontSize),
-    textLineHeight: numberOr(elements.aiPopupTextLineHeight.value, fallback.textLineHeight),
-    textAlign: elements.aiPopupTextAlign.value || fallback.textAlign,
-    cardBackgroundColor: elements.aiPopupCardBackgroundColor.value || fallback.cardBackgroundColor,
-    cardBackgroundOpacity: clampOpacity(elements.aiPopupCardBackgroundOpacity.value, fallback.cardBackgroundOpacity),
-    cardBorderColor: elements.aiPopupCardBorderColor.value || fallback.cardBorderColor,
-    cardBorderOpacity: clampOpacity(elements.aiPopupCardBorderOpacity.value, fallback.cardBorderOpacity),
-    cardBorderWidth: numberOr(elements.aiPopupCardBorderWidth.value, fallback.cardBorderWidth),
-    cardBorderRadius: numberOr(elements.aiPopupCardBorderRadius.value, fallback.cardBorderRadius),
-    cardPaddingX: numberOr(elements.aiPopupCardPaddingX.value, fallback.cardPaddingX),
-    cardPaddingY: numberOr(elements.aiPopupCardPaddingY.value, fallback.cardPaddingY),
-    cardShadowColor: elements.aiPopupCardShadowColor.value || fallback.cardShadowColor,
-    cardShadowOpacity: clampOpacity(elements.aiPopupCardShadowOpacity.value, fallback.cardShadowOpacity),
-    cardShadowBlur: numberOr(elements.aiPopupCardShadowBlur.value, fallback.cardShadowBlur),
-    cardShadowSpread: numberOr(elements.aiPopupCardShadowSpread.value, fallback.cardShadowSpread),
-    cardShadowOffsetX: numberOr(elements.aiPopupCardShadowOffsetX.value, fallback.cardShadowOffsetX),
-    cardShadowOffsetY: numberOr(elements.aiPopupCardShadowOffsetY.value, fallback.cardShadowOffsetY),
-    textShadowColor: elements.aiPopupTextShadowColor.value || fallback.textShadowColor,
-    textShadowOpacity: clampOpacity(elements.aiPopupTextShadowOpacity.value, fallback.textShadowOpacity),
-    textShadowBlur: numberOr(elements.aiPopupTextShadowBlur.value, fallback.textShadowBlur),
-    textShadowSpread: numberOr(elements.aiPopupTextShadowSpread.value, fallback.textShadowSpread),
-    textShadowOffsetX: numberOr(elements.aiPopupTextShadowOffsetX.value, fallback.textShadowOffsetX),
-    textShadowOffsetY: numberOr(elements.aiPopupTextShadowOffsetY.value, fallback.textShadowOffsetY),
-    closeButtonFontSize: numberOr(elements.aiPopupCloseButtonFontSize.value, fallback.closeButtonFontSize),
-    closeButtonBorderRadius: numberOr(elements.aiPopupCloseButtonBorderRadius.value, fallback.closeButtonBorderRadius),
-    closeButtonPaddingX: numberOr(elements.aiPopupCloseButtonPaddingX.value, fallback.closeButtonPaddingX),
-    closeButtonPaddingY: numberOr(elements.aiPopupCloseButtonPaddingY.value, fallback.closeButtonPaddingY),
-    closeButtonOffsetX: numberOr(elements.aiPopupCloseButtonOffsetX.value, fallback.closeButtonOffsetX),
-    closeButtonOffsetY: numberOr(elements.aiPopupCloseButtonOffsetY.value, fallback.closeButtonOffsetY),
-    closeButtonBackgroundColor: elements.aiPopupCloseButtonBackgroundColor.value || fallback.closeButtonBackgroundColor,
-    closeButtonBackgroundOpacity: clampOpacity(elements.aiPopupCloseButtonBackgroundOpacity.value, fallback.closeButtonBackgroundOpacity),
-    closeButtonTextColor: elements.aiPopupCloseButtonTextColor.value || fallback.closeButtonTextColor,
-    closeButtonTextOpacity: clampOpacity(elements.aiPopupCloseButtonTextOpacity.value, fallback.closeButtonTextOpacity),
-    closeButtonBorderColor: elements.aiPopupCloseButtonBorderColor.value || fallback.closeButtonBorderColor,
-    closeButtonBorderOpacity: clampOpacity(elements.aiPopupCloseButtonBorderOpacity.value, fallback.closeButtonBorderOpacity),
-    closeButtonHoverBackgroundColor: elements.aiPopupCloseButtonHoverBackgroundColor.value || fallback.closeButtonHoverBackgroundColor,
-    closeButtonHoverBackgroundOpacity: clampOpacity(elements.aiPopupCloseButtonHoverBackgroundOpacity.value, fallback.closeButtonHoverBackgroundOpacity),
-    closeButtonHoverTextColor: elements.aiPopupCloseButtonHoverTextColor.value || fallback.closeButtonHoverTextColor,
-    closeButtonHoverTextOpacity: clampOpacity(elements.aiPopupCloseButtonHoverTextOpacity.value, fallback.closeButtonHoverTextOpacity)
-  };
-}
-
-function applyAiPopupAppearancePreview(appearance) {
-  if (!elements.aiPopupPreview || !elements.aiPopupPreviewText || !elements.aiPopupPreviewCloseButton) {
-    return;
-  }
-
-  const previewScale = Math.max(0.2, Number(elements.aiPopupPreviewScale?.value || 1));
-
-  elements.aiPopupPreview.style.width = `${appearance.popupWidth}px`;
-  elements.aiPopupPreview.style.height = `${appearance.popupHeight}px`;
-  elements.aiPopupPreview.style.backgroundColor = hexToRgba(appearance.bodyBackgroundColor, appearance.bodyBackgroundOpacity);
-  elements.aiPopupPreview.style.transform = `scale(${previewScale})`;
-  elements.aiPopupPreview.style.transformOrigin = 'top left';
-
-  elements.aiPopupPreviewText.style.color = hexToRgba(appearance.textColor, appearance.textOpacity);
-  elements.aiPopupPreviewText.style.fontSize = `${appearance.textFontSize}px`;
-  elements.aiPopupPreviewText.style.lineHeight = String(appearance.textLineHeight);
-  elements.aiPopupPreviewText.style.textAlign = appearance.textAlign;
-  elements.aiPopupPreviewText.style.backgroundColor = hexToRgba(appearance.cardBackgroundColor, appearance.cardBackgroundOpacity);
-  elements.aiPopupPreviewText.style.borderColor = hexToRgba(appearance.cardBorderColor, appearance.cardBorderOpacity);
-  elements.aiPopupPreviewText.style.borderWidth = `${appearance.cardBorderWidth}px`;
-  elements.aiPopupPreviewText.style.borderStyle = appearance.cardBorderWidth > 0 ? 'solid' : 'none';
-  elements.aiPopupPreviewText.style.borderRadius = `${appearance.cardBorderRadius}px`;
-  elements.aiPopupPreviewText.style.padding = `${appearance.cardPaddingY}px ${appearance.cardPaddingX}px`;
-  elements.aiPopupPreviewText.style.boxShadow = `${appearance.cardShadowOffsetX}px ${appearance.cardShadowOffsetY}px ${appearance.cardShadowBlur}px ${appearance.cardShadowSpread}px ${hexToRgba(appearance.cardShadowColor, appearance.cardShadowOpacity)}`;
-  const textShadowBlur = Math.max(0, Number(appearance.textShadowBlur) || 0) + Math.abs(Number(appearance.textShadowSpread) || 0);
-  elements.aiPopupPreviewText.style.textShadow = `${appearance.textShadowOffsetX}px ${appearance.textShadowOffsetY}px ${textShadowBlur}px ${hexToRgba(appearance.textShadowColor, appearance.textShadowOpacity)}`;
-
-  elements.aiPopupPreviewCloseButton.style.fontSize = `${appearance.closeButtonFontSize}px`;
-  elements.aiPopupPreviewCloseButton.style.borderRadius = `${appearance.closeButtonBorderRadius}px`;
-  elements.aiPopupPreviewCloseButton.style.padding = `${appearance.closeButtonPaddingY}px ${appearance.closeButtonPaddingX}px`;
-  elements.aiPopupPreviewCloseButton.style.left = `${appearance.closeButtonOffsetX}px`;
-  elements.aiPopupPreviewCloseButton.style.top = `${appearance.closeButtonOffsetY}px`;
-  elements.aiPopupPreviewCloseButton.style.backgroundColor = hexToRgba(appearance.closeButtonBackgroundColor, appearance.closeButtonBackgroundOpacity);
-  elements.aiPopupPreviewCloseButton.style.color = hexToRgba(appearance.closeButtonTextColor, appearance.closeButtonTextOpacity);
-  elements.aiPopupPreviewCloseButton.style.borderColor = hexToRgba(appearance.closeButtonBorderColor, appearance.closeButtonBorderOpacity);
-  elements.aiPopupPreviewCloseButton.dataset.hoverBg = hexToRgba(appearance.closeButtonHoverBackgroundColor, appearance.closeButtonHoverBackgroundOpacity);
-  elements.aiPopupPreviewCloseButton.dataset.hoverColor = hexToRgba(appearance.closeButtonHoverTextColor, appearance.closeButtonHoverTextOpacity);
-
-  if (elements.aiPopupPreviewSize) {
-    const scaledWidth = Math.round(appearance.popupWidth * previewScale);
-    const scaledHeight = Math.round(appearance.popupHeight * previewScale);
-    elements.aiPopupPreviewSize.textContent = t('ai.popupAppearance.previewSize', {
-      width: appearance.popupWidth,
-      height: appearance.popupHeight,
-      scaledWidth,
-      scaledHeight
-    });
-  }
-}
-
-function setAiStatus(message, level = 'muted') {
-  if (!elements.aiStatus) {
-    return;
-  }
-
-  elements.aiStatus.textContent = message;
-  elements.aiStatus.dataset.level = level;
-}
-
-function describeInteractionAction(action, result = {}) {
-  if (action === 'text_and_media') {
-    return t('ai.interaction.result.textAndMedia');
-  }
-
-  if (action === 'media_only') {
-    return result.mediaPopupShown
-      ? t('ai.interaction.result.mediaOnly')
-      : t('ai.interaction.result.mediaOnlyNoMedia');
-  }
-
-  if (action === 'skip') {
-    return t('ai.interaction.result.skip');
-  }
-
-  return t('ai.interaction.result.textOnly');
-}
-
-async function showAiTextPopup(text, options = {}) {
-  const mediaPopup = getMediaPopup();
-  const normalizedText = typeof text === 'string' ? text.trim() : '';
-  if (!normalizedText) {
-    const message = t('ai.status.emptyPopup');
-    setAiStatus(message, 'error');
-    log(message);
     return false;
   }
 
-  if (!mediaPopup?.showAiTextPopup) {
-    setAiStatus(t('log.aiPreviewUnavailable'), 'error');
-    log(t('log.aiPreviewUnavailable'));
-    return false;
-  }
-
-  const result = await mediaPopup.showAiTextPopup({
-    text: normalizedText,
-    locale: currentConfig?.language || currentLocale,
-    title: t('ai.popup.title'),
-    targetLabel: t('ai.popup.subtitle')
-  });
-
-  if (!result?.ok) {
-    const message = t(result?.errorKey || 'ai.error.requestFailed');
-    setAiStatus(message, 'error');
-    log(message);
-    return false;
-  }
-
-  setAiStatus(t('ai.status.popupShown'), 'success');
-  log(t('log.aiPopupShown'));
-  return true;
-}
-
-async function showWebsitePopup(entry) {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.showWebsitePopup) {
-    log(t('log.websitePreviewUnavailable'));
-    return false;
-  }
-
-  const result = await mediaPopup.showWebsitePopup(entry);
-  if (!result?.ok) {
-    log(t(result?.errorKey || 'website.error.openFailed'));
-    return false;
-  }
-
-  log(t('log.websitePopupShown', { label: entry.label || entry.url }));
-  return true;
-}
-
-function applyLanguage(locale) {
-  currentLocale = resolveLanguage(locale, navigator.language);
-  applyStaticTranslations();
-  for (const field of shortcutFields) {
-    field.input.placeholder = t('shortcuts.placeholder');
-  }
-  setLogDrawer(elements.logDrawer?.classList.contains('open'));
-  updateNumericInputTitles();
-  if (currentConfig) {
-    renderFolders(currentConfig.folders || []);
-    renderWebsiteLibraryPreview();
-  }
-  if (currentState) {
-    renderStateSummary(currentState);
-  }
-  renderShortcutFeedback();
-  applyAiPopupAppearancePreview(getAiPopupAppearanceFromInputs());
-}
-
-function setLogDrawer(open) {
-  if (!elements.logDrawer || !elements.toggleLogButton) {
-    return;
-  }
-
-  elements.logDrawer.classList.toggle('open', open);
-  elements.toggleLogButton.textContent = open ? t('buttons.collapseLog') : t('buttons.expandLog');
-}
-
-function activatePage(pageName) {
-  for (const navItem of elements.navItems) {
-    navItem.classList.toggle('active', navItem.dataset.page === pageName);
-  }
-
-  for (const page of elements.pages) {
-    page.classList.toggle('active', page.id === `page-${pageName}`);
-  }
-}
-
-function activateSection(navItem) {
-  const shell = navItem.closest('.settings-shell');
-  const target = navItem.dataset.sectionTarget;
-  if (!shell || !target) {
-    return;
-  }
-
-  const navItems = shell.querySelectorAll('.section-nav-item[data-section-target]');
-  const panels = shell.querySelectorAll('.section-panel[data-section-panel]');
-
-  for (const item of navItems) {
-    item.classList.toggle('active', item === navItem);
-  }
-
-  for (const panel of panels) {
-    const active = panel.dataset.sectionPanel === target;
-    panel.classList.toggle('active', active);
-    panel.hidden = !active;
-  }
-}
-
-function moveElementToMount(element, mount) {
-  if (!element || !mount || element.parentElement === mount) {
-    return;
-  }
-
-  mount.append(element);
-}
-
-function organizeSettingsLayout() {
-  const mediaScanSettingsMount = document.querySelector('#mediaScanSettingsMount');
-  const aiWebsiteMount = document.querySelector('#aiWebsiteMount');
-  const advancedProcessRulesMount = document.querySelector('#advancedProcessRulesMount');
-  const advancedShortcutsMount = document.querySelector('#advancedShortcutsMount');
-  const advancedLanguageMount = document.querySelector('#advancedLanguageMount');
-  const recursiveRow = elements.recursive?.closest('.switch-row');
-  const websiteHeader = document.querySelector('#page-websites .page-header');
-  const websiteShell = document.querySelector('#page-websites .website-shell');
-  const processRulesPanel = document.querySelector('#page-schedule .process-rules-panel');
-  const shortcutsPanel = document.querySelector('#page-shortcuts > .panel');
-  const languagePanel = document.querySelector('#page-language > .panel');
-
-  moveElementToMount(recursiveRow, mediaScanSettingsMount);
-  moveElementToMount(processRulesPanel, advancedProcessRulesMount);
-  moveElementToMount(shortcutsPanel, advancedShortcutsMount);
-  moveElementToMount(languagePanel, advancedLanguageMount);
-
-  if (aiWebsiteMount) {
-    moveElementToMount(websiteHeader, aiWebsiteMount);
-    moveElementToMount(websiteShell, aiWebsiteMount);
-  }
-}
-
-function bindLayoutInteractions() {
-  for (const navItem of elements.navItems) {
-    navItem.addEventListener('click', () => activatePage(navItem.dataset.page));
-  }
-
-  for (const sectionNavItem of elements.sectionNavItems) {
-    sectionNavItem.addEventListener('click', () => activateSection(sectionNavItem));
-  }
-
-  if (elements.toggleLogButton) {
-    elements.toggleLogButton.addEventListener('click', () => {
-      const open = elements.logDrawer?.classList.contains('open');
-      setLogDrawer(!open);
-    });
-  }
-
-  if (elements.collapseLogButton) {
-    elements.collapseLogButton.addEventListener('click', () => setLogDrawer(false));
-  }
-
-  if (elements.chaosVideo && elements.closeVideoOnEnded) {
-    elements.chaosVideo.addEventListener('change', () => {
-      if (elements.chaosVideo.checked) {
-        elements.closeVideoOnEnded.checked = false;
-        elements.closeVideoOnEnded.disabled = true;
+  // ── 设置卡片开关 ──
+  async function setCardState(card, on) {
+    if (!currentConfig) return;
+    if (card.id === "hardcore") { currentConfig.hardcoreMode = on; }
+    else if (card.id === "autostart") { currentConfig.autoStartOnBoot = on; }
+    else if (card.id === "silent") { currentConfig.silentMode = on; }
+    else if (card.id === "interaction") {
+      if (!currentConfig.ai) currentConfig.ai = {};
+      currentConfig.ai.interactionEnabled = on;
+    }
+    else if (card.id === "ai-popup") {
+      if (!currentConfig.ai) currentConfig.ai = {};
+      currentConfig.ai.popupScheduleEnabled = on;
+    }
+    else if (card.configKey) {
+      const key = card.configKey;
+      if (key === "visualGhostEnabled") {
+        if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
+        currentConfig.visualIntervention.ghostEnabled = on;
+      } else if (key === "visualXrayEnabled") {
+        if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
+        currentConfig.visualIntervention.xrayEnabled = on;
+      } else if (key === "visualWaterfallEnabled") {
+        if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
+        currentConfig.visualIntervention.waterfallEnabled = on;
+      } else if (key === "visualFlashEnabled") {
+        if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
+        currentConfig.visualIntervention.flashEnabled = on;
+      } else if (key === "wallpaperEnabled") {
+        if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
+        currentConfig.wallpaper.enabled = on;
+      } else if (key === "processRulesEnabled") {
+        if (!currentConfig.processRules) currentConfig.processRules = {};
+        currentConfig.processRules.enabled = on;
       } else {
-        elements.closeVideoOnEnded.disabled = false;
+        currentConfig[key] = on;
       }
-    });
-  }
-
-  if (elements.developerMode) {
-    elements.developerMode.addEventListener('change', () => {
-      updateDeveloperModeUI();
-      scheduleAutoSave();
-    });
-  }
-}
-
-function updateDeveloperModeUI() {
-  const isDev = elements.developerMode?.checked;
-  if (elements.aiApiKey) {
-    elements.aiApiKey.type = isDev ? 'password' : 'text';
-  }
-  if (currentConfig) {
-    renderFolders(currentConfig.folders || []);
-  }
-}
-
-function getInputStep(input) {
-  if (!input.step || input.step === 'any') {
-    return 1;
-  }
-
-  const step = Number(input.step);
-  return Number.isFinite(step) && step > 0 ? step : 1;
-}
-
-function getStepPrecision(step) {
-  const stepText = String(step);
-  const decimalIndex = stepText.indexOf('.');
-  return decimalIndex === -1 ? 0 : stepText.length - decimalIndex - 1;
-}
-
-function getInputBound(input, key, fallback) {
-  const value = input[key];
-  if (value === '') {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function getInputRangeLabel(input) {
-  const min = getInputBound(input, 'min', null);
-  const max = getInputBound(input, 'max', null);
-
-  if (min !== null && max !== null) {
-    return t('input.range.between', { min, max });
-  }
-
-  if (min !== null) {
-    return t('input.range.min', { min });
-  }
-
-  if (max !== null) {
-    return t('input.range.max', { max });
-  }
-
-  return '';
-}
-
-function clampNumberInputValue(input, nextValue) {
-  const min = getInputBound(input, 'min', -Infinity);
-  const max = getInputBound(input, 'max', Infinity);
-  const step = getInputStep(input);
-  const precision = getStepPrecision(step);
-  const currentValue = Number(input.value);
-  const fallbackValue = Number.isFinite(currentValue) ? currentValue : (Number.isFinite(min) ? min : 0);
-  let safeValue = Number.isFinite(nextValue) ? nextValue : fallbackValue;
-
-  safeValue = Math.min(max, Math.max(min, safeValue));
-
-  if (step > 0) {
-    const base = Number.isFinite(min) ? min : 0;
-    safeValue = base + Math.round((safeValue - base) / step) * step;
-    safeValue = Math.min(max, Math.max(min, safeValue));
-  }
-
-  input.value = precision > 0 ? safeValue.toFixed(precision) : String(Math.round(safeValue));
-  return safeValue;
-}
-
-function decorateNumericInput(input) {
-  if (input.parentElement?.classList.contains('scrub-control')) {
-    return;
-  }
-
-  const wrapper = document.createElement('div');
-  wrapper.className = 'scrub-control';
-
-  if (input.closest('.compact-digital-clock')) {
-    wrapper.classList.add('scrub-compact');
-  }
-
-  const handle = document.createElement('span');
-  handle.className = 'scrub-handle';
-  handle.textContent = '↔';
-  handle.setAttribute('aria-hidden', 'true');
-
-  const range = document.createElement('span');
-  range.className = 'scrub-range';
-  range.textContent = getInputRangeLabel(input);
-  range.dataset.scrubRange = 'true';
-
-  input.classList.add('scrub-input');
-  input.title = range.textContent ? t('input.scrubTitleWithRange', { range: range.textContent }) : t('input.scrubTitle');
-  input.parentNode.insertBefore(wrapper, input);
-  wrapper.append(input, handle);
-
-  if (range.textContent && !wrapper.classList.contains('scrub-compact')) {
-    const meta = document.createElement('div');
-    meta.className = 'scrub-meta';
-    meta.append(range);
-    wrapper.append(meta);
-  }
-}
-
-function updateNumericInputTitles() {
-  for (const input of document.querySelectorAll('input[type="number"]')) {
-    const range = input.parentElement?.querySelector('[data-scrub-range="true"]');
-    if (range) {
-      range.textContent = getInputRangeLabel(input);
     }
-    input.title = range?.textContent ? t('input.scrubTitleWithRange', { range: range.textContent }) : t('input.scrubTitle');
+    await scheduleAutoSave({ immediate: true });
   }
-}
 
-function bindNumericScrub(input) {
-  let dragState = null;
+  function getFolderCountHtml() {
+    const folders = (currentConfig && currentConfig.folders) ? currentConfig.folders : [];
+    const count = Array.isArray(folders) ? folders.length : 0;
+    return count + ' <em>个来源</em>';
+  }
 
-  const stopScrub = (event) => {
-    if (!dragState || (event.pointerId !== undefined && event.pointerId !== dragState.pointerId)) {
-      return;
+  // ── 渲染卡片 ──
+  function renderTile(card) {
+    cardNum++;
+    const on = getCardState(card);
+    var cls = "tile";
+    if (on) cls += " on";
+    if (card.tone) cls += " " + card.tone;
+    if (card.count) cls += " tile-folder";
+
+    var bot = "";
+    if (card.count) {
+      bot = '<div class="folder-count">' + getFolderCountHtml() + '</div>' +
+        '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">管理 ' + arrowRight() + '</button></div>';
+    } else if (card.id === "stats") {
+      bot = '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">进入 ' + arrowRight() + '</button></div>';
+    } else {
+      bot = '<div class="tile-actions tile-actions-split"><button class="sw" aria-label="' + (on ? "关闭" : "开启") + card.name + '" data-action="toggle" data-id="' + card.id + '"></button><button class="link" data-action="detail" data-id="' + card.id + '">设置 ' + arrowRight() + '</button></div>';
     }
 
-    const { moved, pointerId } = dragState;
+    return '<article class="' + cls + '" data-card-id="' + card.id + '" data-section="' + card.section + '">' +
+      '<span class="tile-grip" title="拖动排序"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span>' +
+      '<div class="hint">' + card.hint + '</div>' +
+      '<div class="tile-top"><span class="glyph">' + icon(card.icon) + '</span><span class="idx">' + String(cardNum).padStart(2, "0") + '</span></div>' +
+      '<h3>' + card.name + '</h3>' +
+      '<p class="meta">' + card.meta + '</p>' +
+      bot +
+      '</article>';
+  }
+
+  function renderAllCards() {
+    // 安全清理 — 防止重建 DOM 时仍处于拖拽态
+    if (dragState) clearDragState();
+    cardNum = 0;
+    var html = "";
+    for (var s = 0; s < SECTIONS.length; s++) {
+      var sec = SECTIONS[s];
+      var cards = CARD_DEFS.filter(function (c) { return c.section === sec.key; });
+      if (!cards.length) continue;
+      html += '<section class="sec' + (sec.cls ? " " + sec.cls : "") + '" data-section-key="' + sec.key + '">';
+      html += '<div class="sec-head"><span class="sec-grip" title="拖动排序分类"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span><h2>' + sec.name + '</h2><span class="sec-count">' + cards.length + ' modules</span></div>';
+      html += '<div class="grid">';
+      for (var i = 0; i < cards.length; i++) { html += renderTile(cards[i]); }
+      html += '</div></section>';
+    }
+    var dash = document.getElementById("dashboard");
+    if (dash) dash.innerHTML = html;
+    bindCardEvents();
+    bindDragEvents();
+  }
+
+  // ── 卡片事件绑定 ──
+  function bindCardEvents() {
+    var links = document.querySelectorAll("#dashboard .link");
+    for (var i = 0; i < links.length; i++) {
+      links[i].addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = this.dataset.id;
+        if (this.dataset.action === "detail") showDetail(id);
+      });
+    }
+
+    var sws = document.querySelectorAll("#dashboard .sw");
+    for (var j = 0; j < sws.length; j++) {
+      sws[j].addEventListener("click", function (e) {
+        e.stopPropagation();
+        var id = this.dataset.id;
+        var tile = this.closest(".tile");
+        if (!tile) return;
+        var card = CARD_DEFS.find(function (c) { return c.id === id; });
+        if (!card) return;
+        tile.classList.toggle("on");
+        setCardState(card, tile.classList.contains("on"));
+      });
+    }
+  }
+
+  // ── 布局持久化（全局 localStorage，不跟随配置档案） ──
+  var UI_LAYOUT_KEY = "gooner_uiLayout";
+
+  function loadGlobalLayout() {
+    try {
+      var raw = localStorage.getItem(UI_LAYOUT_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+
+  function applyLayoutOrder() {
+    var layout = loadGlobalLayout();
+    if (!layout) return;
+
+    // 重排分类
+    if (layout.sectionOrder && layout.sectionOrder.length) {
+      var secMap = {};
+      for (var i = 0; i < SECTIONS.length; i++) {
+        secMap[SECTIONS[i].key] = SECTIONS[i];
+      }
+      var newSections = [];
+      for (var j = 0; j < layout.sectionOrder.length; j++) {
+        if (secMap[layout.sectionOrder[j]]) {
+          newSections.push(secMap[layout.sectionOrder[j]]);
+          delete secMap[layout.sectionOrder[j]];
+        }
+      }
+      for (var k in secMap) { newSections.push(secMap[k]); }
+      SECTIONS.length = 0;
+      for (var m = 0; m < newSections.length; m++) { SECTIONS.push(newSections[m]); }
+    }
+
+    // 重排卡片
+    if (layout.cardOrder) {
+      var cardMap = {};
+      for (var ci = 0; ci < CARD_DEFS.length; ci++) {
+        cardMap[CARD_DEFS[ci].id] = CARD_DEFS[ci];
+      }
+      var newDefs = [];
+      for (var si = 0; si < SECTIONS.length; si++) {
+        var secKey = SECTIONS[si].key;
+        var order = layout.cardOrder[secKey] || [];
+        for (var oi = 0; oi < order.length; oi++) {
+          if (cardMap[order[oi]]) {
+            cardMap[order[oi]].section = secKey;
+            newDefs.push(cardMap[order[oi]]);
+            delete cardMap[order[oi]];
+          }
+        }
+      }
+      // 追加缺失卡片
+      for (var id in cardMap) { newDefs.push(cardMap[id]); }
+      CARD_DEFS.length = 0;
+      for (var di = 0; di < newDefs.length; di++) { CARD_DEFS.push(newDefs[di]); }
+    }
+  }
+
+  function saveLayoutOrder() {
+    var layout = {
+      sectionOrder: SECTIONS.map(function (s) { return s.key; }),
+      cardOrder: {}
+    };
+    for (var i = 0; i < SECTIONS.length; i++) {
+      var secKey = SECTIONS[i].key;
+      layout.cardOrder[secKey] = CARD_DEFS
+        .filter(function (c) { return c.section === secKey; })
+        .map(function (c) { return c.id; });
+    }
+    try { localStorage.setItem(UI_LAYOUT_KEY, JSON.stringify(layout)); } catch (e) {}
+  }
+
+  // ── 鼠标拖拽系统（参考 Toys 成熟方案）──
+  var DRAG_THRESHOLD = 12;  // 拖拽启动阈值 px，防止误触
+  var dragState = null;     // { type, cardId|sectionKey, sourceSection, startX, startY, offsetX, offsetY, active, sourceEl }
+  var dragOverEl = null;
+  var dragGhost = null;
+  var _lastDragEndTime = 0; // 拖拽结束时间戳，用于防误点
+
+  function createDragGhost() {
+    if (dragGhost) return dragGhost;
+    dragGhost = document.createElement("div");
+    dragGhost.className = "drag-ghost";
+    document.body.appendChild(dragGhost);
+    return dragGhost;
+  }
+
+  function removeDragGhost() {
+    if (dragGhost && dragGhost.parentNode) {
+      dragGhost.parentNode.removeChild(dragGhost);
+    }
+    dragGhost = null;
+  }
+
+  function moveDragGhost(x, y) {
+    var g = createDragGhost();
+    g.style.left = x + "px";
+    g.style.top = y + "px";
+  }
+
+  function clearDragState() {
+    var all = document.querySelectorAll(
+      "#dashboard .dragging, #dashboard .drag-insert-before, #dashboard .drag-insert-after"
+    );
+    for (var i = 0; i < all.length; i++) {
+      all[i].classList.remove("dragging", "drag-insert-before", "drag-insert-after");
+    }
     dragState = null;
-    input.parentElement?.classList.remove('dragging');
-    document.body.classList.remove('scrub-active');
+    dragOverEl = null;
+    removeDragGhost();
+    document.body.classList.remove("is-dragging");
+  }
 
-    if (pointerId !== undefined) {
-      input.releasePointerCapture?.(pointerId);
+  // 获取鼠标所在位置的 tile（排除自身，使用原始位置不受 transform 影响）
+  function getTileAt(x, y, excludeId) {
+    var tiles = document.querySelectorAll("#dashboard .tile");
+    for (var i = 0; i < tiles.length; i++) {
+      if (tiles[i].dataset.cardId === excludeId) continue;
+      var r = tiles[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        return tiles[i];
+      }
+    }
+    return null;
+  }
+
+  // 获取鼠标所在位置的 section（排除自身）
+  function getSectionAt(x, y, excludeKey) {
+    var secs = document.querySelectorAll("#dashboard .sec");
+    for (var i = 0; i < secs.length; i++) {
+      if (secs[i].dataset.sectionKey === excludeKey) continue;
+      var r = secs[i].getBoundingClientRect();
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+        return secs[i];
+      }
+    }
+    return null;
+  }
+
+
+
+  // ── 卡片拖拽（鼠标事件）──
+  function onTileGripMouseDown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var tile = e.currentTarget.closest(".tile");
+    if (!tile) return;
+
+    // 拖拽刚结束不久，忽略快速点击
+    if (Date.now() - _lastDragEndTime < 250) return;
+
+    var rect = tile.getBoundingClientRect();
+    dragState = {
+      type: "tile",
+      cardId: tile.dataset.cardId,
+      sourceSection: tile.dataset.section,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      active: false,           // 未超过阈值，不算真正拖拽
+      sourceEl: tile
+    };
+  }
+
+  function activateTileDrag() {
+    if (!dragState || dragState.active) return;
+    dragState.active = true;
+
+    var tile = dragState.sourceEl;
+    tile.classList.add("dragging");
+    document.body.classList.add("is-dragging");
+
+    // 幽灵显示卡片名称 + 图标
+    var g = createDragGhost();
+    var card = CARD_DEFS.find(function (c) { return c.id === dragState.cardId; });
+    if (card) {
+      var iconHtml = icon(card.icon);
+      g.innerHTML = '<span class="ghost-icon">' + iconHtml + '</span><span class="ghost-label">' + card.name + '</span>';
+    }
+    moveDragGhost(dragState.startX, dragState.startY);
+  }
+
+  function onTileMouseMove(e) {
+    if (!dragState || dragState.type !== "tile") return;
+
+    // 阈值检测：未超过阈值不启动拖拽
+    if (!dragState.active) {
+      var dx = e.clientX - dragState.startX;
+      var dy = e.clientY - dragState.startY;
+      if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return;
+      activateTileDrag();
     }
 
-    if (!moved) {
-      input.focus();
-      input.select?.();
-      return;
+    moveDragGhost(e.clientX, e.clientY);
+
+    var hoverTile = getTileAt(e.clientX, e.clientY, dragState.cardId);
+
+    // 目标不变时跳过更新
+    if (hoverTile === dragOverEl) return;
+
+    // 清除旧指示线
+    if (dragOverEl) {
+      dragOverEl.classList.remove("drag-insert-before", "drag-insert-after");
+    }
+    dragOverEl = hoverTile;
+
+    if (hoverTile) {
+      var r = hoverTile.getBoundingClientRect();
+      var midX = r.left + r.width / 2;
+      // Grid 水平排列：左右半区判断插在前还是后
+      if (e.clientX <= midX) {
+        hoverTile.classList.add("drag-insert-before");
+      } else {
+        hoverTile.classList.add("drag-insert-after");
+      }
+    }
+  }
+
+  function onTileMouseUp(e) {
+    if (!dragState || dragState.type !== "tile") { clearDragState(); return; }
+
+    var cardId = dragState.cardId;
+    var card = CARD_DEFS.find(function (c) { return c.id === cardId; });
+
+    // 清除指示线
+    if (dragOverEl) {
+      dragOverEl.classList.remove("drag-insert-before", "drag-insert-after");
     }
 
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  };
+    // 只有真正拖拽了（超过阈值）才执行排序
+    if (dragState.active) {
+      var hoverTile = getTileAt(e.clientX, e.clientY, cardId);
+      if (hoverTile && card && hoverTile.dataset.cardId !== cardId) {
+        var targetCardId = hoverTile.dataset.cardId;
+        var targetSection = hoverTile.dataset.section;
 
-  input.addEventListener('pointerdown', (event) => {
-    if (event.button !== 0 || input.disabled) {
-      return;
+        // 从原位置移除
+        var cardIdx = -1;
+        for (var ci = 0; ci < CARD_DEFS.length; ci++) {
+          if (CARD_DEFS[ci].id === cardId) { cardIdx = ci; break; }
+        }
+        if (cardIdx !== -1) {
+          CARD_DEFS.splice(cardIdx, 1);
+          card.section = targetSection;
+
+          // 找到目标位置
+          var targetIdx = -1;
+          for (var ti = 0; ti < CARD_DEFS.length; ti++) {
+            if (CARD_DEFS[ti].id === targetCardId) { targetIdx = ti; break; }
+          }
+          if (targetIdx !== -1) {
+            var r = hoverTile.getBoundingClientRect();
+            var midX = r.left + r.width / 2;
+            if (e.clientX > midX) targetIdx++;
+            CARD_DEFS.splice(targetIdx, 0, card);
+          } else {
+            CARD_DEFS.push(card);
+          }
+        }
+
+        saveLayoutOrder();
+        renderAllCards();
+      }
     }
+
+    _lastDragEndTime = Date.now();
+    clearDragState();
+  }
+
+  // ── 分类拖拽（鼠标事件）──
+  function onSecGripMouseDown(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var sec = e.currentTarget.closest(".sec");
+    if (!sec) return;
+
+    if (Date.now() - _lastDragEndTime < 250) return;
 
     dragState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startValue: clampNumberInputValue(input, Number(input.value)),
-      step: getInputStep(input),
-      moved: false
+      type: "section",
+      sectionKey: sec.dataset.sectionKey,
+      startX: e.clientX,
+      startY: e.clientY,
+      active: false,
+      sourceEl: sec
     };
+  }
 
-    input.parentElement?.classList.add('dragging');
-    document.body.classList.add('scrub-active');
-    input.setPointerCapture?.(event.pointerId);
-    event.preventDefault();
-  });
+  function activateSecDrag() {
+    if (!dragState || dragState.active) return;
+    dragState.active = true;
 
-  input.addEventListener('pointermove', (event) => {
-    if (!dragState || event.pointerId !== dragState.pointerId) {
-      return;
+    var sec = dragState.sourceEl;
+    sec.classList.add("dragging");
+    document.body.classList.add("is-dragging");
+
+    var g = createDragGhost();
+    var secDef = SECTIONS.find(function (s) { return s.key === dragState.sectionKey; });
+    if (secDef) g.innerHTML = '<span class="ghost-label">' + secDef.name + '</span>';
+    moveDragGhost(dragState.startX, dragState.startY);
+  }
+
+  function onSecMouseMove(e) {
+    if (!dragState || dragState.type !== "section") return;
+
+    if (!dragState.active) {
+      var dx = e.clientX - dragState.startX;
+      var dy = e.clientY - dragState.startY;
+      if (dx * dx + dy * dy < DRAG_THRESHOLD * DRAG_THRESHOLD) return;
+      activateSecDrag();
     }
 
-    const deltaX = event.clientX - dragState.startX;
-    const stepsMoved = Math.round(deltaX / 18);
+    moveDragGhost(e.clientX, e.clientY);
 
-    if (stepsMoved === 0 && Math.abs(deltaX) < 4) {
-      return;
+    var hoverSec = getSectionAt(e.clientX, e.clientY, dragState.sectionKey);
+
+    if (hoverSec === dragOverEl) return;
+
+    if (dragOverEl) {
+      dragOverEl.classList.remove("drag-insert-before", "drag-insert-after");
     }
 
-    dragState.moved = true;
-    clampNumberInputValue(input, dragState.startValue + (stepsMoved * dragState.step));
-  });
+    dragOverEl = hoverSec;
 
-  input.addEventListener('pointerup', stopScrub);
-  input.addEventListener('pointercancel', stopScrub);
-  input.addEventListener('lostpointercapture', stopScrub);
-  input.addEventListener('change', () => clampNumberInputValue(input, Number(input.value)));
-  input.addEventListener('blur', () => clampNumberInputValue(input, Number(input.value)));
-}
-
-function initNumericScrubbers() {
-  const numberInputs = Array.from(document.querySelectorAll('input[type="number"]'));
-
-  for (const input of numberInputs) {
-    decorateNumericInput(input);
-    bindNumericScrub(input);
-    clampNumberInputValue(input, Number(input.value));
-  }
-}
-
-function setDirectionMode(targetId, value) {
-  const input = document.querySelector(`#${targetId}`);
-  if (!input) {
-    return;
-  }
-
-  input.value = value;
-
-  for (const button of directionModeButtons) {
-    if (button.dataset.target !== targetId) {
-      continue;
-    }
-
-    const active = button.dataset.value === value;
-    button.classList.toggle('active', active);
-    button.setAttribute('aria-pressed', active ? 'true' : 'false');
-  }
-}
-
-function copySharedSizeValuesToSeparatePanels() {
-  elements.imageBaseWidth.value = elements.sharedBaseWidth.value;
-  elements.imageBaseHeight.value = elements.sharedBaseHeight.value;
-  elements.imageSizeJitter.value = elements.sharedSizeJitter.value;
-  elements.imageCompensationMultiplier.value = elements.sharedCompensationMultiplier.value;
-  elements.imageCompensationThreshold.value = elements.sharedCompensationThreshold.value;
-  elements.videoBaseWidth.value = elements.sharedBaseWidth.value;
-  elements.videoBaseHeight.value = elements.sharedBaseHeight.value;
-  elements.videoSizeJitter.value = elements.sharedSizeJitter.value;
-  elements.videoCompensationMultiplier.value = elements.sharedCompensationMultiplier.value;
-  elements.videoCompensationThreshold.value = elements.sharedCompensationThreshold.value;
-  setDirectionMode('imageSizeJitterMode', elements.sharedSizeJitterMode.value);
-  setDirectionMode('videoSizeJitterMode', elements.sharedSizeJitterMode.value);
-}
-
-function syncSharedSizeValuesFromConfig(config) {
-  elements.sharedBaseWidth.value = config.imageBaseWidth;
-  elements.sharedBaseHeight.value = config.imageBaseHeight;
-  elements.sharedSizeJitter.value = config.imageSizeJitter;
-  elements.sharedCompensationMultiplier.value = config.imageCompensationMultiplier;
-  elements.sharedCompensationThreshold.value = config.imageCompensationThreshold;
-  setDirectionMode('sharedSizeJitterMode', config.imageSizeJitterMode);
-}
-
-function updateSizeSettingsLayout({ syncSeparate = false } = {}) {
-  const separated = elements.separateMediaSizeSettings.checked;
-  elements.sharedSizePanel.hidden = separated;
-  elements.separateSizePanels.hidden = !separated;
-
-  if (separated && syncSeparate) {
-    copySharedSizeValuesToSeparatePanels();
-  }
-}
-
-function bindDirectionModeButtons() {
-  for (const button of directionModeButtons) {
-    button.addEventListener('click', async () => {
-      setDirectionMode(button.dataset.target, button.dataset.value);
-      await triggerAutoSave();
-    });
-  }
-}
-
-function bindAutoSaveInputs() {
-  const autoSaveFields = document.querySelectorAll('.page input, .page select, .page textarea');
-  for (const field of autoSaveFields) {
-    if (AUTO_SAVE_EXCLUDED_IDS.has(field.id) || field.type === 'hidden' || field.type === 'button' || field.type === 'submit' || field.type === 'reset') {
-      continue;
-    }
-
-    const trigger = (event) => {
-      const isAppearanceField = Boolean(field.closest('[data-section-panel="ai-popup-appearance"]'));
-      const shouldSaveImmediately = field.type === 'checkbox'
-        || field.tagName === 'SELECT'
-        || (isAppearanceField && event.type === 'change');
-      void scheduleAutoSave({ immediate: shouldSaveImmediately });
-    };
-
-    field.addEventListener('change', trigger);
-
-    if (field.tagName === 'TEXTAREA' || field.type === 'text' || field.type === 'password' || field.type === 'number' || field.type === 'color' || field.type === 'range') {
-      field.addEventListener('input', trigger);
-    }
-  }
-}
-
-function bindAiPopupAppearancePreview() {
-  const previewFields = [
-    elements.aiPopupWidth,
-    elements.aiPopupHeight,
-    elements.aiPopupPreviewScale,
-    elements.aiPopupBodyBackgroundColor,
-    elements.aiPopupBodyBackgroundOpacity,
-    elements.aiPopupTextColor,
-    elements.aiPopupTextOpacity,
-    elements.aiPopupTextFontSize,
-    elements.aiPopupTextLineHeight,
-    elements.aiPopupTextAlign,
-    elements.aiPopupCardBackgroundColor,
-    elements.aiPopupCardBackgroundOpacity,
-    elements.aiPopupCardBorderColor,
-    elements.aiPopupCardBorderOpacity,
-    elements.aiPopupCardBorderWidth,
-    elements.aiPopupCardBorderRadius,
-    elements.aiPopupCardPaddingX,
-    elements.aiPopupCardPaddingY,
-    elements.aiPopupCardShadowColor,
-    elements.aiPopupCardShadowOpacity,
-    elements.aiPopupCardShadowBlur,
-    elements.aiPopupCardShadowSpread,
-    elements.aiPopupCardShadowOffsetX,
-    elements.aiPopupCardShadowOffsetY,
-    elements.aiPopupTextShadowColor,
-    elements.aiPopupTextShadowOpacity,
-    elements.aiPopupTextShadowBlur,
-    elements.aiPopupTextShadowSpread,
-    elements.aiPopupTextShadowOffsetX,
-    elements.aiPopupTextShadowOffsetY,
-    elements.aiPopupCloseButtonFontSize,
-    elements.aiPopupCloseButtonBorderRadius,
-    elements.aiPopupCloseButtonPaddingX,
-    elements.aiPopupCloseButtonPaddingY,
-    elements.aiPopupCloseButtonOffsetX,
-    elements.aiPopupCloseButtonOffsetY,
-    elements.aiPopupCloseButtonBackgroundColor,
-    elements.aiPopupCloseButtonBackgroundOpacity,
-    elements.aiPopupCloseButtonTextColor,
-    elements.aiPopupCloseButtonTextOpacity,
-    elements.aiPopupCloseButtonBorderColor,
-    elements.aiPopupCloseButtonBorderOpacity,
-    elements.aiPopupCloseButtonHoverBackgroundColor,
-    elements.aiPopupCloseButtonHoverBackgroundOpacity,
-    elements.aiPopupCloseButtonHoverTextColor,
-    elements.aiPopupCloseButtonHoverTextOpacity
-  ];
-
-  const render = () => applyAiPopupAppearancePreview(getAiPopupAppearanceFromInputs());
-
-  for (const field of previewFields) {
-    if (!field) {
-      continue;
-    }
-
-    field.addEventListener('input', render);
-    field.addEventListener('change', render);
-  }
-
-  if (elements.aiPopupPreviewCloseButton) {
-    elements.aiPopupPreviewCloseButton.addEventListener('mouseenter', () => {
-      elements.aiPopupPreviewCloseButton.style.backgroundColor = elements.aiPopupPreviewCloseButton.dataset.hoverBg || elements.aiPopupPreviewCloseButton.style.backgroundColor;
-      elements.aiPopupPreviewCloseButton.style.color = elements.aiPopupPreviewCloseButton.dataset.hoverColor || elements.aiPopupPreviewCloseButton.style.color;
-    });
-    elements.aiPopupPreviewCloseButton.addEventListener('mouseleave', () => render());
-    elements.aiPopupPreviewCloseButton.addEventListener('click', (event) => event.preventDefault());
-  }
-}
-
-function getShortcutField(key) {
-  return shortcutFields.find((field) => field.key === key) || null;
-}
-
-function getShortcutValues() {
-  return Object.fromEntries(shortcutFields.map((field) => [field.key, field.input.value.trim()]));
-}
-
-function isModifierOnlyKey(key) {
-  return key === 'Control' || key === 'Shift' || key === 'Alt' || key === 'Meta';
-}
-
-function getAcceleratorKey(event) {
-  if (/^F\d{1,2}$/i.test(event.key)) {
-    return event.key.toUpperCase();
-  }
-
-  if (/^Key[A-Z]$/.test(event.code)) {
-    return event.code.slice(3);
-  }
-
-  if (/^Digit\d$/.test(event.code)) {
-    return event.code.slice(5);
-  }
-
-  if (/^Numpad\d$/.test(event.code)) {
-    return event.code.slice(6);
-  }
-
-  const keyMap = {
-    ArrowUp: 'Up',
-    ArrowDown: 'Down',
-    ArrowLeft: 'Left',
-    ArrowRight: 'Right',
-    ' ': 'Space',
-    Spacebar: 'Space',
-    Enter: 'Enter',
-    Escape: 'Esc',
-    Tab: 'Tab',
-    Backspace: 'Backspace',
-    Delete: 'Delete',
-    Insert: 'Insert',
-    Home: 'Home',
-    End: 'End',
-    PageUp: 'PageUp',
-    PageDown: 'PageDown'
-  };
-
-  return keyMap[event.key] || null;
-}
-
-function recordShortcutFromEvent(event) {
-  if (isModifierOnlyKey(event.key)) {
-    return { errorKey: 'shortcuts.error.needNonModifier' };
-  }
-
-  const key = getAcceleratorKey(event);
-  if (!key) {
-    return { errorKey: 'shortcuts.error.unsupportedKey' };
-  }
-
-  const parts = [];
-  if (event.ctrlKey) {
-    parts.push('Ctrl');
-  }
-  if (event.altKey) {
-    parts.push('Alt');
-  }
-  if (event.shiftKey) {
-    parts.push('Shift');
-  }
-  if (event.metaKey) {
-    parts.push('Super');
-  }
-  parts.push(key);
-  return { accelerator: parts.join('+') };
-}
-
-function buildShortcutValidation(values = getShortcutValues()) {
-  const validation = Object.fromEntries(shortcutFields.map((field) => [field.key, null]));
-  const duplicates = new Map();
-
-  for (const field of shortcutFields) {
-    const value = String(values[field.key] || '').trim();
-    if (!value) {
-      continue;
-    }
-
-    const normalized = value.toLowerCase();
-    const items = duplicates.get(normalized) || [];
-    items.push(field.key);
-    duplicates.set(normalized, items);
-  }
-
-  for (const keys of duplicates.values()) {
-    if (keys.length < 2) {
-      continue;
-    }
-
-    for (const key of keys) {
-      const others = keys
-        .filter((item) => item !== key)
-        .map((item) => t(getShortcutField(item)?.labelKey || item))
-        .join(' / ');
-      validation[key] = {
-        level: 'error',
-        message: t('shortcuts.status.conflict', { other: others })
-      };
-    }
-  }
-
-  return validation;
-}
-
-function getShortcutBackendFeedback(field) {
-  const status = currentState?.shortcutRegistration?.[field.key]?.status;
-  if (!status) {
-    return null;
-  }
-
-  if (status === 'registered') {
-    return { level: 'success', message: t('shortcuts.status.registered') };
-  }
-
-  if (status === 'failed') {
-    return { level: 'warning', message: t('shortcuts.status.unavailable') };
-  }
-
-  if (status === 'invalid') {
-    return { level: 'error', message: t('shortcuts.status.invalid') };
-  }
-
-  if (status === 'duplicate') {
-    return { level: 'error', message: t('shortcuts.status.conflictSaved') };
-  }
-
-  return { level: 'muted', message: t('shortcuts.status.empty') };
-}
-
-function renderShortcutFeedback(validation = buildShortcutValidation()) {
-  for (const field of shortcutFields) {
-    const transient = shortcutTransientFeedback[field.key];
-    const localValidation = validation[field.key];
-    const backendFeedback = getShortcutBackendFeedback(field);
-    const value = field.input.value.trim();
-    const savedValue = String(currentConfig?.[field.key] || '').trim();
-    const isDirty = value !== savedValue;
-    const feedback = transient
-      || localValidation
-      || (isDirty ? { level: 'muted', message: value ? t('shortcuts.status.unsaved') : t('shortcuts.status.empty') } : null)
-      || backendFeedback
-      || { level: 'muted', message: value ? t('shortcuts.status.unsaved') : t('shortcuts.status.empty') };
-
-    field.status.textContent = feedback.message;
-    field.status.classList.toggle('is-error', feedback.level === 'error');
-    field.status.classList.toggle('is-warning', feedback.level === 'warning');
-    field.status.classList.toggle('is-success', feedback.level === 'success');
-    field.input.classList.toggle('is-error', feedback.level === 'error');
-    field.input.classList.toggle('is-success', feedback.level === 'success');
-  }
-}
-
-function bindShortcutRecorders() {
-  for (const field of shortcutFields) {
-    field.input.addEventListener('focus', () => {
-      field.input.classList.add('is-recording');
-      shortcutTransientFeedback[field.key] = {
-        level: 'warning',
-        message: t('shortcuts.status.recording')
-      };
-      renderShortcutFeedback();
-    });
-
-    field.input.addEventListener('blur', async () => {
-      field.input.classList.remove('is-recording');
-      delete shortcutTransientFeedback[field.key];
-      renderShortcutFeedback();
-
-      if (!currentConfig) {
-        return;
+    if (hoverSec) {
+      var r = hoverSec.getBoundingClientRect();
+      var midY = r.top + r.height / 2;
+      if (e.clientY <= midY) {
+        hoverSec.classList.add("drag-insert-before");
+      } else {
+        hoverSec.classList.add("drag-insert-after");
       }
-
-      const nextValue = field.input.value.trim();
-      const currentValue = String(currentConfig[field.key] || '').trim();
-      if (nextValue === currentValue) {
-        return;
-      }
-
-      const result = await saveConfig();
-      if (!result?.blocked) {
-        log(t('log.shortcutsSaved'));
-      }
-    });
-
-    field.input.addEventListener('keydown', (event) => {
-      if (event.key === 'Tab') {
-        return;
-      }
-
-      event.preventDefault();
-      if (event.repeat) {
-        return;
-      }
-
-      if ((event.key === 'Backspace' || event.key === 'Delete') && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
-        field.input.value = '';
-        delete shortcutTransientFeedback[field.key];
-        renderShortcutFeedback();
-        return;
-      }
-
-      if (event.key === 'Escape' && !event.ctrlKey && !event.altKey && !event.shiftKey && !event.metaKey) {
-        field.input.blur();
-        return;
-      }
-
-      const recorded = recordShortcutFromEvent(event);
-      if (recorded.errorKey) {
-        shortcutTransientFeedback[field.key] = {
-          level: 'error',
-          message: t(recorded.errorKey)
-        };
-        renderShortcutFeedback();
-        return;
-      }
-
-      field.input.value = recorded.accelerator;
-      delete shortcutTransientFeedback[field.key];
-      renderShortcutFeedback();
-    });
-  }
-}
-
-function collectConfig() {
-  const separateMediaSizeSettings = elements.separateMediaSizeSettings.checked;
-  const sharedBaseWidth = Number(elements.sharedBaseWidth.value);
-  const sharedBaseHeight = Number(elements.sharedBaseHeight.value);
-  const sharedSizeJitter = Number(elements.sharedSizeJitter.value);
-  const sharedSizeJitterMode = elements.sharedSizeJitterMode.value;
-  const sharedCompensationMultiplier = Number(elements.sharedCompensationMultiplier.value);
-  const sharedCompensationThreshold = Number(elements.sharedCompensationThreshold.value);
-  const aiConfig = getAiConfig();
-  const aiPopupAppearance = getAiPopupAppearanceFromInputs();
-  const websiteLibrary = parseWebsiteLibraryText(elements.websiteLibraryText.value);
-
-  return {
-    ...currentConfig,
-    language: elements.language.value,
-    startShortcut: elements.startShortcut.value.trim(),
-    pauseShortcut: elements.pauseShortcut.value.trim(),
-    stopShortcut: elements.stopShortcut.value.trim(),
-    closeAllShortcut: elements.closeAllShortcut.value.trim(),
-    recursive: elements.recursive.checked,
-    gradual: elements.gradual.checked,
-    alwaysOnTop: elements.alwaysOnTop.checked,
-    fullscreen: elements.fullscreen.checked,
-    muted: elements.muted.checked,
-    closeVideoOnEnded: elements.closeVideoOnEnded.checked,
-    chaosVideo: elements.chaosVideo.checked,
-    clickToClose: elements.clickToClose.checked,
-    randomCloseButton: elements.randomCloseButton.checked,
-    disableManualClose: elements.disableManualClose.checked,
-    developerMode: elements.developerMode.checked,
-    closeButtonText: elements.closeButtonText.value,
-    closeButtonFontSize: Number(elements.closeButtonFontSize.value),
-    closeButtonBorderRadius: Number(elements.closeButtonBorderRadius.value),
-    closeButtonPaddingX: Number(elements.closeButtonPaddingX.value),
-    closeButtonPaddingY: Number(elements.closeButtonPaddingY.value),
-    closeButtonOffsetX: Number(elements.closeButtonOffsetX.value),
-    closeButtonOffsetY: Number(elements.closeButtonOffsetY.value),
-    closeButtonBackgroundColor: elements.closeButtonBackgroundColor.value,
-    closeButtonTextColor: elements.closeButtonTextColor.value,
-    closeButtonBorderColor: elements.closeButtonBorderColor.value,
-    closeButtonHoverBackgroundColor: elements.closeButtonHoverBackgroundColor.value,
-    closeButtonHoverTextColor: elements.closeButtonHoverTextColor.value,
-    intervalHours: Number(elements.intervalHours.value),
-    intervalMinutes: Number(elements.intervalMinutes.value),
-    intervalSeconds: Number(elements.intervalSeconds.value),
-    jitterHours: Number(elements.jitterHours.value),
-    jitterMinutes: Number(elements.jitterMinutes.value),
-    jitterSeconds: Number(elements.jitterSeconds.value),
-    popupLifetimeHours: Number(elements.popupLifetimeHours.value),
-    popupLifetimeMinutes: Number(elements.popupLifetimeMinutes.value),
-    popupLifetimeSeconds: Number(elements.popupLifetimeSeconds.value),
-    popupLifetimeJitterHours: Number(elements.popupLifetimeJitterHours.value),
-    popupLifetimeJitterMinutes: Number(elements.popupLifetimeJitterMinutes.value),
-    popupLifetimeJitterSeconds: Number(elements.popupLifetimeJitterSeconds.value),
-    popupLifetimeJitterMode: elements.popupLifetimeJitterMode.value,
-    burstCount: Number(elements.burstCount.value),
-    minWindows: Number(elements.minWindows.value),
-    maxWindows: elements.unlimitedWindows.checked ? 'unlimited' : Number(elements.maxWindows.value),
-    maxVideoWindows: Number(elements.maxVideoWindows.value),
-    order: elements.order.value,
-    wallpaper: {
-      enabled: elements.wallpaperEnabled.checked,
-      intervalMinutes: Number(elements.wallpaperIntervalMinutes.value),
-      minResolution: Number(elements.wallpaperMinResolution.value),
-      maxRatioDeviation: Number(elements.wallpaperMaxRatioDeviation.value)
-    },
-    processRules: {
-      enabled: elements.processRulesEnabled.checked,
-      blacklist: parseProcessRuleText(elements.processRulesBlacklist.value),
-      whitelist: parseProcessRuleText(elements.processRulesWhitelist.value),
-      autoStartOnWhitelist: elements.processRulesAutoStartOnWhitelist.checked,
-      stopOnBlacklist: elements.processRulesStopOnBlacklist.checked,
-      stopOnWhitelistExit: elements.processRulesStopOnWhitelistExit.checked,
-      checkIntervalSeconds: Number(elements.processRulesCheckIntervalSeconds.value),
-      autoProfiles: elements.autoProfileConfigPath?.value ? [{
-        configPath: elements.autoProfileConfigPath.value,
-        processes: parseProcessRuleText(elements.autoProfileProcesses.value)
-      }] : []
-    },
-    websiteLibrary: {
-      enabled: elements.websiteLibraryEnabled.checked,
-      entries: websiteLibrary.entries
-    },
-    popupDisplayIds: getPopupDisplayIds(),
-    separateMediaSizeSettings,
-    imageBaseWidth: separateMediaSizeSettings ? Number(elements.imageBaseWidth.value) : sharedBaseWidth,
-    imageBaseHeight: separateMediaSizeSettings ? Number(elements.imageBaseHeight.value) : sharedBaseHeight,
-    imageSizeJitter: separateMediaSizeSettings ? Number(elements.imageSizeJitter.value) : sharedSizeJitter,
-    imageSizeJitterMode: separateMediaSizeSettings ? elements.imageSizeJitterMode.value : sharedSizeJitterMode,
-    imageCompensationMultiplier: separateMediaSizeSettings ? Number(elements.imageCompensationMultiplier.value) : sharedCompensationMultiplier,
-    imageCompensationThreshold: separateMediaSizeSettings ? Number(elements.imageCompensationThreshold.value) : sharedCompensationThreshold,
-    videoBaseWidth: separateMediaSizeSettings ? Number(elements.videoBaseWidth.value) : sharedBaseWidth,
-    videoBaseHeight: separateMediaSizeSettings ? Number(elements.videoBaseHeight.value) : sharedBaseHeight,
-    videoSizeJitter: separateMediaSizeSettings ? Number(elements.videoSizeJitter.value) : sharedSizeJitter,
-    videoSizeJitterMode: separateMediaSizeSettings ? elements.videoSizeJitterMode.value : sharedSizeJitterMode,
-    videoCompensationMultiplier: separateMediaSizeSettings ? Number(elements.videoCompensationMultiplier.value) : sharedCompensationMultiplier,
-    videoCompensationThreshold: separateMediaSizeSettings ? Number(elements.videoCompensationThreshold.value) : sharedCompensationThreshold,
-    ai: {
-      ...aiConfig,
-      provider: elements.aiProvider.value,
-      model: elements.aiModel.value,
-      apiKey: elements.aiApiKey.value,
-      singlePopupMode: elements.aiSinglePopupMode.checked,
-      immediateReplyEnabled: elements.aiImmediateReplyEnabled.checked,
-      interactionEnabled: elements.aiInteractionEnabled.checked,
-      interactionIntervalHours: Number(elements.aiInteractionIntervalHours.value),
-      interactionIntervalMinutes: Number(elements.aiInteractionIntervalMinutes.value),
-      interactionIntervalSeconds: Number(elements.aiInteractionIntervalSeconds.value),
-      interactionTone: elements.aiInteractionTone.value,
-      interactionIncludeForegroundApp: elements.aiInteractionIncludeForegroundApp.checked,
-      systemPrompt: elements.aiSystemPrompt.value,
-      knowledgeBase: elements.aiKnowledgeBase.value,
-      contextMemory: elements.aiContextMemory.value,
-      profile: {
-        age: elements.aiProfileAge.value,
-        name: elements.aiProfileName.value,
-        companionName: elements.aiProfileCompanionName.value,
-        companionRole: elements.aiProfileCompanionRole.value,
-        appearance: elements.aiProfileAppearance.value,
-        dailyPersona: elements.aiProfileDailyPersona.value,
-        sceneLibrary: elements.aiSceneLibrary.value
-      },
-      popupScheduleEnabled: elements.aiPopupScheduleEnabled.checked,
-      popupAppearance: aiPopupAppearance
     }
-  };
-}
-
-function applyConfig(config, displays = []) {
-  currentConfig = config;
-  elements.language.value = config.language || 'system';
-  elements.startShortcut.value = config.startShortcut || '';
-  elements.pauseShortcut.value = config.pauseShortcut || '';
-  elements.stopShortcut.value = config.stopShortcut || '';
-  elements.closeAllShortcut.value = config.closeAllShortcut || '';
-  const ai = getAiConfig(config);
-  elements.aiProvider.value = ai.provider;
-  elements.aiModel.value = ai.model;
-  elements.aiApiKey.value = ai.apiKey;
-  elements.aiSinglePopupMode.checked = ai.singlePopupMode;
-  elements.aiImmediateReplyEnabled.checked = ai.immediateReplyEnabled;
-  elements.aiInteractionEnabled.checked = ai.interactionEnabled;
-  elements.aiInteractionIntervalHours.value = ai.interactionIntervalHours;
-  elements.aiInteractionIntervalMinutes.value = ai.interactionIntervalMinutes;
-  elements.aiInteractionIntervalSeconds.value = ai.interactionIntervalSeconds;
-  elements.aiInteractionTone.value = ai.interactionTone;
-  elements.aiInteractionIncludeForegroundApp.checked = ai.interactionIncludeForegroundApp;
-  elements.aiSystemPrompt.value = ai.systemPrompt;
-  elements.aiKnowledgeBase.value = ai.knowledgeBase;
-  elements.aiContextMemory.value = ai.contextMemory;
-  elements.aiProfileAge.value = ai.profile.age;
-  elements.aiProfileName.value = ai.profile.name;
-  elements.aiProfileCompanionName.value = ai.profile.companionName;
-  elements.aiProfileCompanionRole.value = ai.profile.companionRole;
-  elements.aiProfileAppearance.value = ai.profile.appearance;
-  elements.aiProfileDailyPersona.value = ai.profile.dailyPersona;
-  elements.aiSceneLibrary.value = ai.profile.sceneLibrary;
-  elements.aiPopupScheduleEnabled.checked = ai.popupScheduleEnabled;
-  elements.aiPopupPreviewScale.value = elements.aiPopupPreviewScale.value || '1';
-  elements.aiPopupWidth.value = ai.popupAppearance.popupWidth;
-  elements.aiPopupHeight.value = ai.popupAppearance.popupHeight;
-  elements.aiPopupBodyBackgroundColor.value = ai.popupAppearance.bodyBackgroundColor;
-  elements.aiPopupBodyBackgroundOpacity.value = ai.popupAppearance.bodyBackgroundOpacity;
-  elements.aiPopupTextColor.value = ai.popupAppearance.textColor;
-  elements.aiPopupTextOpacity.value = ai.popupAppearance.textOpacity;
-  elements.aiPopupTextFontSize.value = ai.popupAppearance.textFontSize;
-  elements.aiPopupTextLineHeight.value = ai.popupAppearance.textLineHeight;
-  elements.aiPopupTextAlign.value = ai.popupAppearance.textAlign;
-  elements.aiPopupCardBackgroundColor.value = ai.popupAppearance.cardBackgroundColor;
-  elements.aiPopupCardBackgroundOpacity.value = ai.popupAppearance.cardBackgroundOpacity;
-  elements.aiPopupCardBorderColor.value = ai.popupAppearance.cardBorderColor;
-  elements.aiPopupCardBorderOpacity.value = ai.popupAppearance.cardBorderOpacity;
-  elements.aiPopupCardBorderWidth.value = ai.popupAppearance.cardBorderWidth;
-  elements.aiPopupCardBorderRadius.value = ai.popupAppearance.cardBorderRadius;
-  elements.aiPopupCardPaddingX.value = ai.popupAppearance.cardPaddingX;
-  elements.aiPopupCardPaddingY.value = ai.popupAppearance.cardPaddingY;
-  elements.aiPopupCardShadowColor.value = ai.popupAppearance.cardShadowColor;
-  elements.aiPopupCardShadowOpacity.value = ai.popupAppearance.cardShadowOpacity;
-  elements.aiPopupCardShadowBlur.value = ai.popupAppearance.cardShadowBlur;
-  elements.aiPopupCardShadowSpread.value = ai.popupAppearance.cardShadowSpread;
-  elements.aiPopupCardShadowOffsetX.value = ai.popupAppearance.cardShadowOffsetX;
-  elements.aiPopupCardShadowOffsetY.value = ai.popupAppearance.cardShadowOffsetY;
-  elements.aiPopupTextShadowColor.value = ai.popupAppearance.textShadowColor;
-  elements.aiPopupTextShadowOpacity.value = ai.popupAppearance.textShadowOpacity;
-  elements.aiPopupTextShadowBlur.value = ai.popupAppearance.textShadowBlur;
-  elements.aiPopupTextShadowSpread.value = ai.popupAppearance.textShadowSpread;
-  elements.aiPopupTextShadowOffsetX.value = ai.popupAppearance.textShadowOffsetX;
-  elements.aiPopupTextShadowOffsetY.value = ai.popupAppearance.textShadowOffsetY;
-  elements.aiPopupCloseButtonFontSize.value = ai.popupAppearance.closeButtonFontSize;
-  elements.aiPopupCloseButtonBorderRadius.value = ai.popupAppearance.closeButtonBorderRadius;
-  elements.aiPopupCloseButtonPaddingX.value = ai.popupAppearance.closeButtonPaddingX;
-  elements.aiPopupCloseButtonPaddingY.value = ai.popupAppearance.closeButtonPaddingY;
-  elements.aiPopupCloseButtonOffsetX.value = ai.popupAppearance.closeButtonOffsetX;
-  elements.aiPopupCloseButtonOffsetY.value = ai.popupAppearance.closeButtonOffsetY;
-  elements.aiPopupCloseButtonBackgroundColor.value = ai.popupAppearance.closeButtonBackgroundColor;
-  elements.aiPopupCloseButtonBackgroundOpacity.value = ai.popupAppearance.closeButtonBackgroundOpacity;
-  elements.aiPopupCloseButtonTextColor.value = ai.popupAppearance.closeButtonTextColor;
-  elements.aiPopupCloseButtonTextOpacity.value = ai.popupAppearance.closeButtonTextOpacity;
-  elements.aiPopupCloseButtonBorderColor.value = ai.popupAppearance.closeButtonBorderColor;
-  elements.aiPopupCloseButtonBorderOpacity.value = ai.popupAppearance.closeButtonBorderOpacity;
-  elements.aiPopupCloseButtonHoverBackgroundColor.value = ai.popupAppearance.closeButtonHoverBackgroundColor;
-  elements.aiPopupCloseButtonHoverBackgroundOpacity.value = ai.popupAppearance.closeButtonHoverBackgroundOpacity;
-  elements.aiPopupCloseButtonHoverTextColor.value = ai.popupAppearance.closeButtonHoverTextColor;
-  elements.aiPopupCloseButtonHoverTextOpacity.value = ai.popupAppearance.closeButtonHoverTextOpacity;
-  elements.recursive.checked = config.recursive;
-  elements.gradual.checked = config.gradual;
-  elements.alwaysOnTop.checked = config.alwaysOnTop;
-  elements.fullscreen.checked = config.fullscreen;
-  elements.muted.checked = config.muted;
-  elements.closeVideoOnEnded.checked = Boolean(config.closeVideoOnEnded);
-  elements.chaosVideo.checked = Boolean(config.chaosVideo);
-  if (elements.chaosVideo.checked) {
-    elements.closeVideoOnEnded.checked = false;
-    elements.closeVideoOnEnded.disabled = true;
-  } else {
-    elements.closeVideoOnEnded.disabled = false;
-  }
-  elements.clickToClose.checked = config.clickToClose;
-  elements.randomCloseButton.checked = config.randomCloseButton;
-  elements.disableManualClose.checked = config.disableManualClose;
-  elements.developerMode.checked = Boolean(config.developerMode);
-  if (elements.aiApiKey) {
-    elements.aiApiKey.type = elements.developerMode.checked ? 'password' : 'text';
-  }
-  elements.closeButtonText.value = config.closeButtonText || '';
-  elements.closeButtonFontSize.value = config.closeButtonFontSize;
-  elements.closeButtonBorderRadius.value = config.closeButtonBorderRadius;
-  elements.closeButtonPaddingX.value = config.closeButtonPaddingX;
-  elements.closeButtonPaddingY.value = config.closeButtonPaddingY;
-  elements.closeButtonOffsetX.value = config.closeButtonOffsetX;
-  elements.closeButtonOffsetY.value = config.closeButtonOffsetY;
-  elements.closeButtonBackgroundColor.value = config.closeButtonBackgroundColor;
-  elements.closeButtonTextColor.value = config.closeButtonTextColor;
-  elements.closeButtonBorderColor.value = config.closeButtonBorderColor;
-  elements.closeButtonHoverBackgroundColor.value = config.closeButtonHoverBackgroundColor;
-  elements.closeButtonHoverTextColor.value = config.closeButtonHoverTextColor;
-  elements.intervalHours.value = config.intervalHours;
-  elements.intervalMinutes.value = config.intervalMinutes;
-  elements.intervalSeconds.value = config.intervalSeconds;
-  elements.jitterHours.value = config.jitterHours;
-  elements.jitterMinutes.value = config.jitterMinutes;
-  elements.jitterSeconds.value = config.jitterSeconds;
-  elements.popupLifetimeHours.value = config.popupLifetimeHours;
-  elements.popupLifetimeMinutes.value = config.popupLifetimeMinutes;
-  elements.popupLifetimeSeconds.value = config.popupLifetimeSeconds;
-  elements.popupLifetimeJitterHours.value = config.popupLifetimeJitterHours;
-  elements.popupLifetimeJitterMinutes.value = config.popupLifetimeJitterMinutes;
-  elements.popupLifetimeJitterSeconds.value = config.popupLifetimeJitterSeconds;
-  setDirectionMode('popupLifetimeJitterMode', config.popupLifetimeJitterMode);
-  elements.burstCount.value = config.burstCount;
-  elements.minWindows.value = config.minWindows;
-  elements.unlimitedWindows.checked = config.maxWindows === 'unlimited';
-  elements.maxWindows.disabled = elements.unlimitedWindows.checked;
-  elements.maxWindows.value = config.maxWindows === 'unlimited' ? 8 : config.maxWindows;
-  elements.maxVideoWindows.value = config.maxVideoWindows;
-  elements.unlimitedWarning.hidden = !elements.unlimitedWindows.checked;
-  elements.order.value = config.order;
-  
-  const wallpaper = config.wallpaper || { enabled: false, intervalMinutes: 60, minResolution: 0, maxRatioDeviation: 0.20 };
-  elements.wallpaperEnabled.checked = wallpaper.enabled;
-  elements.wallpaperIntervalMinutes.value = wallpaper.intervalMinutes;
-  elements.wallpaperMinResolution.value = wallpaper.minResolution;
-  elements.wallpaperMaxRatioDeviation.value = wallpaper.maxRatioDeviation;
-
-  const processRules = getProcessRules(config);
-  elements.processRulesEnabled.checked = processRules.enabled;
-  elements.processRulesBlacklist.value = serializeProcessRuleList(processRules.blacklist);
-  elements.processRulesWhitelist.value = serializeProcessRuleList(processRules.whitelist);
-  elements.processRulesAutoStartOnWhitelist.checked = processRules.autoStartOnWhitelist;
-  elements.processRulesStopOnBlacklist.checked = processRules.stopOnBlacklist;
-  elements.processRulesStopOnWhitelistExit.checked = processRules.stopOnWhitelistExit;
-  elements.processRulesCheckIntervalSeconds.value = processRules.checkIntervalSeconds;
-
-  if (elements.autoProfileConfigPath) {
-    const autoProfile = processRules.autoProfiles?.[0] || { configPath: '', processes: [] };
-    elements.autoProfileConfigPath.value = autoProfile.configPath || '';
-    elements.autoProfileProcesses.value = serializeProcessRuleList(autoProfile.processes);
   }
 
-  const websiteLibrary = getWebsiteLibrary(config);
-  elements.websiteLibraryEnabled.checked = websiteLibrary.enabled;
-  elements.websiteLibraryText.value = serializeWebsiteLibrary(websiteLibrary.entries);
-  elements.websiteLibrarySearch.value = '';
-  renderPopupDisplayList(displays);
-  elements.separateMediaSizeSettings.checked = Boolean(config.separateMediaSizeSettings);
-  syncSharedSizeValuesFromConfig(config);
-  elements.imageBaseWidth.value = config.imageBaseWidth;
-  elements.imageBaseHeight.value = config.imageBaseHeight;
-  elements.imageSizeJitter.value = config.imageSizeJitter;
-  elements.imageCompensationMultiplier.value = config.imageCompensationMultiplier;
-  elements.imageCompensationThreshold.value = config.imageCompensationThreshold;
-  setDirectionMode('imageSizeJitterMode', config.imageSizeJitterMode);
-  elements.videoBaseWidth.value = config.videoBaseWidth;
-  elements.videoBaseHeight.value = config.videoBaseHeight;
-  elements.videoSizeJitter.value = config.videoSizeJitter;
-  elements.videoCompensationMultiplier.value = config.videoCompensationMultiplier;
-  elements.videoCompensationThreshold.value = config.videoCompensationThreshold;
-  setDirectionMode('videoSizeJitterMode', config.videoSizeJitterMode);
-  updateSizeSettingsLayout();
-  renderFolders(config.folders || []);
-  renderWebsiteLibraryPreview();
-  renderShortcutFeedback();
-  setAiStatus(t('ai.status.ready'));
-  applyAiPopupAppearancePreview(ai.popupAppearance);
-}
+  function onSecMouseUp(e) {
+    if (!dragState || dragState.type !== "section") { clearDragState(); return; }
 
-function renderWebsiteLibraryPreview() {
-  if (!elements.websiteLibraryList || !elements.websiteLibraryStats || !elements.websiteLibraryText) {
-    return;
-  }
+    var srcKey = dragState.sectionKey;
 
-  const parsed = parseWebsiteLibraryText(elements.websiteLibraryText.value);
-  const keyword = String(elements.websiteLibrarySearch?.value || '').trim().toLowerCase();
-  const matchedEntries = parsed.entries.filter((entry) => {
-    if (!keyword) {
-      return true;
+    if (dragOverEl) {
+      dragOverEl.classList.remove("drag-insert-before", "drag-insert-after");
     }
 
-    return entry.label.toLowerCase().includes(keyword) || entry.url.toLowerCase().includes(keyword);
-  });
-  const enabledCount = parsed.entries.filter((entry) => entry.enabled !== false).length;
+    if (dragState.active) {
+      var hoverSec = getSectionAt(e.clientX, e.clientY, srcKey);
+      if (hoverSec && hoverSec.dataset.sectionKey !== srcKey) {
+        var targetKey = hoverSec.dataset.sectionKey;
 
-  elements.websiteLibraryStats.textContent = t('website.stats', {
-    total: parsed.entries.length,
-    enabled: enabledCount,
-    invalid: parsed.invalidLines.length,
-    shown: matchedEntries.length
-  });
-
-  elements.websiteLibraryList.replaceChildren();
-
-  if (!matchedEntries.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = parsed.entries.length ? t('website.emptyFiltered') : t('website.empty');
-    elements.websiteLibraryList.append(empty);
-    return;
-  }
-
-  for (const entry of matchedEntries) {
-    const row = document.createElement('div');
-    row.className = 'website-row';
-
-    const meta = document.createElement('div');
-    meta.className = 'website-meta';
-
-    const label = document.createElement('div');
-    label.className = 'website-label';
-    label.textContent = entry.label;
-
-    const url = document.createElement('div');
-    url.className = 'website-url';
-    url.textContent = entry.url;
-    url.title = entry.url;
-
-    const status = document.createElement('span');
-    status.className = `website-badge ${entry.enabled === false ? 'is-disabled' : 'is-enabled'}`;
-    status.textContent = entry.enabled === false ? t('website.disabled') : t('website.enabled');
-
-    meta.append(label, url, status);
-
-    const actions = document.createElement('div');
-    actions.className = 'website-actions';
-
-    const openButton = document.createElement('button');
-    openButton.type = 'button';
-    openButton.textContent = t('website.testOne');
-    openButton.addEventListener('click', async () => {
-      await showWebsitePopup(entry);
-    });
-
-    actions.append(openButton);
-    row.append(meta, actions);
-    elements.websiteLibraryList.append(row);
-  }
-}
-
-function renderFolders(folders) {
-  elements.folderList.replaceChildren();
-
-  if (!folders.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = t('folders.empty');
-    elements.folderList.append(empty);
-    return;
-  }
-
-  for (const folder of folders) {
-    const folderPath = typeof folder === 'string' ? folder : folder.path;
-    const folderWeight = typeof folder === 'object' && folder.weight !== undefined ? folder.weight : 1;
-
-    let displayPath = folderPath;
-    if (elements.developerMode?.checked) {
-      const parts = folderPath.split(/[/\\]/).filter(Boolean);
-      displayPath = parts.length > 0 ? `***\\${parts[parts.length - 1]}` : '***';
-    }
-
-    const row = document.createElement('div');
-    row.className = 'folder-row';
-
-    const label = document.createElement('span');
-    label.title = folderPath;
-    label.textContent = displayPath;
-
-    const weightControl = document.createElement('div');
-    weightControl.className = 'folder-weight-control';
-
-    const weightLabel = document.createElement('span');
-    weightLabel.className = 'folder-weight-label';
-    weightLabel.textContent = t('folders.weight');
-
-    const weightSlider = document.createElement('input');
-    weightSlider.type = 'range';
-    weightSlider.className = 'folder-weight-slider';
-    weightSlider.min = '0';
-    weightSlider.max = '10';
-    weightSlider.step = '1';
-    weightSlider.value = String(folderWeight);
-
-    const weightValue = document.createElement('span');
-    weightValue.className = 'folder-weight-value';
-    weightValue.textContent = String(folderWeight);
-
-    const updateWeight = async () => {
-      const newWeight = Math.round(Number(weightSlider.value));
-      weightSlider.value = String(newWeight);
-      weightValue.textContent = String(newWeight);
-      const foldersNext = currentConfig.folders.map((item) => {
-        const itemPath = typeof item === 'string' ? item : item.path;
-        if (itemPath === folderPath) {
-          return { path: folderPath, weight: newWeight };
+        var srcIdx = -1;
+        for (var i = 0; i < SECTIONS.length; i++) {
+          if (SECTIONS[i].key === srcKey) { srcIdx = i; break; }
         }
-        return item;
-      });
-      const result = await saveConfig({ ...collectConfig(), folders: foldersNext });
-      if (result?.blocked) {
-        return;
+        if (srcIdx !== -1) {
+          var srcSec = SECTIONS[srcIdx];
+          SECTIONS.splice(srcIdx, 1);
+
+          var tgtIdx = -1;
+          for (var j = 0; j < SECTIONS.length; j++) {
+            if (SECTIONS[j].key === targetKey) { tgtIdx = j; break; }
+          }
+          if (tgtIdx === -1) {
+            SECTIONS.push(srcSec);
+          } else {
+            var r = hoverSec.getBoundingClientRect();
+            var midY = r.top + r.height / 2;
+            if (e.clientY > midY) tgtIdx++;
+            SECTIONS.splice(tgtIdx, 0, srcSec);
+          }
+        }
+
+        saveLayoutOrder();
+        renderAllCards();
       }
+    }
+
+    _lastDragEndTime = Date.now();
+    clearDragState();
+  }
+
+  var _globalDragMoveBound = false;
+  function onGlobalDragMove(e) {
+    if (!dragState) return;
+    moveDragGhost(e.clientX, e.clientY);
+    if (dragState.type === "tile") onTileMouseMove(e);
+    else if (dragState.type === "section") onSecMouseMove(e);
+  }
+  function onGlobalDragUp(e) {
+    if (!dragState) return;
+    if (dragState.type === "tile") onTileMouseUp(e);
+    else if (dragState.type === "section") onSecMouseUp(e);
+  }
+
+  function bindDragEvents() {
+    var dashboard = document.getElementById("dashboard");
+    if (!dashboard) return;
+
+    // 卡片拖拽 — 手柄 + tile 上的 mousemove/mouseup
+    var grips = dashboard.querySelectorAll(".tile-grip");
+    for (var i = 0; i < grips.length; i++) {
+      grips[i].addEventListener("mousedown", onTileGripMouseDown);
+    }
+
+    var tiles = dashboard.querySelectorAll(".tile");
+    for (var j = 0; j < tiles.length; j++) {
+      tiles[j].addEventListener("mousemove", onTileMouseMove);
+      tiles[j].addEventListener("mouseup", onTileMouseUp);
+    }
+
+    // 分类拖拽 — 手柄 + section 上的 mousemove/mouseup
+    var secGrips = dashboard.querySelectorAll(".sec-grip");
+    for (var k = 0; k < secGrips.length; k++) {
+      secGrips[k].addEventListener("mousedown", onSecGripMouseDown);
+    }
+
+    var secs = dashboard.querySelectorAll(".sec");
+    for (var m = 0; m < secs.length; m++) {
+      secs[m].addEventListener("mousemove", onSecMouseMove);
+      secs[m].addEventListener("mouseup", onSecMouseUp);
+    }
+
+    // 全局 mouseup/mousemove 确保在元素外部松手也能清理（只绑一次）
+    if (!_globalDragMoveBound) {
+      _globalDragMoveBound = true;
+      document.addEventListener("mousemove", onGlobalDragMove);
+      document.addEventListener("mouseup", onGlobalDragUp);
+    }
+  }
+
+  // ═════════════════════════════════════════════════
+  // 详情页导航
+  // ═════════════════════════════════════════════════
+
+  function showDashboard() {
+    document.getElementById("dashboard").style.display = "";
+    document.getElementById("detail-view").style.display = "none";
+    document.querySelector(".hero").style.display = "";
+    // 重新渲染以刷新文件夹计数等
+    renderAllCards();
+  }
+
+  function showDetail(cardId) {
+    document.getElementById("dashboard").style.display = "none";
+    document.querySelector(".hero").style.display = "none";
+    var dv = document.getElementById("detail-view");
+    dv.style.display = "";
+    var card = CARD_DEFS.find(function (c) { return c.id === cardId; });
+    document.getElementById("detailTitle").textContent = card ? card.name : cardId;
+    document.getElementById("detailContent").innerHTML = renderDetailContent(cardId);
+    bindDetailEvents(cardId);
+  }
+
+  function renderDetailContent(cardId) {
+    switch (cardId) {
+      case "popup": return renderPopupDetail();
+      case "wallpaper": return renderWallpaperDetail();
+      case "ai-popup": return renderAiPopupDetail();
+      case "ghost": return renderGhostDetail();
+      case "xray": return renderXrayDetail();
+      case "waterfall": return renderWaterfallDetail();
+      case "flash": return renderFlashDetail();
+      case "pollution": return renderPollutionDetail();
+      case "folders": return renderFoldersDetail();
+      case "desktop-char": return renderWallpaperDetail();
+      case "interaction": return renderAiPopupDetail();
+      case "process-rules": return renderProcessRulesDetail();
+      case "hardcore": return renderHardcoreDetail();
+      case "autostart": return renderAutostartDetail();
+      case "silent": return renderSilentDetail();
+      case "global-settings": return renderGlobalSettingsDetail();
+      case "stats": return renderStatsDetail();
+      default: return "<p>详情页面未实现。</p>";
+    }
+  }
+
+  function bindDetailEvents(cardId) {
+    var backBtn = document.getElementById("detailBackBtn");
+    if (backBtn) backBtn.onclick = showDashboard;
+    // 子页面特定后期渲染
+    if (cardId === "ai-popup") {
+      setTimeout(function () {
+        applyAiPreview();
+        void refreshAiModelOptions({ forceRefresh: false });
+      }, 100);
+
+      var apiKeyInput = document.getElementById("aiApiKey");
+      if (apiKeyInput) {
+        apiKeyInput.addEventListener("change", function () {
+          void refreshAiModelOptions({ forceRefresh: true });
+        });
+      }
+    }
+    if (cardId === "stats") { loadCalendarData(); loadStats(); }
+    if (cardId === "process-rules") { updateProcessRulesStatus(); }
+    if (cardId === "folders" && currentConfig) {
+      var fl = document.getElementById("folderList");
+      if (fl) {
+        var folders = currentConfig.folders || [];
+        fl.innerHTML = folders.length ? folders.map(function(f, i) {
+          var p = typeof f === "string" ? f : (f.path || "");
+          var w = (typeof f === "object" && f.weight != null) ? f.weight : 1;
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;gap:8px">' +
+            '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">' + p + '</span>' +
+            '<span style="color:var(--muted);white-space:nowrap">权重 ' + w + '</span>' +
+            '</div>';
+        }).join("") : '<span style="color:var(--muted);font-size:13px">还没有添加文件夹 — 点击上方按钮添加</span>';
+      }
+      setTimeout(renderWebsiteLibraryPreview, 100);
+    }
+  }
+
+  // ═════════════════════════════════════════════════
+  // 详情页渲染函数
+  // ═════════════════════════════════════════════════
+
+  function panel(title, body, cls) {
+    return '<section class="detail-panel' + (cls ? " " + cls : "") + '"><h3>' + title + '</h3>' + body + '</section>';
+  }
+
+  function switchRow(label, id, checked) {
+    return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '><i></i></label>';
+  }
+
+  function clockField(label, idBase, vals) {
+    var h = vals && vals[0] != null ? vals[0] : 0;
+    var m = vals && vals[1] != null ? vals[1] : 0;
+    var s = vals && vals[2] != null ? vals[2] : 0;
+    return '<div class="field"><span>' + label + '</span><div class="compact-digital-clock">' +
+      '<div class="clock-unit"><span class="clock-unit-label">时</span><input id="' + idBase + 'Hours" type="number" min="0" max="24" step="1" value="' + h + '"></div>' +
+      '<span class="clock-colon">:</span>' +
+      '<div class="clock-unit"><span class="clock-unit-label">分</span><input id="' + idBase + 'Minutes" type="number" min="0" max="59" step="1" value="' + m + '"></div>' +
+      '<span class="clock-colon">:</span>' +
+      '<div class="clock-unit"><span class="clock-unit-label">秒</span><input id="' + idBase + 'Seconds" type="number" min="0" max="59" step="1" value="' + s + '"></div>' +
+      '</div></div>';
+  }
+
+  function numField(label, id, val, min, max, step) {
+    return '<label class="field"><span>' + label + '</span><input id="' + id + '" type="number" min="' + (min || 0) + '" max="' + (max || 9999) + '" step="' + (step || 1) + '" value="' + (val != null ? val : "") + '"></label>';
+  }
+
+  function selectField(label, id, val, opts) {
+    var html = '<label class="field"><span>' + label + '</span><select id="' + id + '">';
+    for (var i = 0; i < opts.length; i++) {
+      html += '<option value="' + opts[i][0] + '"' + (val === opts[i][0] ? " selected" : "") + '>' + opts[i][1] + '</option>';
+    }
+    html += '</select></label>';
+    return html;
+  }
+
+  function colorField(label, id, val) {
+    return '<label class="field"><span>' + label + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="1" style="width:52px;text-align:center" title="透明度"></div></label>';
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function buildAiModelOptionsHtml(selectedModel) {
+    var selected = String(selectedModel || "auto").trim() || "auto";
+    var seen = Object.create(null);
+    var items = [
+      { value: "auto", label: "自动（推荐：最新可用模型）" }
+    ];
+    seen.auto = true;
+
+    for (var i = 0; i < aiModelOptions.length; i++) {
+      var modelId = String(aiModelOptions[i] || "").trim();
+      if (!modelId || seen[modelId]) continue;
+      seen[modelId] = true;
+      items.push({ value: modelId, label: modelId });
+    }
+
+    if (!seen[selected]) {
+      items.push({ value: selected, label: selected + "（当前）" });
+    }
+
+    var html = "";
+    for (var j = 0; j < items.length; j++) {
+      var item = items[j];
+      html += '<option value="' + escapeHtml(item.value) + '"' + (item.value === selected ? " selected" : "") + '>' + escapeHtml(item.label) + '</option>';
+    }
+    return html;
+  }
+
+  function updateAiModelStatus() {
+    var statusEl = document.getElementById("aiModelStatus");
+    if (!statusEl) return;
+
+    var fallbackText = "填写 API Key 后会自动拉取可用模型列表。";
+    statusEl.textContent = aiModelStatusText || fallbackText;
+    statusEl.style.color = aiModelStatusError ? "#f5a2a2" : "var(--muted)";
+  }
+
+  function renderAiModelSelect() {
+    var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
+    var selectEl = document.getElementById("aiModel");
+    if (!selectEl) return;
+    selectEl.innerHTML = buildAiModelOptionsHtml(ai.model || "auto");
+    updateAiModelStatus();
+  }
+
+  async function refreshAiModelOptions(opts) {
+    var mp = getMediaPopup();
+    if (!mp || !mp.listAiModels) return;
+
+    var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
+    var apiKeyInput = document.getElementById("aiApiKey");
+    var apiKey = String((apiKeyInput && apiKeyInput.value) || ai.apiKey || "").trim();
+    var forceRefresh = Boolean(opts && opts.forceRefresh);
+
+    if (!apiKey) {
+      aiModelOptions = [];
+      aiModelStatusError = false;
+      aiModelStatusText = "填写 API Key 后会自动拉取可用模型列表。";
+      renderAiModelSelect();
+      return;
+    }
+
+    var token = ++aiModelRequestToken;
+    aiModelStatusError = false;
+    aiModelStatusText = "正在获取模型列表...";
+    updateAiModelStatus();
+
+    try {
+      var result = await mp.listAiModels({
+        apiKey: apiKey,
+        aiConfig: ai,
+        forceRefresh: forceRefresh
+      });
+
+      if (token !== aiModelRequestToken) return;
+
+      if (result && result.ok && Array.isArray(result.models)) {
+        aiModelOptions = result.models.slice(0, 100);
+        aiModelStatusError = false;
+        aiModelStatusText = "已自动同步可用模型。";
+      } else {
+        aiModelOptions = [];
+        aiModelStatusError = true;
+        aiModelStatusText = (result && result.detail) ? result.detail : "获取模型列表失败。";
+      }
+    } catch (_error) {
+      if (token !== aiModelRequestToken) return;
+      aiModelOptions = [];
+      aiModelStatusError = true;
+      aiModelStatusText = "获取模型列表失败。";
+    }
+
+    renderAiModelSelect();
+  }
+
+  function clampOpacity(v, fb) { var n = Number(v); return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : (fb != null ? fb : 1); }
+  function hexToRgba(hex, opacity) {
+    if (typeof hex !== "string" || !/^#[0-9a-fA-F]{6}$/.test(hex)) return "rgba(0,0,0," + clampOpacity(opacity, 1) + ")";
+    return "rgba(" + parseInt(hex.slice(1,3),16) + "," + parseInt(hex.slice(3,5),16) + "," + parseInt(hex.slice(5,7),16) + "," + clampOpacity(opacity, 1) + ")";
+  }
+
+  // AI 弹窗外观实时预览
+  function applyAiPreview() {
+    var p = document.getElementById("aiPreview");
+    var pt = document.getElementById("aiPreviewText");
+    var cb = document.getElementById("aiPreviewCloseBtn");
+    if (!p || !pt) return;
+    var g = function(id, fb) { var el = document.getElementById(id); return el ? (el.type === "checkbox" ? el.checked : el.value) : fb; };
+    var gn = function(id, fb) { var v = Number(g(id, null)); return Number.isFinite(v) ? v : fb; };
+    var w = gn("aiPopupWidth", 420), h = gn("aiPopupHeight", 320);
+    p.style.width = w + "px"; p.style.height = h + "px";
+    p.style.backgroundColor = hexToRgba(g("aiPopupBodyBackgroundColor", "#050505"), gn("aiPopupBodyBackgroundOpacity", 1));
+    p.style.transform = "scale(" + Math.max(0.2, gn("aiPopupPreviewScale", 1)) + ")";
+    p.style.transformOrigin = "top left";
+    pt.style.color = hexToRgba(g("aiPopupTextColor", "#f4f7fb"), gn("aiPopupTextOpacity", 1));
+    pt.style.fontSize = gn("aiPopupTextFontSize", 16) + "px";
+    pt.style.lineHeight = String(gn("aiPopupTextLineHeight", 1.5));
+    pt.style.textAlign = g("aiPopupTextAlign", "left");
+    pt.style.backgroundColor = hexToRgba(g("aiPopupCardBackgroundColor", "#050505"), gn("aiPopupCardBackgroundOpacity", 1));
+    pt.style.borderColor = hexToRgba(g("aiPopupCardBorderColor", "#1f2b33"), gn("aiPopupCardBorderOpacity", 1));
+    var bw = gn("aiPopupCardBorderWidth", 0);
+    pt.style.borderWidth = bw + "px"; pt.style.borderStyle = bw > 0 ? "solid" : "none";
+    pt.style.borderRadius = gn("aiPopupCardBorderRadius", 8) + "px";
+    pt.style.padding = gn("aiPopupCardPaddingY", 0) + "px " + gn("aiPopupCardPaddingX", 2) + "px";
+    pt.style.boxShadow = gn("aiPopupCardShadowOffsetX", 0) + "px " + gn("aiPopupCardShadowOffsetY", 8) + "px " + gn("aiPopupCardShadowBlur", 24) + "px " + gn("aiPopupCardShadowSpread", 0) + "px " + hexToRgba(g("aiPopupCardShadowColor", "#000000"), gn("aiPopupCardShadowOpacity", 0.45));
+    var tsb = Math.max(0, gn("aiPopupTextShadowBlur", 10)) + Math.abs(gn("aiPopupTextShadowSpread", 0));
+    pt.style.textShadow = gn("aiPopupTextShadowOffsetX", 0) + "px " + gn("aiPopupTextShadowOffsetY", 2) + "px " + tsb + "px " + hexToRgba(g("aiPopupTextShadowColor", "#000000"), gn("aiPopupTextShadowOpacity", 0.55));
+    if (cb) {
+      cb.style.fontSize = gn("aiPopupCloseButtonFontSize", 13) + "px";
+      cb.style.borderRadius = gn("aiPopupCloseButtonBorderRadius", 6) + "px";
+      cb.style.padding = gn("aiPopupCloseButtonPaddingY", 6) + "px " + gn("aiPopupCloseButtonPaddingX", 12) + "px";
+      cb.style.left = gn("aiPopupCloseButtonOffsetX", 6) + "px";
+      cb.style.top = gn("aiPopupCloseButtonOffsetY", 6) + "px";
+      cb.style.backgroundColor = hexToRgba(g("aiPopupCloseButtonBackgroundColor", "#000000"), gn("aiPopupCloseButtonBackgroundOpacity", 1));
+      cb.style.color = hexToRgba(g("aiPopupCloseButtonTextColor", "#ffffff"), gn("aiPopupCloseButtonTextOpacity", 1));
+      cb.style.borderColor = hexToRgba(g("aiPopupCloseButtonBorderColor", "#ffffff"), gn("aiPopupCloseButtonBorderOpacity", 1));
+      cb.dataset.hbg = hexToRgba(g("aiPopupCloseButtonHoverBackgroundColor", "#2f3b45"), gn("aiPopupCloseButtonHoverBackgroundOpacity", 1));
+      cb.dataset.hfg = hexToRgba(g("aiPopupCloseButtonHoverTextColor", "#ffffff"), gn("aiPopupCloseButtonHoverTextOpacity", 1));
+    }
+  }
+
+  function bindAiPreviewEvents() {
+    var fields = ["aiPopupWidth","aiPopupHeight","aiPopupPreviewScale","aiPopupBodyBackgroundColor","aiPopupBodyBackgroundOpacity","aiPopupTextColor","aiPopupTextOpacity","aiPopupTextFontSize","aiPopupTextLineHeight","aiPopupTextAlign","aiPopupCardBackgroundColor","aiPopupCardBackgroundOpacity","aiPopupCardBorderColor","aiPopupCardBorderOpacity","aiPopupCardBorderWidth","aiPopupCardBorderRadius","aiPopupCardPaddingX","aiPopupCardPaddingY","aiPopupCardShadowColor","aiPopupCardShadowOpacity","aiPopupCardShadowBlur","aiPopupCardShadowSpread","aiPopupCardShadowOffsetX","aiPopupCardShadowOffsetY","aiPopupTextShadowColor","aiPopupTextShadowOpacity","aiPopupTextShadowBlur","aiPopupTextShadowSpread","aiPopupTextShadowOffsetX","aiPopupTextShadowOffsetY","aiPopupCloseButtonFontSize","aiPopupCloseButtonBorderRadius","aiPopupCloseButtonPaddingX","aiPopupCloseButtonPaddingY","aiPopupCloseButtonOffsetX","aiPopupCloseButtonOffsetY","aiPopupCloseButtonBackgroundColor","aiPopupCloseButtonBackgroundOpacity","aiPopupCloseButtonTextColor","aiPopupCloseButtonTextOpacity","aiPopupCloseButtonBorderColor","aiPopupCloseButtonBorderOpacity","aiPopupCloseButtonHoverBackgroundColor","aiPopupCloseButtonHoverBackgroundOpacity","aiPopupCloseButtonHoverTextColor","aiPopupCloseButtonHoverTextOpacity"];
+    for (var i = 0; i < fields.length; i++) {
+      document.addEventListener("input", function(e) { if (e.target && fields.indexOf(e.target.id) !== -1) applyAiPreview(); });
+      document.addEventListener("change", function(e) { if (e.target && fields.indexOf(e.target.id) !== -1) applyAiPreview(); });
+    }
+    document.addEventListener("mouseenter", function(e) {
+      if (e.target && e.target.id === "aiPreviewCloseBtn") {
+        e.target.style.backgroundColor = e.target.dataset.hbg || "";
+        e.target.style.color = e.target.dataset.hfg || "";
+      }
+    }, true);
+    document.addEventListener("mouseleave", function(e) {
+      if (e.target && e.target.id === "aiPreviewCloseBtn") applyAiPreview();
+    }, true);
+  }
+
+  function cfg(key, fallback) {
+    if (!currentConfig) return fallback;
+    if (key.indexOf("visual.") === 0) {
+      var vk = key.split(".")[1];
+      return (currentConfig.visualIntervention && currentConfig.visualIntervention[vk] != null) ? currentConfig.visualIntervention[vk] : fallback;
+    }
+    if (key.indexOf("wallpaper.") === 0) {
+      var wk = key.split(".")[1];
+      return (currentConfig.wallpaper && currentConfig.wallpaper[wk] != null) ? currentConfig.wallpaper[wk] : fallback;
+    }
+    if (key.indexOf("desktopCharacter.") === 0) {
+      var dk = key.split(".")[1];
+      // 优先检查新的 wallpaper 子模块配置，再回退到旧独立配置
+      if (currentConfig.wallpaper) {
+        var charMap = { enabled: 'characterEnabled', folderPath: 'characterFolderPath', mode: 'characterMode', layerMode: 'characterLayerMode', intervalMinutes: 'intervalMinutes' };
+        var wk = charMap[dk];
+        if (wk && currentConfig.wallpaper[wk] != null) return currentConfig.wallpaper[wk];
+      }
+      return (currentConfig.desktopCharacter && currentConfig.desktopCharacter[dk] != null) ? currentConfig.desktopCharacter[dk] : fallback;
+    }
+    if (key.indexOf("onlineMedia.") === 0) {
+      var ok = key.split(".")[1];
+      return (currentConfig.onlineMedia && currentConfig.onlineMedia[ok] != null) ? currentConfig.onlineMedia[ok] : fallback;
+    }
+    if (key.indexOf("processRules.") === 0) {
+      var pk = key.split(".")[1];
+      return (currentConfig.processRules && currentConfig.processRules[pk] != null) ? currentConfig.processRules[pk] : fallback;
+    }
+    if (key.indexOf("ai.") === 0) {
+      var ak = key.split(".")[1];
+      var ai = currentConfig.ai || {};
+      return (ai[ak] != null) ? ai[ak] : fallback;
+    }
+    if (key.indexOf("pollution.") === 0) {
+      var pok = key.split(".")[1];
+      var pol = currentConfig.pollution || {};
+      return (pol[pok] != null) ? pol[pok] : fallback;
+    }
+    return (currentConfig[key] != null) ? currentConfig[key] : fallback;
+  }
+
+  // === 媒体弹窗 ===
+  function renderPopupDetail() {
+    var html = "";
+    html += panel("调度参数",
+      '<p class="desc-text">控制弹窗的触发频率、数量限制和播放行为。</p>' +
+      '<div class="field-row cols-2">' +
+      clockField("弹出间隔", "interval", [cfg("intervalHours",0), cfg("intervalMinutes",0), cfg("intervalSeconds",0)]) +
+      clockField("随机波动", "jitter", [cfg("jitterHours",0), cfg("jitterMinutes",0), cfg("jitterSeconds",0)]) +
+      '</div>' +
+      '<div class="field-row cols-4">' +
+      numField("每次弹窗数量", "burstCount", cfg("burstCount", 1), 1, 20) +
+      numField("最小弹窗数", "minWindows", cfg("minWindows", 0), 0, 500) +
+      numField("最大窗口数", "maxWindows", cfg("maxWindows", 50), 1, 500) +
+      numField("最大视频数", "maxVideoWindows", cfg("maxVideoWindows", 5), -1, 500) +
+      '</div>' +
+      selectField("播放顺序", "order", cfg("order", "random"), [["random", "随机"], ["name", "按文件名"]]) +
+      switchRow("无限窗口", "unlimitedWindows", cfg("unlimitedWindows")) +
+      '<p class="warning-text" id="unlimitedWarning" style="display:none">无限窗口可能迅速耗尽内存或显卡资源，严重时会导致电脑卡死。</p>'
+    );
+
+    html += panel("弹窗效果",
+      '<div class="field-row cols-2">' +
+      clockField("自然消失时间", "popupLifetime", [cfg("popupLifetimeHours",0), cfg("popupLifetimeMinutes",0), cfg("popupLifetimeSeconds",0)]) +
+      clockField("消失时间波动", "popupLifetimeJitter", [cfg("popupLifetimeJitterHours",0), cfg("popupLifetimeJitterMinutes",0), cfg("popupLifetimeJitterSeconds",0)]) +
+      '</div>' +
+      '<p class="desc-text">设为 0:0:0 时不会自动消失；大于 0 时，图片和 AI 文本弹窗会缓慢淡出并关闭。</p>' +
+      numField("弹窗透明度 (%)", "popupOpacity", cfg("popupOpacity", 100), 10, 100) +
+      '<div class="field-row cols-2">' +
+      switchRow("递归扫描子文件夹", "recursive", cfg("recursive")) +
+      switchRow("窗口逐渐增多", "gradual", cfg("gradual")) +
+      switchRow("置顶显示", "alwaysOnTop", cfg("alwaysOnTop")) +
+      switchRow("全屏覆盖", "fullscreen", cfg("fullscreen")) +
+      switchRow("视频静音", "muted", cfg("muted")) +
+      switchRow("视频完成关闭", "closeVideoOnEnded", cfg("closeVideoOnEnded")) +
+      switchRow("混乱视频", "chaosVideo", cfg("chaosVideo")) +
+      switchRow("点击关闭", "clickToClose", cfg("clickToClose")) +
+      switchRow("关闭按钮随机位", "randomCloseButton", cfg("randomCloseButton")) +
+      switchRow("禁止手动关闭", "disableManualClose", cfg("disableManualClose")) +
+      switchRow("开发者模式", "developerMode", cfg("developerMode")) +
+      '</div>'
+    );
+
+    html += panel("窗口尺寸", '<p class="desc-text">为图片和视频分别设置弹窗大小，或使用统一尺寸。</p>' +
+      switchRow("分离图片/视频尺寸", "separateMediaSizeSettings", cfg("separateMediaSizeSettings")) +
+      // Shared panel
+      '<div id="sharedSizePanel"><div class="field-row cols-4">' +
+      numField("统一宽度", "sharedBaseWidth", cfg("imageBaseWidth", 400), 100, 2000) +
+      numField("统一高度", "sharedBaseHeight", cfg("imageBaseHeight", 300), 100, 2000) +
+      numField("尺寸波动", "sharedSizeJitter", cfg("imageSizeJitter", 0), 0, 1000) +
+      '</div></div>' +
+      // Separate panels
+      '<div id="separateSizePanels" hidden><h4 style="font-size:11px;color:var(--text);margin:8px 0 4px">图片弹窗</h4><div class="field-row cols-4">' +
+      numField("图片宽度", "imageBaseWidth", cfg("imageBaseWidth", 400), 100, 2000) +
+      numField("图片高度", "imageBaseHeight", cfg("imageBaseHeight", 300), 100, 2000) +
+      numField("尺寸波动", "imageSizeJitter", cfg("imageSizeJitter", 0), 0, 1000) +
+      '</div><h4 style="font-size:11px;color:var(--text);margin:8px 0 4px">视频弹窗</h4><div class="field-row cols-4">' +
+      numField("视频宽度", "videoBaseWidth", cfg("videoBaseWidth", 640), 100, 2000) +
+      numField("视频高度", "videoBaseHeight", cfg("videoBaseHeight", 480), 100, 2000) +
+      numField("尺寸波动", "videoSizeJitter", cfg("videoSizeJitter", 0), 0, 1000) +
+      '</div></div>'
+    );
+
+    html += panel("关闭按钮样式",
+      '<div class="field-row cols-3">' +
+      numField("文字大小", "closeButtonFontSize", cfg("closeButtonFontSize", 13), 8, 48) +
+      numField("圆角", "closeButtonBorderRadius", cfg("closeButtonBorderRadius", 6), 0, 32) +
+      numField("左右边距", "closeButtonPaddingX", cfg("closeButtonPaddingX", 12), 8, 48) +
+      numField("上下边距", "closeButtonPaddingY", cfg("closeButtonPaddingY", 6), 4, 24) +
+      numField("X偏移", "closeButtonOffsetX", cfg("closeButtonOffsetX", 6), 0, 120) +
+      numField("Y偏移", "closeButtonOffsetY", cfg("closeButtonOffsetY", 6), 0, 120) +
+      '</div>'
+    );
+
+    return html;
+  }
+
+  // === 壁纸（含智能角色子模块） ===
+  function renderWallpaperDetail() {
+    return panel("自动换壁纸", '<p class="desc-text">按设定间隔自动更换桌面壁纸。同时开启"普通"和"智能角色"时，每次随机选择一种模式。</p>' +
+      switchRow("开启普通壁纸", "wallpaperEnabled", cfg("wallpaper.enabled")) +
+      '<div class="field-row cols-3">' +
+      numField("更换间隔(分钟)", "wallpaperIntervalMinutes", cfg("wallpaper.intervalMinutes", 60), 1, 10080) +
+      numField("最低分辨率", "wallpaperMinResolution", cfg("wallpaper.minResolution", 0), 0, 8000) +
+      numField("宽高比偏差", "wallpaperMaxRatioDeviation", cfg("wallpaper.maxRatioDeviation", 0.2), 0, 1, 0.01) +
+      '</div>' +
+      '<hr style="border-color:#2a2e36;margin:12px 0">' +
+      '<h3 style="margin:0 0 8px;color:#8892a4">🎭 智能角色（子模块）</h3>' +
+      switchRow("开启角色壁纸", "desktopCharacterEnabled", cfg("wallpaper.characterEnabled")) +
+      '<label class="field"><span>角色文件夹</span><div style="display:flex;gap:6px"><input id="desktopCharacterFolderPath" readonly value="' + (cfg("wallpaper.characterFolderPath") || "") + '"><button id="chooseDesktopCharacterFolderButton" class="btn">选择</button></div></label>' +
+      '<div class="field-row cols-3">' +
+      selectField("融合模式", "desktopCharacterMode", cfg("wallpaper.characterMode", "diffuse"), [["diffuse", "弥散光"], ["directional", "定向渐变"], ["mask", "UI 掩膜"]]) +
+      selectField("桌面层级", "desktopCharacterLayerMode", cfg("wallpaper.characterLayerMode", "system-wallpaper"), [
+        ["system-wallpaper", "系统壁纸"],
+        ["progman-behind-icons", "桌面背后"],
+        ["progman-front", "桌面前景"],
+        ["top-level-behind-icons", "顶层(图标后)"],
+        ["top-level-bottom", "顶层(底部)"],
+        ["top-level-front", "顶层(前)"]
+      ]) +
+      switchRow("失焦自动换回", "wallpaperFocusRestoreEnabled", cfg("wallpaper.focusRestoreEnabled")) +
+      '</div>' +
+      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：使用其他应用时恢复启动前壁纸；回到桌面时恢复最近的软件壁纸。仅在定时到期时换新。</p>' +
+      '<div class="actions-row"><button id="testWallpaperButton" class="btn">测试普通壁纸</button><button id="refreshDesktopCharacterButton" class="btn">刷新角色壁纸</button></div>'
+    );
+  }
+  
+  // === 智能角色（已合并到壁纸面板，此处作为快捷入口） ===
+  // === AI 文本弹窗 ===
+  function renderAiPopupDetail() {
+    var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
+    var pa = ai.popupAppearance || {};
+    var nn = function(v, fb) { var n = Number(v); return Number.isFinite(n) ? n : fb; };
+    return (
+      panel("基础配置", '<p class="desc-text">配置 AI 模型和基本行为。</p>' +
+        switchRow("让 AI 参与弹窗调度", "aiPopupScheduleEnabled", cfg("ai.popupScheduleEnabled")) +
+        switchRow("单弹窗模式", "aiSinglePopupMode", cfg("ai.singlePopupMode", true)) +
+        switchRow("即时回复", "aiImmediateReplyEnabled", cfg("ai.immediateReplyEnabled", true)) +
+        '<div class="field-row cols-2">' +
+        '<label class="field"><span>AI 提供商</span><select id="aiProvider"><option value="deepseek"' + (ai.provider === "deepseek" ? " selected" : "") + '>DeepSeek</option></select></label>' +
+        '<label class="field"><span>模型</span><div style="display:flex;gap:6px"><select id="aiModel" style="flex:1">' + buildAiModelOptionsHtml(ai.model || "auto") + '</select><button id="aiRefreshModelsButton" class="btn" type="button">刷新</button></div><small id="aiModelStatus" class="desc-text" style="display:block;margin-top:4px">' + escapeHtml(aiModelStatusText || "填写 API Key 后会自动拉取可用模型列表。") + '</small></label>' +
+        '</div>' +
+        '<label class="field"><span>API Key</span><input id="aiApiKey" type="password" value="' + (ai.apiKey || "") + '"></label>' +
+        '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">测试 AI 弹窗</button><button id="aiTestInteractionButton" class="btn">测试主动互动</button></div>'
+      ) +
+      panel("弹窗外观 · 窗口", '<div class="field-row cols-3">' +
+        numField("窗口宽度", "aiPopupWidth", nn(pa.popupWidth, 420), 200, 2000) +
+        numField("窗口高度", "aiPopupHeight", nn(pa.popupHeight, 320), 150, 2000) +
+        numField("预览缩放", "aiPopupPreviewScale", 1, 0.2, 2, 0.1) +
+        colorField("背景色", "aiPopupBodyBackgroundColor", pa.bodyBackgroundColor || "#050505") +
+        numField("文本字号", "aiPopupTextFontSize", nn(pa.textFontSize, 16), 10, 48) +
+        numField("行高", "aiPopupTextLineHeight", nn(pa.textLineHeight, 1.5), 0.5, 3, 0.1) +
+        selectField("对齐", "aiPopupTextAlign", pa.textAlign || "left", [["left","左对齐"],["center","居中"],["right","右对齐"]]) +
+        colorField("文字色", "aiPopupTextColor", pa.textColor || "#f4f7fb") +
+        '</div>'
+      ) +
+      panel("弹窗外观 · 卡片", '<div class="field-row cols-3">' +
+        colorField("卡背景", "aiPopupCardBackgroundColor", pa.cardBackgroundColor || "#050505") +
+        colorField("卡边框", "aiPopupCardBorderColor", pa.cardBorderColor || "#1f2b33") +
+        numField("边框宽", "aiPopupCardBorderWidth", nn(pa.cardBorderWidth, 0), 0, 20) +
+        numField("圆角", "aiPopupCardBorderRadius", nn(pa.cardBorderRadius, 8), 0, 40) +
+        numField("内边X", "aiPopupCardPaddingX", nn(pa.cardPaddingX, 2), 0, 80) +
+        numField("内边Y", "aiPopupCardPaddingY", nn(pa.cardPaddingY, 0), 0, 80) +
+        '</div>'
+      ) +
+      panel("弹窗外观 · 阴影", '<div class="field-row cols-3">' +
+        colorField("投影色", "aiPopupCardShadowColor", pa.cardShadowColor || "#000000") +
+        numField("投影模糊", "aiPopupCardShadowBlur", nn(pa.cardShadowBlur, 24), 0, 100) +
+        numField("投影扩展", "aiPopupCardShadowSpread", nn(pa.cardShadowSpread, 0), 0, 50) +
+        numField("投影X", "aiPopupCardShadowOffsetX", nn(pa.cardShadowOffsetX, 0), -50, 50) +
+        numField("投影Y", "aiPopupCardShadowOffsetY", nn(pa.cardShadowOffsetY, 8), -50, 50) +
+        colorField("字阴影色", "aiPopupTextShadowColor", pa.textShadowColor || "#000000") +
+        numField("字阴影模糊", "aiPopupTextShadowBlur", nn(pa.textShadowBlur, 10), 0, 50) +
+        numField("字阴影扩展", "aiPopupTextShadowSpread", nn(pa.textShadowSpread, 0), 0, 20) +
+        numField("字阴影X", "aiPopupTextShadowOffsetX", nn(pa.textShadowOffsetX, 0), -20, 20) +
+        numField("字阴影Y", "aiPopupTextShadowOffsetY", nn(pa.textShadowOffsetY, 2), -20, 20) +
+        '</div>'
+      ) +
+      panel("弹窗外观 · 关闭按钮", '<div class="field-row cols-3">' +
+        numField("字号", "aiPopupCloseButtonFontSize", nn(pa.closeButtonFontSize, 13), 8, 36) +
+        numField("圆角", "aiPopupCloseButtonBorderRadius", nn(pa.closeButtonBorderRadius, 6), 0, 20) +
+        numField("内边X", "aiPopupCloseButtonPaddingX", nn(pa.closeButtonPaddingX, 12), 4, 40) +
+        numField("内边Y", "aiPopupCloseButtonPaddingY", nn(pa.closeButtonPaddingY, 6), 2, 20) +
+        numField("偏移X", "aiPopupCloseButtonOffsetX", nn(pa.closeButtonOffsetX, 6), 0, 80) +
+        numField("偏移Y", "aiPopupCloseButtonOffsetY", nn(pa.closeButtonOffsetY, 6), 0, 80) +
+        colorField("背景色", "aiPopupCloseButtonBackgroundColor", pa.closeButtonBackgroundColor || "#000000") +
+        colorField("文字色", "aiPopupCloseButtonTextColor", pa.closeButtonTextColor || "#ffffff") +
+        colorField("边框色", "aiPopupCloseButtonBorderColor", pa.closeButtonBorderColor || "#ffffff") +
+        colorField("悬浮背景", "aiPopupCloseButtonHoverBackgroundColor", pa.closeButtonHoverBackgroundColor || "#2f3b45") +
+        colorField("悬浮文字", "aiPopupCloseButtonHoverTextColor", pa.closeButtonHoverTextColor || "#ffffff") +
+        '</div>'
+      ) +
+      panel("主动互动", '<p class="desc-text">根据预设上下文定时生成主动互动内容。</p>' +
+        switchRow("开启主动互动", "aiInteractionEnabled", cfg("ai.interactionEnabled")) +
+        clockField("互动间隔", "aiInteractionInterval", [cfg("ai.interactionIntervalHours", 0), cfg("ai.interactionIntervalMinutes", 10), cfg("ai.interactionIntervalSeconds", 0)]) +
+        selectField("语气", "aiInteractionTone", cfg("ai.interactionTone", "teasing"), [["teasing", "调戏"], ["gentle", "温柔"], ["strict", "严厉"], ["playful", "玩耍"]]) +
+        switchRow("包含前台应用信息", "aiInteractionIncludeForegroundApp", cfg("ai.interactionIncludeForegroundApp"))
+      ) +
+      // Live preview panel
+      '<section class="detail-panel"><h3>实时预览</h3><div style="overflow:auto;border:1px solid var(--line);border-radius:2px;background:var(--bg);padding:10px;min-height:200px">' +
+      '<div id="aiPreview" style="position:relative;overflow:hidden;width:420px;height:320px;background:#050505;transform:scale(1);transform-origin:top left">' +
+      '<div id="aiPreviewText" style="color:#f4f7fb;font-size:16px;line-height:1.5;text-align:left;padding:0 2px;margin:20px;border:0 solid #1f2b33;border-radius:8px;box-shadow:0 8px 24px 0 rgba(0,0,0,0.45);text-shadow:0 2px 10px rgba(0,0,0,0.55)">预览文本 — Preview Text</div>' +
+      '<button id="aiPreviewCloseBtn" style="position:absolute;left:6px;top:6px;font-size:13px;border-radius:6px;padding:6px 12px;background:#000;color:#fff;border:1px solid #fff;cursor:default">✕</button>' +
+      '</div></div></section>'
+    );
+  }
+
+  // === 幽灵底片 ===
+  function renderGhostDetail() {
+    return panel("幽灵底片", '<p class="desc-text">半透明图片持续覆盖屏幕，按设定间隔自动切换。</p>' +
+      switchRow("开启幽灵底片", "visualGhostEnabled", cfg("visual.ghostEnabled")) +
+      '<div class="field-row cols-2">' +
+      numField("透明度 (%)", "visualGhostOpacity", cfg("visual.ghostOpacity", 5), 1, 100) +
+      clockField("切换间隔", "visualGhostInterval", [cfg("visual.ghostIntervalMinutes", 5), cfg("visual.ghostIntervalSeconds", 0)]) +
+      '</div>'
+    );
+  }
+
+  // === X光模式 ===
+  function renderXrayDetail() {
+    return panel("X 光模式", '<p class="desc-text">鼠标周围圆形区域显示完整图片，其余部分被遮罩。</p>' +
+      switchRow("开启 X 光", "visualXrayEnabled", cfg("visual.xrayEnabled")) +
+      '<div class="field-row cols-2">' +
+      numField("半径 (px)", "visualXrayRadius", cfg("visual.xrayRadius", 200), 50, 1000) +
+      numField("遮罩透明度 (%)", "visualXrayOpacity", cfg("visual.xrayOpacity", 60), 0, 100) +
+      '</div>'
+    );
+  }
+
+  // === 媒体瀑布 ===
+  function renderWaterfallDetail() {
+    return panel("媒体瀑布", '<p class="desc-text">图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。</p>' +
+      switchRow("开启瀑布", "visualWaterfallEnabled", cfg("visual.waterfallEnabled")) +
+      '<div class="field-row cols-4">' +
+      numField("速度", "visualWaterfallSpeed", cfg("visual.waterfallSpeed", 50), 1, 100) +
+      numField("数量", "visualWaterfallCount", cfg("visual.waterfallCount", 15), 1, 50) +
+      numField("大小 (px)", "visualWaterfallSize", cfg("visual.waterfallSize", 150), 50, 500) +
+      numField("透明度 (%)", "visualWaterfallOpacity", cfg("visual.waterfallOpacity", 60), 1, 100) +
+      '</div>'
+    );
+  }
+
+  // === 潜意识闪烁 ===
+  function renderFlashDetail() {
+    return panel("潜意识闪烁", '<p class="desc-text">⚠️ 癫痫警告：开启此功能会以不可预知的频率瞬间全屏闪烁图像，光敏性癫痫患者请勿开启！</p>' +
+      switchRow("开启闪烁", "visualFlashEnabled", cfg("visual.flashEnabled")) +
+      '<div class="field-row cols-2">' +
+      clockField("触发间隔", "visualFlashInterval", [cfg("visual.flashIntervalHours", 0), cfg("visual.flashIntervalMinutes", 0), cfg("visual.flashIntervalSeconds", 0)]) +
+      clockField("随机波动", "visualFlashJitter", [cfg("visual.flashJitterHours", 0), cfg("visual.flashJitterMinutes", 0), cfg("visual.flashJitterSeconds", 0)]) +
+      '</div>', "danger-panel"
+    );
+  }
+
+  // === 输入干预 ===
+  function renderPollutionDetail() {
+    return panel("输入干预", '<p class="desc-text">剪贴板污染 + 输入框注入。所有细分能力可单独开关。</p>' +
+      switchRow("启用全局干预", "pollutionEnabled", cfg("pollutionEnabled")) +
+      switchRow("剪贴板污染", "pollutionClipboardEnabled", cfg("pollution.clipboardEnabled")) +
+      switchRow("输入框注入", "pollutionInputEnabled", cfg("pollution.inputEnabled")) +
+      '<div class="field-row cols-3">' +
+      switchRow("词组模式", "pollutionModePhrase", cfg("pollution.modePhrase")) +
+      switchRow("语料库模式", "pollutionModeCorpus", cfg("pollution.modeCorpus")) +
+      switchRow("AI 模式", "pollutionModeAi", cfg("pollution.modeAi")) +
+      '</div>' +
+      '<label class="field"><span>词组池（逗号分隔）</span><textarea id="pollutionPhrases" rows="2">' + (cfg("pollution.phrases") || "") + '</textarea></label>' +
+      '<label class="field"><span>语料库路径</span><div style="display:flex;gap:6px"><input id="pollutionCorpusPath" value="' + (cfg("pollution.corpusPath") || "") + '"><button id="pollutionChooseCorpusBtn" class="btn">...</button></div></label>' +
+      '<div class="field-row cols-2">' +
+      numField("语料最小字数", "pollutionCorpusMinLength", cfg("pollution.corpusMinLength", 10), 1, 1000) +
+      numField("剪贴板概率 (%)", "pollutionClipboardChance", cfg("pollution.clipboardChance", 20), 1, 100) +
+      numField("输入间隔最小值(分)", "pollutionInputIntervalMin", cfg("pollution.inputIntervalMin", 10), 1, 10080) +
+      numField("输入间隔最大值(分)", "pollutionInputIntervalMax", cfg("pollution.inputIntervalMax", 30), 1, 10080) +
+      '</div>'
+    );
+  }
+
+  // === 媒体文件夹（含在线媒体源 & 网站库） ===
+  function renderFoldersDetail() {
+    return panel("本地文件夹", '<p class="desc-text">管理本地图片和视频文件夹。</p>' +
+      '<div id="folderList" class="detail-panel" style="min-height:60px;border:1px dashed var(--line);padding:12px;color:var(--muted);">加载中...</div>' +
+      '<div class="actions-row"><button id="addFoldersButton" class="btn primary">添加文件夹</button><button id="scanButton" class="btn">扫描媒体</button></div>'
+    ) +
+    panel("在线媒体源", switchRow("启用网络媒体", "onlineMediaEnabled", cfg("onlineMedia.enabled")) +
+      '<label class="field"><span>媒体源 URL</span><input id="onlineMediaSourceUrl" value="' + (cfg("onlineMedia.sourceUrl") || "") + '" placeholder="https://raw.githubusercontent.com/..."></label>' +
+      '<div class="actions-row"><button id="testOnlineMediaButton" class="btn">测试弹出一条网络媒体</button></div>'
+    ) +
+    panel("网站库", switchRow("网站参与弹窗调度", "websiteLibraryEnabled", cfg("websiteLibrary.enabled")) +
+      '<label class="field"><span>批量编辑链接</span><textarea id="websiteLibraryText" rows="8">' + (cfg("websiteLibrary.text") || getWebsiteTextFromEntries()) + '</textarea></label>' +
+      '<p class="desc-text">每行: 名称 | 链接。! 禁用，# 注释。</p>' +
+      '<div class="actions-row"><button id="websiteShowPopupButton" class="btn">测试网站弹窗</button><button id="websiteSaveButton" class="btn primary">保存网站库</button></div>' +
+      '<input id="websiteLibrarySearch" type="text" placeholder="搜索链接..." style="margin-top:8px;width:100%"><div id="websiteLibraryList"></div>'
+    );
+  }
+
+  // === 进程规则 ===
+  function renderProcessRulesDetail() {
+    return panel("进程规则", '<p class="desc-text">根据运行中软件的名单，自动启停弹窗调度。每行一个进程名。</p>' +
+      switchRow("启用进程规则", "processRulesEnabled", cfg("processRules.enabled")) +
+      '<div class="field-row cols-2">' +
+      '<label class="field"><span>黑名单</span><textarea id="processRulesBlacklist" rows="4">' + (cfg("processRules.blacklist") ? cfg("processRules.blacklist").join("\n") : "") + '</textarea><button id="chooseBlacklistProcessButton" class="btn" style="margin-top:4px">选择运行中进程</button></label>' +
+      '<label class="field"><span>白名单</span><textarea id="processRulesWhitelist" rows="4">' + (cfg("processRules.whitelist") ? cfg("processRules.whitelist").join("\n") : "") + '</textarea><button id="chooseWhitelistProcessButton" class="btn" style="margin-top:4px">选择运行中进程</button></label>' +
+      '</div>' +
+      '<div class="field-row cols-3">' +
+      switchRow("命中白名单自动启动", "processRulesAutoStartOnWhitelist", cfg("processRules.autoStartOnWhitelist")) +
+      switchRow("命中黑名单自动停止", "processRulesStopOnBlacklist", cfg("processRules.stopOnBlacklist")) +
+      switchRow("退出白名单自动停止", "processRulesStopOnWhitelistExit", cfg("processRules.stopOnWhitelistExit")) +
+      '</div>' +
+      numField("检测间隔(秒)", "processRulesCheckIntervalSeconds", cfg("processRules.checkIntervalSeconds", 5), 2, 300) +
+      '<p id="processRulesStatus" class="desc-text"></p>'
+    );
+  }
+
+  // === 强控模式 ===
+  function renderHardcoreDetail() {
+    return panel("强控模式", '<p class="desc-text">开启后主窗口和任务栏图标完全隐藏。请先配置全局快捷键确保可恢复。</p>' +
+      switchRow("启用强控模式", "hardcoreModeToggle", cfg("hardcoreMode")), "danger-panel"
+    );
+  }
+
+  // === 开机自启 ===
+  function renderAutostartDetail() {
+    return panel("开机自启", '<p class="desc-text">Windows 登录后自动运行应用。</p>' +
+      switchRow("开机自启", "autoStartOnBoot", cfg("autoStartOnBoot")) +
+      switchRow("启动后自动开始调度", "autoRunScheduler", cfg("autoRunScheduler"))
+    );
+  }
+
+  // === 静默模式 ===
+  function renderSilentDetail() {
+    return panel("静默模式", '<p class="desc-text">启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。</p>' +
+      switchRow("静默模式", "silentMode", cfg("silentMode"))
+    );
+  }
+
+  // === 配置档案 ===
+  function renderProfilesDetail() {
+    return panel("配置档案", '<p class="desc-text">管理多套配置档案，一键切换不同设定组合。</p>' +
+      '<div class="actions-row"><button id="btnNewProfile" class="btn primary">新建档案</button></div>' +
+      '<div id="profileGrid" class="profile-grid" style="margin-top:12px">加载中...</div>'
+    );
+  }
+
+  // === 全局设置（齿轮按钮，含主题+语言+快捷键） ===
+  function renderGlobalSettingsDetail() {
+    var gLang = getGlobalLanguage();
+    return panel("外观与语言", '<p class="desc-text">UI 主题跟随配置档案，界面语言全局生效。</p>' +
+      '<label class="field"><span>UI 主题</span><select id="uiThemeSelector">' +
+      '<option value="default"' + (cfg("uiTheme", "default") === "default" ? " selected" : "") + '>默认暗色 (工业矩阵)</option>' +
+      '<option value="light"' + (cfg("uiTheme") === "light" ? " selected" : "") + '>极简白噪音</option>' +
+      '<option value="matrix"' + (cfg("uiTheme") === "matrix" ? " selected" : "") + '>黑客帝国</option>' +
+      '<option value="cyberpunk"' + (cfg("uiTheme") === "cyberpunk" ? " selected" : "") + '>赛博朋克</option>' +
+      '<option value="bnwo"' + (cfg("uiTheme") === "bnwo" ? " selected" : "") + '>BNWO</option>' +
+      '<option value="space"' + (cfg("uiTheme") === "space" ? " selected" : "") + '>深邃星空</option>' +
+      '</select></label>' +
+      '<label class="field"><span>界面语言</span><select id="language">' +
+      '<option value="system"' + (gLang === "system" ? " selected" : "") + '>跟随系统</option>' +
+      '<option value="zh-CN"' + (gLang === "zh-CN" ? " selected" : "") + '>简体中文</option>' +
+      '<option value="en-US"' + (gLang === "en-US" ? " selected" : "") + '>English</option>' +
+      '</select></label>'
+    ) +
+    panel("快捷键", '<p class="desc-text">点击输入框后直接按组合键录制。Backspace/Delete 清空。</p>' +
+      '<div class="field-row cols-2">' +
+      '<label class="field"><span>启动</span><input id="startShortcut" class="shortcut-input" readonly value="' + (cfg("startShortcut") || "") + '"><div id="startShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>暂停</span><input id="pauseShortcut" class="shortcut-input" readonly value="' + (cfg("pauseShortcut") || "") + '"><div id="pauseShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>停止</span><input id="stopShortcut" class="shortcut-input" readonly value="' + (cfg("stopShortcut") || "") + '"><div id="stopShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>关闭全部</span><input id="closeAllShortcut" class="shortcut-input" readonly value="' + (cfg("closeAllShortcut") || "") + '"><div id="closeAllShortcutStatus" class="shortcut-status"></div></label>' +
+      '</div>'
+    );
+  }
+
+  // === 生涯记录 ===
+  function renderStatsDetail() {
+    return panel("今日进度",
+      '<div class="stats-progress-area">' +
+        '<div class="progress-box"><div class="progress-label"><span>' + t("dashboard.dailyProgress") + ' <span id="dailyStampText" class="daily-stamp-text"></span></span><span id="dailyProgressText">0 / 1h</span></div>' +
+        '<div class="progress-track"><div class="progress-fill" id="dailyProgressFill" style="width:0%"></div></div></div>' +
+        '<div class="progress-box"><div class="progress-label"><span>' + t("dashboard.monthlyProgress") + '</span><span id="monthlyProgressText">0 / 30 ' + t("dashboard.days") + '</span></div>' +
+        '<div class="progress-track"><div class="progress-fill fill-monthly" id="monthlyProgressFill" style="width:0%"></div></div></div>' +
+      '</div>'
+    ) +
+    panel(t("stats.panel.title"),
+      '<div class="stats-grid"><div class="stat-card"><div class="stat-label">' + t("stats.totalPlayTime") + '</div><div class="stat-value" id="statPlayTime">-</div></div>' +
+      '<div class="stat-card"><div class="stat-label">' + t("stats.totalUptime") + '</div><div class="stat-value" id="statUptime">-</div></div>' +
+      '<div class="stat-card"><div class="stat-label">' + t("stats.longestSession") + '</div><div class="stat-value" id="statLongestSession">-</div></div>' +
+      '<div class="stat-card"><div class="stat-label">' + t("stats.dailyAverage") + '</div><div class="stat-value" id="statDailyAverage">-</div></div></div>' +
+      '<div class="stats-grid stats-grid-secondary" style="margin-top:12px">' +
+      '<div class="stat-card"><div class="stat-label">' + t("stats.popups") + '</div><div class="stat-sub-values">' +
+        '<span>' + t("stats.popup.image") + ': <span id="statPopupImage" class="stat-accent">0</span></span>' +
+        '<span>' + t("stats.popup.video") + ': <span id="statPopupVideo" class="stat-accent">0</span></span>' +
+        '<span>' + t("stats.popup.website") + ': <span id="statPopupWebsite" class="stat-accent">0</span></span>' +
+        '<span>' + t("stats.popup.ai") + ': <span id="statPopupAi" class="stat-accent">0</span></span>' +
+      '</div></div>' +
+      '<div class="stat-card"><div class="stat-label">' + t("stats.closes") + '</div><div class="stat-sub-values">' +
+        '<span>' + t("stats.close.manual") + ': <span id="statCloseManual" class="stat-accent">0</span></span>' +
+        '<span>' + t("stats.close.auto") + ': <span id="statCloseAuto" class="stat-accent">0</span></span>' +
+      '</div></div></div>'
+    ) +
+    panel("日历热力图",
+      '<div class="calendar-header"><button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>' +
+      '<h3 id="calendarMonthLabel" class="calendar-title"></h3><button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button></div>' +
+      '<div class="calendar-days-header"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>' +
+      '<div class="calendar-wrapper"><div id="calendarGrid" class="calendar-grid"></div>' +
+      '<div id="fullMonthStamp" class="full-month-stamp hidden"><div class="stamp-inner">' + t("stamp.fullMonth") + '</div></div></div>'
+    );
+  }
+
+  function updateProcessRulesStatus() {
+    var el = document.getElementById("processRulesStatus");
+    if (!el || !currentConfig || !currentConfig.processRules) return;
+    var rules = currentConfig.processRules;
+    if (!rules.enabled) { el.textContent = "进程规则未启用"; return; }
+    var bl = (rules.blacklist || []).join(", ");
+    var wl = (rules.whitelist || []).join(", ");
+    var parts = ["进程规则已启用"];
+    if (bl) parts.push("黑名单: " + bl);
+    if (wl) parts.push("白名单: " + wl);
+    el.textContent = parts.join(" · ");
+  }
+
+  // ═════════════════════════════════════════════════
+  // 网站库预览渲染
+  // ═════════════════════════════════════════════════
+
+  function parseWebsiteLines(text) {
+    var lines = String(text || "").split(/\r?\n/);
+    var entries = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line || line.startsWith("#")) continue;
+      var enabled = true;
+      if (line.startsWith("!")) { enabled = false; line = line.slice(1).trim(); }
+      var sep = line.indexOf("|");
+      var label = "", url = "";
+      if (sep === -1) { url = line; } else { label = line.slice(0, sep).trim(); url = line.slice(sep + 1).trim(); }
+      if (!url) continue;
+      if (!/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(url)) url = "https://" + url;
+      entries.push({ label: label || url.replace(/^https?:\/\//, "").split("/")[0], url: url, enabled: enabled });
+    }
+    return entries;
+  }
+
+  function getWebsiteTextFromEntries() {
+    var wlib = currentConfig && currentConfig.websiteLibrary;
+    var entries = wlib && wlib.entries ? wlib.entries : [];
+    if (!entries.length) return "";
+    return entries.map(function(e) {
+      var prefix = e.enabled === false ? "! " : "";
+      return prefix + (e.label || "") + " | " + (e.url || "");
+    }).join("\n");
+  }
+
+  function renderWebsiteLibraryPreview() {
+    var listEl = document.getElementById("websiteLibraryList");
+    var textEl = document.getElementById("websiteLibraryText");
+    var searchEl = document.getElementById("websiteLibrarySearch");
+    if (!listEl) return;
+    var text = textEl ? textEl.value : (cfg("websiteLibrary.text") || "");
+    var entries = parseWebsiteLines(text);
+    var kw = (searchEl && searchEl.value || "").trim().toLowerCase();
+    var filtered = kw ? entries.filter(function(e) { return e.label.toLowerCase().indexOf(kw) !== -1 || e.url.toLowerCase().indexOf(kw) !== -1; }) : entries;
+    listEl.innerHTML = "";
+    if (!filtered.length) { listEl.innerHTML = '<p class="desc-text">没有匹配条目</p>'; return; }
+    for (var i = 0; i < filtered.length; i++) {
+      var e = filtered[i];
+      var row = document.createElement("div");
+      row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);font-size:11px;gap:8px";
+      row.innerHTML = '<span style="color:' + (e.enabled ? "var(--text)" : "var(--subtle)") + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' +
+        (e.enabled ? "" : '<span class="badge badge-danger" style="margin-right:4px">禁用</span>') + e.label +
+        '</span><span style="color:var(--subtle);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">' + e.url + '</span>';
+      listEl.appendChild(row);
+    }
+  }
+
+  function bindWebsitePreviewEvents() {
+    document.addEventListener("input", function(e) {
+      if (e.target && (e.target.id === "websiteLibraryText" || e.target.id === "websiteLibrarySearch")) {
+        renderWebsiteLibraryPreview();
+      }
+    });
+    document.addEventListener("change", function(e) {
+      if (e.target && e.target.id === "websiteLibraryEnabled") {
+        var wlib = currentConfig && currentConfig.websiteLibrary;
+        if (wlib) wlib.enabled = e.target.checked;
+      }
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 日历热力图
+  // ═════════════════════════════════════════════════
+
+  var currentCalendarDate = new Date();
+  var dailyUsageData = {};
+
+  async function loadCalendarData() {
+    var mp = getMediaPopup();
+    if (!mp || !mp.getStats) return;
+    var stats = await mp.getStats();
+    dailyUsageData = (stats && stats.dailyUsage) ? stats.dailyUsage : {};
+    renderCalendarGrid();
+  }
+
+  function renderCalendarGrid() {
+    var grid = document.getElementById("calendarGrid");
+    var label = document.getElementById("calendarMonthLabel");
+    var fullMonthStamp = document.getElementById("fullMonthStamp");
+    if (!grid || !label) return;
+    var y = currentCalendarDate.getFullYear();
+    var m = currentCalendarDate.getMonth();
+    label.textContent = y + "年" + (m + 1) + "月";
+    var firstDay = new Date(y, m, 1).getDay();
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    grid.innerHTML = "";
+    for (var i = 0; i < firstDay; i++) { grid.appendChild(document.createElement("div")); }
+    var validDaysCount = 0;
+    for (var d = 1; d <= daysInMonth; d++) {
+      var dateStr = y + "-" + String(m + 1).padStart(2, "0") + "-" + String(d).padStart(2, "0");
+      var usage = dailyUsageData[dateStr] || {};
+      var seconds = usage.playTimeSeconds || 0;
+      var div = document.createElement("div");
+      div.className = "calendar-day";
+      var numSpan = document.createElement("span");
+      numSpan.className = "calendar-day-num";
+      numSpan.textContent = d;
+      div.appendChild(numSpan);
+      if (seconds > 0) {
+        validDaysCount++;
+        div.classList.add("has-stamp");
+        // 印章等级
+        var stampClass = "", stampTextKey = "";
+        if (seconds >= 24 * 3600) { stampClass = "stamp-ultimate"; stampTextKey = "stamp.text.ultimate"; }
+        else if (seconds >= 4 * 3600) { stampClass = "stamp-gold"; stampTextKey = "stamp.text.gold"; }
+        else if (seconds >= 3600) { stampClass = "stamp-silver"; stampTextKey = "stamp.text.silver"; }
+        else { stampClass = "stamp-bronze"; stampTextKey = "stamp.text.bronze"; }
+        var rawText = t(stampTextKey) || "...";
+        var options = rawText.split("|");
+        var seededRandom = Math.sin(y * 1000 + m * 100 + d) * 10000;
+        var optionIndex = Math.floor((seededRandom - Math.floor(seededRandom)) * options.length);
+        var stampText = options[optionIndex] || options[0];
+        var stamp = document.createElement("div");
+        stamp.className = "stamp " + stampClass;
+        stamp.textContent = stampText;
+        // tooltip
+        var h = Math.floor(seconds / 3600);
+        var mi = Math.floor((seconds % 3600) / 60);
+        if (h > 0) { div.title = t("stats.format.hours", { h: h, m: mi }); }
+        else { div.title = t("stats.format.minutes", { m: mi, s: 0 }).replace(" 0秒", "").replace(" 0s", ""); }
+        div.appendChild(stamp);
+      }
+      grid.appendChild(div);
+    }
+    // 大满贯印章
+    if (validDaysCount === daysInMonth && daysInMonth > 0) {
+      if (fullMonthStamp) fullMonthStamp.classList.remove("hidden");
+      grid.classList.add("faded-by-stamp");
+    } else {
+      if (fullMonthStamp) fullMonthStamp.classList.add("hidden");
+      grid.classList.remove("faded-by-stamp");
+    }
+  }
+
+  function bindCalendarEvents() {
+    document.addEventListener("click", function(e) {
+      if (e.target && e.target.id === "prevMonthBtn") { currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1); renderCalendarGrid(); }
+      if (e.target && e.target.id === "nextMonthBtn") { currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1); renderCalendarGrid(); }
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 数值拖动调整 (scrubber)
+  // ═════════════════════════════════════════════════
+
+  function initNumericScrubbers() {
+    document.addEventListener("pointerdown", function(e) {
+      var t = e.target;
+      if (e.button !== 0 || t.type !== "number" || t.disabled || t.classList.contains("no-scrub")) return;
+      var startX = e.clientX;
+      var step = Number(t.step) || 1;
+      var startVal = Number(t.value) || 0;
+      var min = Number(t.min);
+      var max = Number(t.max);
+      if (!Number.isFinite(min)) min = -Infinity;
+      if (!Number.isFinite(max)) max = Infinity;
+      var moved = false;
+      t.setPointerCapture(e.pointerId);
+      document.body.classList.add("scrub-active");
+
+      function onMove(ev) {
+        if (ev.pointerId !== e.pointerId) return;
+        var delta = ev.clientX - startX;
+        if (Math.abs(delta) < 4 && !moved) return;
+        moved = true;
+        var newVal = startVal + Math.round(delta / 18) * step;
+        newVal = Math.min(max, Math.max(min, newVal));
+        t.value = String(step >= 1 ? Math.round(newVal) : newVal.toFixed(2));
+        t.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+
+      function onUp(ev) {
+        if (ev.pointerId !== e.pointerId) return;
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+        document.body.classList.remove("scrub-active");
+        if (!moved) { t.focus(); t.select(); }
+        else { t.dispatchEvent(new Event("change", { bubbles: true })); }
+      }
+
+      document.addEventListener("pointermove", onMove);
+      document.addEventListener("pointerup", onUp);
+      e.preventDefault();
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 状态栏更新
+  // ═════════════════════════════════════════════════
+
+  function updateStatusBar(state) {
+    var ind = document.getElementById("statusIndicator");
+    var wc = document.getElementById("statusWindowCount");
+    var mc = document.getElementById("statusMediaCount");
+    if (!state) return;
+    if (ind) {
+      var running = state.running;
+      ind.textContent = running ? "调度器运行中" : (state.paused ? "调度器已暂停" : "调度器已停止");
+      ind.className = running ? "live" : "";
+    }
+    if (wc) wc.textContent = (state.popupCount || 0) + " 个窗口";
+    if (mc) mc.textContent = (state.mediaCount || 0) + " 项媒体";
+  }
+
+  // ═════════════════════════════════════════════════
+  // 控制按钮
+  // ═════════════════════════════════════════════════
+
+  function bindControlButtons() {
+    var startBtn = document.getElementById("startButton");
+    var pauseBtn = document.getElementById("pauseButton");
+    var stopBtn = document.getElementById("stopButton");
+    var closeAllBtn = document.getElementById("closeAllButton");
+
+    if (startBtn) startBtn.addEventListener("click", async () => {
+      var mp = getMediaPopup();
+      if (mp) { await mp.saveConfig(currentConfig); await mp.start(); }
+    });
+    if (pauseBtn) pauseBtn.addEventListener("click", () => {
+      var mp = getMediaPopup();
+      if (mp) mp.pause();
+    });
+    if (stopBtn) stopBtn.addEventListener("click", () => {
+      var mp = getMediaPopup();
+      if (mp) mp.stop();
+    });
+    if (closeAllBtn) closeAllBtn.addEventListener("click", () => {
+      var mp = getMediaPopup();
+      if (mp) mp.closeAll();
+    });
+
+    // 保存按钮
+    var saveBtn = document.getElementById("saveButton");
+    if (saveBtn) saveBtn.addEventListener("click", async () => {
+      var result = await saveConfig();
+      if (!result || !result.blocked) log("配置已手动保存");
+    });
+
+    // 快速切换配置档案（Bar 下拉）
+    bindBarProfileSwitcher();
+  }
+
+  // ═════════════════════════════════════════════════
+  // 窗口控制
+  // ═════════════════════════════════════════════════
+
+  function bindWindowControls() {
+    var minBtn = document.getElementById("minimizeWindowButton");
+    var closeBtn = document.getElementById("closeWindowButton");
+    if (minBtn) minBtn.addEventListener("click", () => {
+      var mp = getMediaPopup();
+      if (mp && mp.minimizeWindow) mp.minimizeWindow();
+    });
+    if (closeBtn) closeBtn.addEventListener("click", () => {
+      var mp = getMediaPopup();
+      if (mp && mp.closeWindow) mp.closeWindow();
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // UI 主题切换
+  // ═════════════════════════════════════════════════
+
+  function applyTheme(theme) {
+    if (theme && theme !== "default") {
+      document.documentElement.setAttribute("data-theme", theme);
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
+  }
+
+  function getGlobalLanguage() {
+    try { return localStorage.getItem("gooner_language") || "system"; } catch (e) { return "system"; }
+  }
+
+  function setGlobalLanguage(lang) {
+    try { localStorage.setItem("gooner_language", lang || "system"); } catch (e) {}
+    currentLocale = resolveLanguage(lang, navigator.language);
+  }
+
+  function bindThemeEvents() {
+    // 监听 #uiThemeSelector change (在 detail 页面中)
+    document.addEventListener("change", function (e) {
+      if (e.target && e.target.id === "uiThemeSelector") {
+        applyTheme(e.target.value);
+      }
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 自动保存 (详情页控件)
+  // ═════════════════════════════════════════════════
+
+  function autoBindDetailControls() {
+    document.addEventListener("change", function (e) {
+      var el = e.target;
+      if (!el || !el.id) return;
+      if (el.closest("#dashboard")) return; // 卡片区有独立处理
+      if (el.closest("#detailContent")) {
+        applyDetailChange(el);
+      }
+    });
+    document.addEventListener("input", function (e) {
+      var el = e.target;
+      if (!el || !el.id) return;
+      if (el.closest("#detailContent") && (el.tagName === "TEXTAREA" || el.type === "text" || el.type === "password" || el.type === "number" || el.type === "color" || el.type === "range")) {
+        applyDetailChange(el);
+      }
+    });
+  }
+
+  function applyDetailChange(el) {
+    if (!currentConfig) return;
+    var id = el.id;
+    var val;
+    if (el.type === "checkbox") val = el.checked;
+    else if (el.type === "number") val = Number(el.value);
+    else val = el.value;
+
+    // 映射到 config key
+    setConfigValue(id, val);
+    scheduleAutoSave(el.type === "checkbox" ? { immediate: true } : {});
+  }
+
+  function setConfigValue(id, val) {
+    if (id === "aiProvider" || id === "aiModel" || id === "aiApiKey" || id === "aiPopupScheduleEnabled" || id === "aiSinglePopupMode" || id === "aiImmediateReplyEnabled") {
+      if (!currentConfig.ai) currentConfig.ai = {};
+      if (id === "aiProvider") currentConfig.ai.provider = val;
+      else if (id === "aiModel") currentConfig.ai.model = String(val || "").trim() || "auto";
+      else if (id === "aiApiKey") currentConfig.ai.apiKey = val;
+      else if (id === "aiPopupScheduleEnabled") currentConfig.ai.popupScheduleEnabled = val;
+      else if (id === "aiSinglePopupMode") currentConfig.ai.singlePopupMode = val;
+      else if (id === "aiImmediateReplyEnabled") currentConfig.ai.immediateReplyEnabled = val;
+      return;
+    }
+
+    // 直接映射常见 key
+    var directKeys = [
+      "popupsEnabled", "recursive", "gradual", "alwaysOnTop", "fullscreen",
+      "popupOpacity", "muted", "closeVideoOnEnded", "chaosVideo", "clickToClose",
+      "randomCloseButton", "disableManualClose", "developerMode",
+      "unlimitedWindows", "order", "autoStartOnBoot", "autoRunScheduler", "silentMode",
+      "language", "uiTheme", "hardcoreMode", "hardcoreModeToggle",
+      "aiProvider", "aiModel", "aiApiKey", "aiPopupScheduleEnabled",
+      "aiSinglePopupMode", "aiImmediateReplyEnabled",
+      "burstCount", "minWindows", "maxWindows", "maxVideoWindows",
+      "imageBaseWidth", "imageBaseHeight", "imageSizeJitter",
+      "videoBaseWidth", "videoBaseHeight", "videoSizeJitter",
+      "sharedBaseWidth", "sharedBaseHeight", "sharedSizeJitter", "separateMediaSizeSettings",
+      "closeButtonFontSize", "closeButtonBorderRadius", "closeButtonPaddingX", "closeButtonPaddingY",
+      "closeButtonOffsetX", "closeButtonOffsetY"
+    ];
+    if (id === "hardcoreModeToggle") { id = "hardcoreMode"; }
+    // 语言全局存储，不写入配置文件
+    if (id === "language") { setGlobalLanguage(val); return; }
+    if (directKeys.indexOf(id) !== -1) {
+      currentConfig[id] = val;
+      return;
+    }
+    // 嵌套对象先处理（必须在时钟检查之前，避免 Hours/Minutes/Seconds 贪婪捕获）
+    if (id.indexOf("visual") === 0 || id.indexOf("wallpaper") === 0 ||
+        id.indexOf("desktopCharacter") === 0 || id.indexOf("onlineMedia") === 0 ||
+        id.indexOf("processRules") === 0 || (id.indexOf("ai") === 0 && directKeys.indexOf(id) === -1) ||
+        id.indexOf("pollution") === 0 || id.indexOf("websiteLibrary") === 0) {
+      setNestedConfig(id, val);
+      return;
+    }
+    // 时钟字段（仅顶层字段，嵌套已在上面处理）
+    if (id.indexOf("Hours") !== -1 || id.indexOf("Minutes") !== -1 || id.indexOf("Seconds") !== -1) {
+      currentConfig[id] = Number(val);
+      return;
+    }
+    // 其他嵌套对象
+    setNestedConfig(id, val);
+  }
+
+  function setNestedConfig(id, val) {
+    if (!currentConfig) return;
+    // visual.* (config key is actually visualIntervention)
+    if (id.indexOf("visual") === 0) {
+      if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
+      var vk = id.replace("visual", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
+      // 修复驼峰
+      if (vk === "Ghostenabled") vk = "ghostEnabled";
+      if (vk === "Xrayenabled") vk = "xrayEnabled";
+      if (vk === "Waterfallenabled") vk = "waterfallEnabled";
+      if (vk === "Flashenabled") vk = "flashEnabled";
+      if (vk === "Ghostopacity") vk = "ghostOpacity";
+      if (vk === "Ghostintervalminutes") vk = "ghostIntervalMinutes";
+      if (vk === "Ghostintervalseconds") vk = "ghostIntervalSeconds";
+      if (vk === "Xrayradius") vk = "xrayRadius";
+      if (vk === "Xrayopacity") vk = "xrayOpacity";
+      if (vk === "Waterfallspeed") vk = "waterfallSpeed";
+      if (vk === "Waterfallcount") vk = "waterfallCount";
+      if (vk === "Waterfallsize") vk = "waterfallSize";
+      if (vk === "Waterfallopacity") vk = "waterfallOpacity";
+      if (vk === "Flashintervalhours") vk = "flashIntervalHours";
+      if (vk === "Flashintervalminutes") vk = "flashIntervalMinutes";
+      if (vk === "Flashintervalseconds") vk = "flashIntervalSeconds";
+      if (vk === "Flashjitterhours") vk = "flashJitterHours";
+      if (vk === "Flashjitterminutes") vk = "flashJitterMinutes";
+      if (vk === "Flashjitterseconds") vk = "flashJitterSeconds";
+      if (vk === "Enabled") vk = "enabled";
+      currentConfig.visualIntervention[vk] = val;
+      return;
+    }
+    // wallpaper.*
+    if (id.indexOf("wallpaper") === 0) {
+      if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
+      if (id === "wallpaperEnabled") currentConfig.wallpaper.enabled = val;
+      else if (id === "wallpaperIntervalMinutes") currentConfig.wallpaper.intervalMinutes = Number(val);
+      else if (id === "wallpaperMinResolution") currentConfig.wallpaper.minResolution = Number(val);
+      else if (id === "wallpaperMaxRatioDeviation") currentConfig.wallpaper.maxRatioDeviation = Number(val);
+      else if (id === "wallpaperFocusRestoreEnabled") currentConfig.wallpaper.focusRestoreEnabled = val;
+      return;
+    }
+    // desktopCharacter.* → 写入 wallpaper.* 角色子模块
+    if (id.indexOf("desktopCharacter") === 0) {
+      if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
+      var dk = id.replace("desktopCharacter", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
+      if (dk === "enabled") dk = "characterEnabled";
+      if (dk === "folderPath") dk = "characterFolderPath";
+      if (dk === "intervalMinutes") dk = "intervalMinutes";
+      if (dk === "mode") dk = "characterMode";
+      if (dk === "layerMode") dk = "characterLayerMode";
+      currentConfig.wallpaper[dk] = val;
+      // 同时保持向后兼容
+      if (!currentConfig.desktopCharacter) currentConfig.desktopCharacter = {};
+      var compatKey = dk.replace("character", "").replace(/^[A-Z]/, function(c) { return c.toLowerCase(); });
+      currentConfig.desktopCharacter[compatKey] = val;
+      return;
+    }
+    // onlineMedia.*
+    if (id.indexOf("onlineMedia") === 0) {
+      if (!currentConfig.onlineMedia) currentConfig.onlineMedia = {};
+      if (id === "onlineMediaEnabled") currentConfig.onlineMedia.enabled = val;
+      else if (id === "onlineMediaSourceUrl") currentConfig.onlineMedia.sourceUrl = val;
+      return;
+    }
+    // processRules.*
+    if (id.indexOf("processRules") === 0) {
+      if (!currentConfig.processRules) currentConfig.processRules = {};
+      if (id === "processRulesEnabled") currentConfig.processRules.enabled = val;
+      else if (id === "processRulesAutoStartOnWhitelist") currentConfig.processRules.autoStartOnWhitelist = val;
+      else if (id === "processRulesStopOnBlacklist") currentConfig.processRules.stopOnBlacklist = val;
+      else if (id === "processRulesStopOnWhitelistExit") currentConfig.processRules.stopOnWhitelistExit = val;
+      else if (id === "processRulesCheckIntervalSeconds") currentConfig.processRules.checkIntervalSeconds = Number(val);
+      return;
+    }
+    // ai.*
+    if (id.indexOf("ai") === 0 && id !== "aiPopupScheduleEnabled" && id !== "aiSinglePopupMode" && id !== "aiImmediateReplyEnabled") {
+      if (!currentConfig.ai) currentConfig.ai = {};
+      if (id === "aiInteractionEnabled") currentConfig.ai.interactionEnabled = val;
+      else if (id === "aiInteractionTone") currentConfig.ai.interactionTone = val;
+      else if (id === "aiInteractionIncludeForegroundApp") currentConfig.ai.interactionIncludeForegroundApp = val;
+      else if (id === "aiInteractionIntervalHours") currentConfig.ai.interactionIntervalHours = Number(val);
+      else if (id === "aiInteractionIntervalMinutes") currentConfig.ai.interactionIntervalMinutes = Number(val);
+      else if (id === "aiInteractionIntervalSeconds") currentConfig.ai.interactionIntervalSeconds = Number(val);
+      else if (id === "aiProvider") currentConfig.ai.provider = val;
+      else if (id === "aiModel") currentConfig.ai.model = val;
+      else if (id === "aiApiKey") currentConfig.ai.apiKey = val;
+      else if (id === "aiPopupScheduleEnabled") currentConfig.ai.popupScheduleEnabled = val;
+      return;
+    }
+    // pollution.*
+    if (id.indexOf("pollution") === 0) {
+      if (!currentConfig.pollution) currentConfig.pollution = {};
+      var pok = id.replace("pollution", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
+      if (pok === "Enabled") pok = "enabled";
+      if (pok === "Clipboardenabled") pok = "clipboardEnabled";
+      if (pok === "Inputenabled") pok = "inputEnabled";
+      if (pok === "Modephrase") pok = "modePhrase";
+      if (pok === "Modecorpus") pok = "modeCorpus";
+      if (pok === "Modeai") pok = "modeAi";
+      if (pok === "Phrases") pok = "phrases";
+      if (pok === "Corpuspath") pok = "corpusPath";
+      if (pok === "Corpusminlength") pok = "corpusMinLength";
+      if (pok === "Clipboardchance") pok = "clipboardChance";
+      if (pok === "Inputintervalmin") pok = "inputIntervalMin";
+      if (pok === "Inputintervalmax") pok = "inputIntervalMax";
+      currentConfig.pollution[pok] = val;
+      return;
+    }
+    // websiteLibrary.*
+    if (id === "websiteLibraryEnabled") {
+      if (!currentConfig.websiteLibrary) currentConfig.websiteLibrary = {};
+      currentConfig.websiteLibrary.enabled = val;
+      return;
+    }
+    // processRules textarea to array
+    if (id === "processRulesBlacklist") {
+      if (!currentConfig.processRules) currentConfig.processRules = {};
+      currentConfig.processRules.blacklist = String(val || "").split(/\r?\n/).map(function(s){return s.trim()}).filter(Boolean);
+      return;
+    }
+    if (id === "processRulesWhitelist") {
+      if (!currentConfig.processRules) currentConfig.processRules = {};
+      currentConfig.processRules.whitelist = String(val || "").split(/\r?\n/).map(function(s){return s.trim()}).filter(Boolean);
+      return;
+    }
+    // unlimitedWindows warning
+    if (id === "unlimitedWindows") {
+      currentConfig.unlimitedWindows = val;
+      var warn = document.getElementById("unlimitedWarning");
+      if (warn) warn.style.display = val ? "" : "none";
+      return;
+    }
+    if (id === "websiteLibraryText") {
+      if (!currentConfig.websiteLibrary) currentConfig.websiteLibrary = {};
+      currentConfig.websiteLibrary.text = val;
+      currentConfig.websiteLibrary.entries = parseWebsiteLines(val);
+      return;
+    }
+    // aiPopup.* appearance fields
+    if (id.indexOf("aiPopup") === 0) {
+      if (!currentConfig.ai) currentConfig.ai = {};
+      if (!currentConfig.ai.popupAppearance) currentConfig.ai.popupAppearance = {};
+      var ak2 = id.replace("aiPopup", "");
+      // Convert to camelCase
+      if (ak2 === "Width") currentConfig.ai.popupAppearance.popupWidth = Number(val);
+      else if (ak2 === "Height") currentConfig.ai.popupAppearance.popupHeight = Number(val);
+      else if (ak2 === "PreviewScale") {} // preview only, don't save
+      else if (ak2 === "BodyBackgroundColor") currentConfig.ai.popupAppearance.bodyBackgroundColor = val;
+      else if (ak2 === "BodyBackgroundOpacity") currentConfig.ai.popupAppearance.bodyBackgroundOpacity = clampOpacity(val);
+      else if (ak2 === "TextColor") currentConfig.ai.popupAppearance.textColor = val;
+      else if (ak2 === "TextOpacity") currentConfig.ai.popupAppearance.textOpacity = clampOpacity(val);
+      else if (ak2 === "TextFontSize") currentConfig.ai.popupAppearance.textFontSize = Number(val);
+      else if (ak2 === "TextLineHeight") currentConfig.ai.popupAppearance.textLineHeight = Number(val);
+      else if (ak2 === "TextAlign") currentConfig.ai.popupAppearance.textAlign = val;
+      else if (ak2 === "CardBackgroundColor") currentConfig.ai.popupAppearance.cardBackgroundColor = val;
+      else if (ak2 === "CardBackgroundOpacity") currentConfig.ai.popupAppearance.cardBackgroundOpacity = clampOpacity(val);
+      else if (ak2 === "CardBorderColor") currentConfig.ai.popupAppearance.cardBorderColor = val;
+      else if (ak2 === "CardBorderOpacity") currentConfig.ai.popupAppearance.cardBorderOpacity = clampOpacity(val);
+      else if (ak2 === "CardBorderWidth") currentConfig.ai.popupAppearance.cardBorderWidth = Number(val);
+      else if (ak2 === "CardBorderRadius") currentConfig.ai.popupAppearance.cardBorderRadius = Number(val);
+      else if (ak2 === "CardPaddingX") currentConfig.ai.popupAppearance.cardPaddingX = Number(val);
+      else if (ak2 === "CardPaddingY") currentConfig.ai.popupAppearance.cardPaddingY = Number(val);
+      else if (ak2 === "CardShadowColor") currentConfig.ai.popupAppearance.cardShadowColor = val;
+      else if (ak2 === "CardShadowOpacity") currentConfig.ai.popupAppearance.cardShadowOpacity = clampOpacity(val);
+      else if (ak2 === "CardShadowBlur") currentConfig.ai.popupAppearance.cardShadowBlur = Number(val);
+      else if (ak2 === "CardShadowSpread") currentConfig.ai.popupAppearance.cardShadowSpread = Number(val);
+      else if (ak2 === "CardShadowOffsetX") currentConfig.ai.popupAppearance.cardShadowOffsetX = Number(val);
+      else if (ak2 === "CardShadowOffsetY") currentConfig.ai.popupAppearance.cardShadowOffsetY = Number(val);
+      else if (ak2 === "TextShadowColor") currentConfig.ai.popupAppearance.textShadowColor = val;
+      else if (ak2 === "TextShadowOpacity") currentConfig.ai.popupAppearance.textShadowOpacity = clampOpacity(val);
+      else if (ak2 === "TextShadowBlur") currentConfig.ai.popupAppearance.textShadowBlur = Number(val);
+      else if (ak2 === "TextShadowSpread") currentConfig.ai.popupAppearance.textShadowSpread = Number(val);
+      else if (ak2 === "TextShadowOffsetX") currentConfig.ai.popupAppearance.textShadowOffsetX = Number(val);
+      else if (ak2 === "TextShadowOffsetY") currentConfig.ai.popupAppearance.textShadowOffsetY = Number(val);
+      else if (ak2 === "CloseButtonFontSize") currentConfig.ai.popupAppearance.closeButtonFontSize = Number(val);
+      else if (ak2 === "CloseButtonBorderRadius") currentConfig.ai.popupAppearance.closeButtonBorderRadius = Number(val);
+      else if (ak2 === "CloseButtonPaddingX") currentConfig.ai.popupAppearance.closeButtonPaddingX = Number(val);
+      else if (ak2 === "CloseButtonPaddingY") currentConfig.ai.popupAppearance.closeButtonPaddingY = Number(val);
+      else if (ak2 === "CloseButtonOffsetX") currentConfig.ai.popupAppearance.closeButtonOffsetX = Number(val);
+      else if (ak2 === "CloseButtonOffsetY") currentConfig.ai.popupAppearance.closeButtonOffsetY = Number(val);
+      else if (ak2 === "CloseButtonBackgroundColor") currentConfig.ai.popupAppearance.closeButtonBackgroundColor = val;
+      else if (ak2 === "CloseButtonBackgroundOpacity") currentConfig.ai.popupAppearance.closeButtonBackgroundOpacity = clampOpacity(val);
+      else if (ak2 === "CloseButtonTextColor") currentConfig.ai.popupAppearance.closeButtonTextColor = val;
+      else if (ak2 === "CloseButtonTextOpacity") currentConfig.ai.popupAppearance.closeButtonTextOpacity = clampOpacity(val);
+      else if (ak2 === "CloseButtonBorderColor") currentConfig.ai.popupAppearance.closeButtonBorderColor = val;
+      else if (ak2 === "CloseButtonBorderOpacity") currentConfig.ai.popupAppearance.closeButtonBorderOpacity = clampOpacity(val);
+      else if (ak2 === "CloseButtonHoverBackgroundColor") currentConfig.ai.popupAppearance.closeButtonHoverBackgroundColor = val;
+      else if (ak2 === "CloseButtonHoverBackgroundOpacity") currentConfig.ai.popupAppearance.closeButtonHoverBackgroundOpacity = clampOpacity(val);
+      else if (ak2 === "CloseButtonHoverTextColor") currentConfig.ai.popupAppearance.closeButtonHoverTextColor = val;
+      else if (ak2 === "CloseButtonHoverTextOpacity") currentConfig.ai.popupAppearance.closeButtonHoverTextOpacity = clampOpacity(val);
+      return;
+    }
+    // 直接存储
+    currentConfig[id] = val;
+  }
+
+  // ═════════════════════════════════════════════════
+  // 进程选择器
+  // ═════════════════════════════════════════════════
+
+  function bindProcessPickerEvents() {
+    document.getElementById("processPickerCloseButton").addEventListener("click", closeProcessPicker);
+    document.getElementById("processPickerOverlay").addEventListener("click", function (e) {
+      if (e.target === this) closeProcessPicker();
+    });
+    document.getElementById("processPickerRefreshButton").addEventListener("click", loadProcessPickerList);
+    document.getElementById("processPickerAddButton").addEventListener("click", addSelectedProcessesToRuleList);
+    document.getElementById("processPickerSearch").addEventListener("input", renderProcessPickerList);
+
+    document.addEventListener("click", function (e) {
+      var btn = e.target;
+      if (btn.id === "chooseBlacklistProcessButton") openProcessPicker("blacklist");
+      else if (btn.id === "chooseWhitelistProcessButton") openProcessPicker("whitelist");
+      else if (btn.id === "chooseAutoProfileProcessButton") openProcessPicker("autoProfile");
+    });
+  }
+
+  function closeProcessPicker() {
+    processPickerTarget = null;
+    processPickerItems = [];
+    document.getElementById("processPickerOverlay").hidden = true;
+  }
+
+  async function loadProcessPickerList() {
+    var mp = getMediaPopup();
+    if (!mp || !mp.listProcesses) return;
+    document.getElementById("processPickerStatus").textContent = "加载中...";
+    var result = await mp.listProcesses();
+    if (!result || !result.ok) {
+      processPickerItems = [];
+      document.getElementById("processPickerStatus").textContent = "加载失败";
+      renderProcessPickerList();
+      return;
+    }
+    processPickerItems = (result.processes || []).map(function (r) {
+      var item = typeof r === "string" ? { name: r, path: "", icon: "" } : r;
+      return { name: String(item.name || "").trim(), path: String(item.path || "").trim(), icon: String(item.icon || "").trim() };
+    }).filter(function (i) { return i.name; });
+    renderProcessPickerList();
+  }
+
+  function renderProcessPickerList() {
+    var list = document.getElementById("processPickerList");
+    var kw = (document.getElementById("processPickerSearch").value || "").trim().toLowerCase();
+    var matched = processPickerItems.filter(function (i) {
+      return !kw || i.name.toLowerCase().indexOf(kw) !== -1;
+    });
+    list.innerHTML = "";
+    if (!matched.length) {
+      list.innerHTML = '<div class="empty">没有匹配的进程</div>';
+      return;
+    }
+    for (var i = 0; i < matched.length; i++) {
+      var item = matched[i];
+      var row = document.createElement("label");
+      row.className = "process-picker-row";
+      var cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.value = item.name;
+      row.appendChild(cb);
+      row.appendChild(document.createTextNode(" " + item.name + (item.path ? " — " + item.path : "")));
+      list.appendChild(row);
+    }
+    document.getElementById("processPickerStatus").textContent = matched.length + " 个进程";
+  }
+
+  async function addSelectedProcessesToRuleList() {
+    var selected = [];
+    var cbs = document.querySelectorAll("#processPickerList input:checked");
+    for (var i = 0; i < cbs.length; i++) { selected.push(cbs[i].value); }
+    if (!selected.length) return;
+    var targetId = processPickerTarget === "whitelist" ? "processRulesWhitelist" : "processRulesBlacklist";
+    var ta = document.getElementById(targetId);
+    if (!ta) return;
+    var existing = ta.value.split("\n").filter(Boolean);
+    for (var j = 0; j < selected.length; j++) {
+      if (existing.indexOf(selected[j]) === -1) existing.push(selected[j]);
+    }
+    ta.value = existing.join("\n");
+    // 同步到 config
+    if (currentConfig && currentConfig.processRules) {
+      currentConfig.processRules[processPickerTarget || "blacklist"] = existing;
+    }
+    await scheduleAutoSave({ immediate: true });
+    closeProcessPicker();
+  }
+
+  async function openProcessPicker(target) {
+    processPickerTarget = target;
+    document.getElementById("processPickerSearch").value = "";
+    document.getElementById("processPickerOverlay").hidden = false;
+    await loadProcessPickerList();
+    document.getElementById("processPickerSearch").focus();
+  }
+
+  // ═════════════════════════════════════════════════
+  // 强控模式
+  // ═════════════════════════════════════════════════
+
+  function bindHardcoreEvents() {
+    // 事件委托：hardcore 控件在详情页中动态渲染
+    document.addEventListener("change", function (e) {
+      if (e.target && e.target.id === "hardcoreModeToggle") {
+        if (e.target.checked) {
+          var ht = document.getElementById("hardcoreTargetText");
+          if (ht) ht.textContent = "CONFIRM";
+          var mo = document.getElementById("hardcoreModalOverlay");
+          if (mo) mo.hidden = false;
+        } else {
+          if (currentConfig) currentConfig.hardcoreMode = false;
+          scheduleAutoSave({ immediate: true });
+        }
+      }
+    });
+    document.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t.id === "hardcoreCancelBtn") {
+        var mo = document.getElementById("hardcoreModalOverlay");
+        if (mo) mo.hidden = true;
+        var hmt = document.getElementById("hardcoreModeToggle");
+        if (hmt) hmt.checked = false;
+      }
+      if (t.id === "hardcoreConfirmBtn") {
+        var input = document.getElementById("hardcoreInput");
+        var target = document.getElementById("hardcoreTargetText");
+        if (input && target && input.value.trim() === target.textContent) {
+          if (currentConfig) currentConfig.hardcoreMode = true;
+          var mo2 = document.getElementById("hardcoreModalOverlay");
+          if (mo2) mo2.hidden = true;
+          scheduleAutoSave({ immediate: true });
+        } else {
+          var err = document.getElementById("hardcoreErrorText");
+          if (err) { err.hidden = false; err.textContent = "输入不匹配，请重新输入。"; }
+        }
+      }
+    });
+    // 硬编码模态关闭按钮
+    var hcClose = document.getElementById("hardcoreCancelBtn");
+    var hcOverlay = document.getElementById("hardcoreModalOverlay");
+    if (hcOverlay) {
+      hcOverlay.addEventListener("click", function (ev) {
+        if (ev.target === hcOverlay) { hcOverlay.hidden = true; }
+      });
+    }
+  }
+
+  // ═════════════════════════════════════════════════
+  // 配置档案 (复用旧逻辑)
+  // ═════════════════════════════════════════════════
+
+  async function loadProfiles(activePath) {
+    var grid = document.getElementById("profileGrid");
+    var mp = getMediaPopup();
+    if (!mp || !mp.listProfiles) return;
+    try {
+      cachedProfiles = await mp.listProfiles();
+      // 总是更新 Bar 下拉
+      updateBarProfileSelect(activePath);
+      if (!grid) return;
+      grid.innerHTML = "";
+      for (var i = 0; i < cachedProfiles.length; i++) {
+        var p = cachedProfiles[i];
+        var card = document.createElement("div");
+        card.className = "profile-card";
+        if (activePath && p.path === activePath) card.classList.add("active");
+        card.innerHTML = '<span class="profile-card-name">' + p.name + '</span><button class="profile-card-edit" data-pid="' + p.id + '">✏</button>';
+        card.addEventListener("click", async function (ev) {
+          if (ev.target.classList.contains("profile-card-edit")) {
+            renameTargetProfileId = ev.target.dataset.pid;
+            document.getElementById("renameInput").value = p.name;
+            document.getElementById("renameDialog").hidden = false;
+            return;
+          }
+          if (card.classList.contains("active")) return;
+          var res = await mp.switchProfile(p.path);
+          if (res.ok) {
+            updateState(res.state);
+            loadProfiles(res.state.configPath);
+            renderAllCards();
+          }
+        });
+        grid.appendChild(card);
+      }
+      updateBarProfileSelect(activePath);
+    } catch (e) { console.error("loadProfiles", e); }
+  }
+
+  // ── Bar 快速配置档案切换 ──
+  function updateBarProfileSelect(activePath) {
+    var sel = document.getElementById("barProfileSelect");
+    if (!sel) return;
+    sel.innerHTML = "";
+    for (var i = 0; i < cachedProfiles.length; i++) {
+      var p = cachedProfiles[i];
+      var opt = document.createElement("option");
+      opt.value = p.path;
+      opt.textContent = p.name;
+      if (activePath && p.path === activePath) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+
+  function bindBarProfileSwitcher() {
+    var sel = document.getElementById("barProfileSelect");
+    if (!sel) return;
+    sel.addEventListener("change", async function () {
+      var mp = getMediaPopup();
+      if (!mp || !mp.switchProfile) return;
+      var path = sel.value;
+      if (!path) return;
+      await saveConfig();
+      var result = await mp.switchProfile(path);
+      if (result && result.ok) {
+        updateState(result.state);
+        log("已切换配置档案");
+      }
+    });
+
+    var saveAsBtn = document.getElementById("barSaveConfigAsBtn");
+    if (saveAsBtn) saveAsBtn.addEventListener("click", async function () {
+      var mp = getMediaPopup();
+      if (!mp || !mp.saveConfigAs) return;
+      await saveConfig();
+      var result = await mp.saveConfigAs();
+      if (result && result.config) {
+        currentConfig = result.config;
+        updateState(result);
+        log("已另存配置档案");
+      }
+    });
+  }
+
+  function bindProfileEvents() {
+    // 事件委托：所有档案操作按钮都是动态生成的
+    document.addEventListener("click", async function (e) {
+      var t = e.target;
+      if (t.id === "btnNewProfile") {
+        var mp = getMediaPopup();
+        if (!mp || !mp.createProfile) return;
+        var name = prompt("请输入新配置档案名称:");
+        if (!name) return;
+        await mp.createProfile({ name: name, templateId: "default" });
+        await loadProfiles();
+      }
+      if (t.id === "renameBtnConfirm") {
+        var mp2 = getMediaPopup();
+        if (!mp2 || !mp2.renameProfile) return;
+        var newName = document.getElementById("renameInput");
+        if (!newName || !renameTargetProfileId) return;
+        await mp2.renameProfile({ profileId: renameTargetProfileId, newName: newName.value.trim() });
+        document.getElementById("renameDialog").hidden = true;
+        await loadProfiles();
+      }
+      if (t.id === "renameBtnCancel" || t.id === "renameDialogClose") {
+        var dlg = document.getElementById("renameDialog");
+        if (dlg) dlg.hidden = true;
+      }
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 快捷键录制
+  // ═════════════════════════════════════════════════
+
+  var shortcutFieldIds = ["startShortcut", "pauseShortcut", "stopShortcut", "closeAllShortcut"];
+
+  function bindShortcutRecorders() {
+    // 事件委托：快捷键输入框在详情页中动态渲染
+    document.addEventListener("focus", function (e) {
+      var t = e.target;
+      if (t && shortcutFieldIds.indexOf(t.id) !== -1) {
+        t.classList.add("is-recording");
+      }
+    }, true);
+    document.addEventListener("blur", async function (e) {
+      var t = e.target;
+      if (t && shortcutFieldIds.indexOf(t.id) !== -1) {
+        t.classList.remove("is-recording");
+        if (currentConfig && t.value !== (currentConfig[t.id] || "")) {
+          currentConfig[t.id] = t.value;
+          await saveConfig();
+        }
+      }
+    }, true);
+    document.addEventListener("keydown", function (e) {
+      var t = e.target;
+      if (t && shortcutFieldIds.indexOf(t.id) === -1) return;
+      if (e.key === "Tab") return;
+      e.preventDefault();
+      if (e.repeat) return;
+      if (e.key === "Backspace" || e.key === "Delete") { t.value = ""; return; }
+      if (e.key === "Escape") { t.blur(); return; }
+      var parts = [];
+      if (e.ctrlKey) parts.push("Ctrl");
+      if (e.altKey) parts.push("Alt");
+      if (e.shiftKey) parts.push("Shift");
+      if (e.metaKey) parts.push("Super");
+      var k = e.key;
+      if (k.length === 1) parts.push(k.toUpperCase());
+      else if (k === " ") parts.push("Space");
+      else if (k === "ArrowUp") parts.push("Up");
+      else if (k === "ArrowDown") parts.push("Down");
+      else if (k === "ArrowLeft") parts.push("Left");
+      else if (k === "ArrowRight") parts.push("Right");
+      else if (k.length > 1 && k.indexOf("F") === 0) parts.push(k.toUpperCase());
+      else parts.push(k);
+      t.value = parts.join("+");
+    });
+  }
+
+  // ═════════════════════════════════════════════════
+  // 统计
+  // ═════════════════════════════════════════════════
+
+  async function loadStats() {
+    var mp = getMediaPopup();
+    if (!mp || !mp.getStats) return;
+    var stats = await mp.getStats();
+    if (!stats) return;
+    var fmt = function (sec) {
+      if (!sec) return "0秒";
+      var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+      return (h ? h + "时" : "") + (m ? m + "分" : "") + s + "秒";
     };
+    var setVal = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    setVal("statPlayTime", fmt(stats.totalPlayTime));
+    setVal("statUptime", fmt(stats.totalUptime));
+    setVal("statLongestSession", fmt(stats.longestSession));
+    setVal("statDailyAverage", fmt(stats.dailyAverage));
 
-    weightSlider.addEventListener('input', () => {
-      weightValue.textContent = String(Math.round(Number(weightSlider.value)));
-    });
-    weightSlider.addEventListener('change', () => {
-      void updateWeight();
-    });
+    // 弹窗记录
+    if (stats.popupCounts) {
+      setVal("statPopupImage", stats.popupCounts.image || 0);
+      setVal("statPopupVideo", stats.popupCounts.video || 0);
+      setVal("statPopupWebsite", stats.popupCounts.website || 0);
+      setVal("statPopupAi", stats.popupCounts.ai || 0);
+    }
+    // 操作习惯
+    if (stats.closeCounts) {
+      setVal("statCloseManual", stats.closeCounts.manual || 0);
+      setVal("statCloseAuto", stats.closeCounts.auto || 0);
+    }
 
-    weightControl.append(weightLabel, weightSlider, weightValue);
+    // 今日印章进度
+    var now = new Date();
+    var todayStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+    var todayPlayTime = (stats.dailyUsage && stats.dailyUsage[todayStr]) ? (stats.dailyUsage[todayStr].playTimeSeconds || 0) : 0;
+    var currentTarget = 3600;
+    var stampTextKey = "";
+    if (todayPlayTime >= 24 * 3600) { currentTarget = 24 * 3600; stampTextKey = "stamp.text.ultimate"; }
+    else if (todayPlayTime >= 4 * 3600) { currentTarget = 24 * 3600; stampTextKey = "stamp.text.gold"; }
+    else if (todayPlayTime >= 3600) { currentTarget = 4 * 3600; stampTextKey = "stamp.text.silver"; }
+    else if (todayPlayTime > 0) { currentTarget = 3600; stampTextKey = "stamp.text.bronze"; }
+    var dailyProgress = Math.min(100, (todayPlayTime / currentTarget) * 100);
+    var fillEl = document.getElementById("dailyProgressFill");
+    if (fillEl) fillEl.style.width = dailyProgress + "%";
+    var fmtTarget = function (s) { return s >= 3600 ? (s / 3600) + "h" : (s / 60) + "m"; };
+    var todayH = Math.floor(todayPlayTime / 3600);
+    var todayM = Math.floor((todayPlayTime % 3600) / 60);
+    setVal("dailyProgressText", todayH + "h " + todayM + "m / " + fmtTarget(currentTarget));
+    var stampDisplay = "";
+    if (stampTextKey) {
+      var rawText = t(stampTextKey) || "...";
+      var options = rawText.split("|");
+      var seededRandom = Math.sin(now.getFullYear() * 1000 + now.getMonth() * 100 + now.getDate()) * 10000;
+      var optionIndex = Math.floor((seededRandom - Math.floor(seededRandom)) * options.length);
+      stampDisplay = options[optionIndex] || options[0];
+    }
+    var stampEl = document.getElementById("dailyStampText");
+    if (stampEl) stampEl.textContent = stampDisplay ? "(" + stampDisplay + ")" : "";
 
-    const actions = document.createElement('div');
-    actions.className = 'folder-actions';
+    // 本月大满贯进度
+    var y = now.getFullYear(), mo = now.getMonth();
+    var daysInMonth = new Date(y, mo + 1, 0).getDate();
+    var validDaysCount = 0;
+    for (var dd = 1; dd <= daysInMonth; dd++) {
+      var ds = y + "-" + String(mo + 1).padStart(2, "0") + "-" + String(dd).padStart(2, "0");
+      if (stats.dailyUsage && stats.dailyUsage[ds] && stats.dailyUsage[ds].playTimeSeconds > 0) validDaysCount++;
+    }
+    var monthlyProgress = (validDaysCount / daysInMonth) * 100;
+    var mFillEl = document.getElementById("monthlyProgressFill");
+    if (mFillEl) mFillEl.style.width = monthlyProgress + "%";
+    setVal("monthlyProgressText", validDaysCount + " / " + daysInMonth + " " + t("dashboard.days"));
+  }
 
-    const openButton = document.createElement('button');
-    openButton.type = 'button';
-    openButton.textContent = t('buttons.openFolder');
-    openButton.addEventListener('click', async () => {
-      const mediaPopup = getMediaPopup();
-      if (!mediaPopup) {
-        log(t('log.previewFolderOpenUnavailable'));
-        return;
+  // ═════════════════════════════════════════════════
+  // 详情页按钮动作
+  // ═════════════════════════════════════════════════
+
+  function bindDetailActions() {
+    document.addEventListener("click", async function (e) {
+      var t = e.target;
+      var mp = getMediaPopup();
+      if (!mp) return;
+
+      if (t.id === "testWallpaperButton") { await scheduleAutoSave({ immediate: true }); mp.testWallpaper(); }
+      if (t.id === "testOnlineMediaButton") { await scheduleAutoSave({ immediate: true }); mp.testOnlineMedia(); }
+      if (t.id === "addFoldersButton") {
+        var result = await mp.chooseFolders();
+        if (Array.isArray(result)) {
+          currentConfig.folders = result;
+          renderAllCards();
+          showDetail("folders");
+        }
       }
-
-      const result = await mediaPopup.openFolder(folderPath);
-      log(result?.ok ? t('log.folderOpened') : t('log.folderOpenFailed'));
+      if (t.id === "scanButton") { await saveConfig(); await mp.scanMedia(); }
+      if (t.id === "chooseDesktopCharacterFolderButton") {
+        var path = await mp.chooseDesktopCharacterFolder();
+        if (path && currentConfig) {
+          if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
+          currentConfig.wallpaper.characterFolderPath = path;
+          var field = document.getElementById("desktopCharacterFolderPath");
+          if (field) field.value = path;
+          await scheduleAutoSave({ immediate: true });
+        }
+      }
+      if (t.id === "refreshDesktopCharacterButton") { await saveConfig(); mp.refreshDesktopCharacter(); }
+      if (t.id === "aiShowPopupButton") {
+        await saveConfig();
+        var aiConf = currentConfig.ai || {};
+        var genResult = await mp.generatePopupText({ aiConfig: aiConf, locale: currentLocale });
+        if (genResult && genResult.text) {
+          await mp.showAiTextPopup({ text: genResult.text, locale: currentLocale });
+        }
+      }
+      if (t.id === "aiTestInteractionButton") { await saveConfig(); mp.testAiInteraction(); }
+      if (t.id === "aiRefreshModelsButton") {
+        await refreshAiModelOptions({ forceRefresh: true });
+      }
+      if (t.id === "pollutionChooseCorpusBtn") {
+        var folders = await mp.chooseFolders();
+        if (folders && folders.folders && folders.folders.length) {
+          var fpath = folders.folders[0].path || folders.folders[0];
+          if (currentConfig && currentConfig.pollution) currentConfig.pollution.corpusPath = fpath;
+          var cf = document.getElementById("pollutionCorpusPath");
+          if (cf) cf.value = fpath;
+          await scheduleAutoSave({ immediate: true });
+        }
+      }
+      if (t.id === "websiteShowPopupButton") {
+        var wlib = currentConfig && currentConfig.websiteLibrary;
+        var entries = (wlib && wlib.entries) ? wlib.entries : [];
+        if (entries.length && mp.showWebsitePopup) {
+          var idx = Math.floor(Math.random() * entries.length);
+          mp.showWebsitePopup(entries[idx]);
+        }
+      }
+      if (t.id === "websiteSaveButton") {
+        var textEl = document.getElementById("websiteLibraryText");
+        if (textEl && currentConfig) {
+          if (!currentConfig.websiteLibrary) currentConfig.websiteLibrary = {};
+          currentConfig.websiteLibrary.text = textEl.value;
+          currentConfig.websiteLibrary.entries = parseWebsiteLines(textEl.value);
+        }
+        await scheduleAutoSave({ immediate: true });
+      }
     });
+  }
 
-    const removeButton = document.createElement('button');
-    removeButton.type = 'button';
-    removeButton.textContent = t('buttons.remove');
-    removeButton.addEventListener('click', async () => {
-      const foldersNext = currentConfig.folders.filter((item) => {
-        const itemPath = typeof item === 'string' ? item : item.path;
-        return itemPath !== folderPath;
+  // ═════════════════════════════════════════════════
+  // 状态同步 (IPC)
+  // ═════════════════════════════════════════════════
+
+  function updateMediaPathWarning() {
+    var el = document.getElementById("mediaPathWarning");
+    if (!el) return;
+
+    var hasFolders = currentConfig && currentConfig.folders && currentConfig.folders.length > 0;
+    var hasOnline = currentConfig && currentConfig.onlineMedia && currentConfig.onlineMedia.enabled && currentConfig.onlineMedia.sourceUrl;
+
+    if (hasFolders && hasOnline) {
+      el.hidden = true;
+      return;
+    }
+
+    if (!hasFolders && !hasOnline) {
+      el.className = "media-path-warning media-path-warning--critical";
+      el.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> 未设置任何媒体来源 — 请添加本地文件夹或网络媒体地址';
+      el.hidden = false;
+    } else if (!hasFolders) {
+      el.className = "media-path-warning media-path-warning--hint";
+      el.innerHTML = '未设置本地媒体路径';
+      el.hidden = false;
+    } else {
+      el.className = "media-path-warning media-path-warning--hint";
+      el.innerHTML = '未设置网络媒体地址';
+      el.hidden = false;
+    }
+  }
+
+  async function updateState(state) {
+    currentState = state;
+    if (state && state.config) {
+      currentConfig = state.config;
+      if (currentConfig.popupsEnabled == null) currentConfig.popupsEnabled = true;
+      applyTheme(currentConfig.uiTheme);
+      applyLayoutOrder();
+    }
+    updateStatusBar(state);
+    renderAllCards();
+    loadProfiles(state && state.configPath);
+    loadStats();
+    updateMediaPathWarning();
+  }
+
+  async function initApp() {
+    // 应用全局语言偏好
+    setGlobalLanguage(getGlobalLanguage());
+
+    var mp = getMediaPopup();
+    if (!mp) {
+      // 预览模式
+      currentConfig = {};
+      renderAllCards();
+      document.getElementById("statusIndicator").textContent = "预览模式（未连接后端）";
+      return;
+    }
+
+    // 监听状态更新
+    if (mp.onStateUpdate) {
+      mp.onStateUpdate(function (state) { updateState(state); });
+    }
+
+    // 硬核模式紧急解锁回调
+    if (mp.onHardcoreUnlock) {
+      mp.onHardcoreUnlock(function () {
+        document.getElementById("hardcoreTargetText").textContent = "CONFIRM";
+        document.getElementById("hardcoreInput").value = "";
+        document.getElementById("hardcoreErrorText").hidden = true;
+        document.getElementById("hardcoreModalOverlay").hidden = false;
+        setTimeout(function () { var inp = document.getElementById("hardcoreInput"); if (inp) inp.focus(); }, 50);
       });
-      const result = await saveConfig({ ...collectConfig(), folders: foldersNext });
-      if (result?.blocked) {
-        return;
+    }
+
+    // 获取初始状态
+    var state = await mp.getState();
+    if (state) updateState(state);
+
+    // 绑定控制按钮
+    bindControlButtons();
+    bindWindowControls();
+    bindThemeEvents();
+    autoBindDetailControls();
+    bindProcessPickerEvents();
+    bindHardcoreEvents();
+    bindProfileEvents();
+    bindShortcutRecorders();
+    bindDetailActions();
+
+    // 新增子系统
+    bindAiPreviewEvents();
+    bindWebsitePreviewEvents();
+    bindCalendarEvents();
+    initNumericScrubbers();
+    loadCalendarData();
+
+    // 尺寸面板切换
+    document.addEventListener("change", function(e) {
+      if (e.target && e.target.id === "separateMediaSizeSettings") {
+        var shared = document.getElementById("sharedSizePanel");
+        var separate = document.getElementById("separateSizePanels");
+        if (shared && separate) {
+          shared.hidden = e.target.checked;
+          separate.hidden = !e.target.checked;
+        }
       }
-      log(t('log.folderRemoved'));
     });
 
-    actions.append(openButton, removeButton);
-    row.append(label, weightControl, actions);
-    elements.folderList.append(row);
-  }
-}
+    // 返回按钮
+    document.getElementById("detailBackBtn").addEventListener("click", showDashboard);
 
-function renderStateSummary(state) {
-  elements.mediaCount.textContent = t('stats.mediaCount', { count: state.mediaCount || 0 });
-  elements.popupCount.textContent = t('stats.popupCount', { count: state.popupCount || 0 });
-  const processRuleBlocked = Boolean(state.requestedRunning && state.processRuleState?.enabled && state.processRuleState?.blocked);
-  elements.runState.textContent = state.running ? t('status.running') : processRuleBlocked ? t('status.rulePaused') : t('status.stopped');
-
-  if (elements.processRulesStatus) {
-    elements.processRulesStatus.textContent = getProcessRuleStatusText(state.processRuleState);
-    elements.processRulesStatus.dataset.level = state.processRuleState?.blocked ? 'warning' : 'muted';
+    // 全局设置按钮
+    var settingsBtn = document.getElementById("btnSettings");
+    if (settingsBtn) settingsBtn.addEventListener("click", function () { showDetail("global-settings"); });
   }
 
-  if (state.messageKey) {
-    elements.statusText.textContent = t(state.messageKey);
-    return;
-  }
+  // ── 启动 ──
+  document.addEventListener("DOMContentLoaded", initApp);
 
-  elements.statusText.textContent = state.message || (state.running ? t('status.active') : processRuleBlocked ? t(state.processRuleState?.reason === 'blacklist' ? 'message.processRulesBlockedBlacklist' : 'message.processRulesWaitingWhitelist') : t('status.ready'));
-}
-
-function updateState(state) {
-  currentState = state;
-  applyLanguage(state.locale || currentConfig?.language || 'system');
-
-  if (state.config) {
-    applyConfig(state.config, state.displays || []);
-  }
-
-  renderConfigFileInfo(state.configPath || currentState?.configPath);
-
-  renderStateSummary(state);
-
-  if (state.lastScanErrors && state.lastScanErrors.length) {
-    log(t('log.scanErrors', { count: state.lastScanErrors.length }));
-  }
-
-  renderShortcutFeedback();
-}
-
-elements.unlimitedWindows.addEventListener('change', () => {
-  elements.maxWindows.disabled = elements.unlimitedWindows.checked;
-  elements.unlimitedWarning.hidden = !elements.unlimitedWindows.checked;
-  if (elements.unlimitedWindows.checked) {
-    log(t('log.unlimitedEnabled'));
-  }
-});
-
-elements.language.addEventListener('change', async () => {
-  applyLanguage(elements.language.value);
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-  log(t('log.settingsSaved'));
-});
-
-elements.separateMediaSizeSettings.addEventListener('change', () => {
-  updateSizeSettingsLayout({ syncSeparate: elements.separateMediaSizeSettings.checked });
-});
-
-function scheduleAutoSave({ immediate = false } = {}) {
-  if (!currentConfig) {
-    return null;
-  }
-
-  if (autoSaveTimer) {
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = null;
-  }
-
-  if (immediate) {
-    return triggerAutoSave();
-  }
-
-  autoSaveTimer = setTimeout(() => {
-    autoSaveTimer = null;
-    void triggerAutoSave();
-  }, AUTO_SAVE_DELAY_MS);
-
-  return null;
-}
-
-function markUnsaved() {
-  void scheduleAutoSave();
-}
-
-async function triggerAutoSave() {
-  if (!currentConfig) {
-    return null;
-  }
-
-  if (autoSaveInFlight) {
-    await autoSaveInFlight;
-  }
-
-  autoSaveInFlight = saveConfig().finally(() => {
-    autoSaveInFlight = null;
-  });
-  return autoSaveInFlight;
-}
-
-async function saveConfig(config = collectConfig()) {
-  const validation = buildShortcutValidation({
-    startShortcut: config.startShortcut,
-    pauseShortcut: config.pauseShortcut,
-    stopShortcut: config.stopShortcut,
-    closeAllShortcut: config.closeAllShortcut
-  });
-  const hasValidationError = Object.values(validation).some((item) => item?.level === 'error');
-  if (hasValidationError) {
-    renderShortcutFeedback(validation);
-    log(t('log.shortcutsValidationFailed'));
-    return { blocked: true, validation, config };
-  }
-
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    renderShortcutFeedback(validation);
-    return { config };
-  }
-
-  const state = await mediaPopup.saveConfig(config);
-  updateState(state);
-  const failedShortcut = shortcutFields.some((field) => {
-    const status = state.shortcutRegistration?.[field.key]?.status;
-    return status === 'failed' || status === 'invalid' || status === 'duplicate';
-  });
-  if (failedShortcut) {
-    log(t('log.shortcutsRegistrationIssue'));
-  }
-  return state;
-}
-
-async function scan() {
-  const saveResult = await saveConfig();
-  if (saveResult?.blocked) {
-    return;
-  }
-
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewScanUnavailable'));
-    return;
-  }
-
-  const result = await mediaPopup.scanMedia();
-  log(t('log.scanComplete', { count: result.media.length }));
-}
-
-elements.addFoldersButton.addEventListener('click', async () => {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewFolderUnavailable'));
-    return;
-  }
-
-  const folders = await mediaPopup.chooseFolders();
-  const result = await saveConfig({ ...collectConfig(), folders });
-  if (result?.blocked) {
-    return;
-  }
-  log(t('log.foldersUpdated'));
-});
-
-elements.switchConfigFileButton?.addEventListener('click', async () => {
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.selectConfigFile) {
-    log(t('log.previewConfigUnavailable'));
-    return;
-  }
-
-  const previousPath = currentState?.configPath || '';
-  const state = await mediaPopup.selectConfigFile();
-  if (state?.errorKey) {
-    log(t(state.errorKey));
-    return;
-  }
-
-  updateState(state);
-  if (state?.configPath && state.configPath !== previousPath) {
-    log(t('config.file.switched', { name: getConfigFileDisplayName(state.configPath) }));
-  }
-});
-
-elements.saveConfigAsButton?.addEventListener('click', async () => {
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.saveConfigAs) {
-    log(t('log.previewConfigUnavailable'));
-    return;
-  }
-
-  const previousPath = currentState?.configPath || '';
-  const state = await mediaPopup.saveConfigAs();
-  if (state?.errorKey) {
-    log(t(state.errorKey));
-    return;
-  }
-
-  updateState(state);
-  if (state?.configPath && state.configPath !== previousPath) {
-    log(t('config.file.copied', { name: getConfigFileDisplayName(state.configPath) }));
-  }
-});
-
-elements.saveButton.addEventListener('click', async () => {
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-  log(t('log.settingsSaved'));
-});
-
-elements.websiteSaveButton?.addEventListener('click', async () => {
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-  renderWebsiteLibraryPreview();
-  log(t('log.websiteLibrarySaved'));
-});
-
-elements.scanButton.addEventListener('click', scan);
-
-elements.startButton.addEventListener('click', async () => {
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewStartUnavailable'));
-    return;
-  }
-
-  const state = await mediaPopup.start();
-  updateState(state);
-  if (state.messageKey === 'message.noPlayableSources') {
-    log(t('log.schedulerStartFailed'));
-  } else if (state.processRuleState?.enabled && state.processRuleState?.blocked) {
-    log(t('log.schedulerArmedByProcessRules'));
-  } else {
-    log(t('log.schedulerStarted'));
-  }
-});
-
-elements.pauseButton.addEventListener('click', async () => {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewPauseUnavailable'));
-    return;
-  }
-
-  const state = await mediaPopup.pause();
-  updateState(state);
-  log(t('log.schedulerPaused'));
-});
-
-elements.stopButton.addEventListener('click', async () => {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewStopUnavailable'));
-    return;
-  }
-
-  const state = await mediaPopup.stop();
-  updateState(state);
-  log(t('log.schedulerStopped'));
-});
-
-elements.closeAllButton.addEventListener('click', async () => {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup) {
-    log(t('log.previewCloseUnavailable'));
-    return;
-  }
-
-  const state = await mediaPopup.closeAll();
-  updateState(state);
-  log(t('log.popupsClosed'));
-});
-
-elements.aiShowPopupButton.addEventListener('click', async () => {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.generatePopupText) {
-    setAiStatus(t('log.aiPreviewUnavailable'), 'error');
-    log(t('log.aiPreviewUnavailable'));
-    return;
-  }
-
-  const btn = elements.aiShowPopupButton;
-  btn.classList.add('loading');
-  btn.disabled = true;
-
-  try {
-    const nextConfig = collectConfig();
-    const result = await mediaPopup.generatePopupText({
-      aiConfig: nextConfig.ai,
-      locale: nextConfig.language
-    });
-
-    if (!result?.ok) {
-      const detail = result?.detail ? ` ${result.detail}` : '';
-      const message = `${t(result?.errorKey || 'ai.error.requestFailed')}${detail}`.trim();
-      setAiStatus(message, 'error');
-      log(message);
-      return;
-    }
-
-    await showAiTextPopup(result.text);
-  } finally {
-    btn.classList.remove('loading');
-    btn.disabled = false;
-  }
-});
-
-elements.aiTestInteractionButton?.addEventListener('click', async () => {
-  const saveResult = await saveConfig();
-  if (saveResult?.blocked) {
-    return;
-  }
-
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.testAiInteraction) {
-    setAiStatus(t('log.aiPreviewUnavailable'), 'error');
-    log(t('log.aiPreviewUnavailable'));
-    return;
-  }
-
-  const button = elements.aiTestInteractionButton;
-  button.classList.add('loading');
-  button.disabled = true;
-
-  try {
-    const result = await mediaPopup.testAiInteraction();
-    if (!result?.ok) {
-      const detail = result?.detail ? ` ${result.detail}` : '';
-      const message = `${t(result?.errorKey || 'ai.error.requestFailed')}${detail}`.trim();
-      setAiStatus(message, 'error');
-      log(message);
-      return;
-    }
-
-    if (result.popupErrorKey) {
-      log(t(result.popupErrorKey));
-    }
-
-    const actionLabel = describeInteractionAction(result.action, result);
-    setAiStatus(actionLabel, result.action === 'skip' ? 'muted' : 'success');
-
-    if (result.action === 'skip') {
-      log(t('log.aiInteractionTestSkipped'));
-      return;
-    }
-
-    log(t('log.aiInteractionTestResult', { action: actionLabel }));
-  } finally {
-    button.classList.add('loading');
-    button.disabled = false;
-  }
-});
-
-elements.aiSaveAppearanceButton?.addEventListener('click', async () => {
-  applyAiPopupAppearancePreview(getAiPopupAppearanceFromInputs());
-  const result = await saveConfig();
-  if (result?.blocked) {
-    return;
-  }
-  log(t('log.settingsSaved'));
-  setAiStatus(t('ai.popupAppearance.saved'), 'success');
-});
-
-elements.testWallpaperButton?.addEventListener('click', async () => {
-  elements.testWallpaperButton.disabled = true;
-  log('开始测试更换壁纸...');
-  try {
-    const result = await saveConfig();
-    if (result?.blocked) {
-      log('保存配置失败，终止测试');
-      return;
-    }
-    const mediaPopup = getMediaPopup();
-    if (mediaPopup?.testWallpaper) {
-      log('正在通知后台执行...');
-      const msg = await mediaPopup.testWallpaper();
-      log(`后台执行完毕：${msg || '无返回'}`);
-    } else {
-      log('无法连接后台服务：testWallpaper 接口未找到');
-    }
-  } catch (err) {
-    log('测试出错：' + err.message);
-  } finally {
-    elements.testWallpaperButton.disabled = false;
-  }
-});
-
-elements.websiteLibraryText?.addEventListener('input', () => {
-  renderWebsiteLibraryPreview();
-  markUnsaved();
-});
-
-elements.websiteLibrarySearch?.addEventListener('input', () => {
-  renderWebsiteLibraryPreview();
-});
-
-elements.websiteShowPopupButton?.addEventListener('click', async () => {
-  const parsed = parseWebsiteLibraryText(elements.websiteLibraryText.value);
-  const entry = parsed.entries.find((item) => item.enabled !== false) || parsed.entries[0];
-  if (!entry) {
-    log(t('website.empty'));
-    return;
-  }
-  await showWebsitePopup(entry);
-});
-
-elements.autoProfileConfigPath?.addEventListener('change', markUnsaved);
-
-elements.profileSelector?.addEventListener('change', async (e) => {
-  const val = e.target.value;
-  if (val === '__create_new__') {
-    const name = prompt('请输入新配置档案的名称 (如: 工作专注模式):');
-    if (name) {
-      const template = prompt('请选择预设模板 (可选: default, work, casual, insane):\n留空则复制当前配置');
-      const id = 'profile_' + Date.now();
-      const res = await mediaPopup.createProfile({ profileId: id, name, templateId: template || null });
-      if (res.ok) {
-        updateState(res.state);
-        loadProfiles(res.state.configPath);
-      } else {
-        alert('创建失败: ' + res.error);
-        loadProfiles(currentConfigPath);
-      }
-    } else {
-      // Revert select back
-      loadProfiles(currentConfigPath);
-    }
-  } else if (val) {
-    const profile = cachedProfiles.find(p => p.id === val);
-    if (profile) {
-      const res = await mediaPopup.switchProfile(profile.path);
-      if (res.ok) {
-        updateState(res.state);
-        loadProfiles(res.state.configPath);
-      } else {
-        alert('切换失败: ' + res.error);
-        loadProfiles(currentConfigPath);
-      }
-    }
-  }
-});
-
-elements.processRulesEnabled?.addEventListener('change', markUnsaved);
-elements.processRulesCheckIntervalSeconds?.addEventListener('input', markUnsaved);
-
-elements.chooseBlacklistProcessButton?.addEventListener('click', () => openProcessPicker('blacklist'));
-elements.chooseWhitelistProcessButton?.addEventListener('click', () => openProcessPicker('whitelist'));
-elements.chooseAutoProfileProcessButton?.addEventListener('click', () => openProcessPicker('autoProfile'));
-
-elements.processPickerCloseButton?.addEventListener('click', closeProcessPicker);
-
-elements.processPickerOverlay?.addEventListener('click', (event) => {
-  if (event.target === elements.processPickerOverlay) {
-    closeProcessPicker();
-  }
-});
-
-elements.processPickerSearch?.addEventListener('input', renderProcessPickerList);
-
-elements.processPickerRefreshButton?.addEventListener('click', () => {
-  void loadProcessPickerList();
-});
-
-elements.processPickerAddButton?.addEventListener('click', () => {
-  void addSelectedProcessesToRuleList();
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !elements.processPickerOverlay?.hidden) {
-    closeProcessPicker();
-  }
-});
-
-elements.minimizeWindowButton.addEventListener('click', () => getMediaPopup()?.minimizeWindow());
-elements.closeWindowButton.addEventListener('click', () => getMediaPopup()?.closeWindow());
-
-const savedTheme = localStorage.getItem('app_theme') || 'dark';
-if (savedTheme === 'light') {
-  document.documentElement.setAttribute('data-theme', 'light');
-}
-
-if (elements.themeToggleButton) {
-  elements.themeToggleButton.addEventListener('click', () => {
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    if (isLight) {
-      document.documentElement.removeAttribute('data-theme');
-      localStorage.setItem('app_theme', 'dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-      localStorage.setItem('app_theme', 'light');
-    }
-  });
-}
-
-organizeSettingsLayout();
-initNumericScrubbers();
-bindDirectionModeButtons();
-bindAutoSaveInputs();
-bindAiPopupAppearancePreview();
-bindShortcutRecorders();
-bindLayoutInteractions();
-applyStaticTranslations();
-setLogDrawer(false);
-
-async function fetchAndRenderStats() {
-  const mediaPopup = getMediaPopup();
-  if (!mediaPopup?.getStats) return;
-  const stats = await mediaPopup.getStats();
-  
-  const formatTime = (totalSeconds) => {
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = Math.floor(totalSeconds % 60);
-    if (h > 0) return t('stats.format.hours', { h, m });
-    if (m > 0) return t('stats.format.minutes', { m, s });
-    return t('stats.format.seconds', { s });
-  };
-  
-  const daysUsed = Math.max(1, Math.ceil((Date.now() - new Date(stats.firstUsedAt || Date.now()).getTime()) / (1000 * 60 * 60 * 24)));
-  const avgSeconds = Math.floor(stats.totalPlayTimeSeconds / daysUsed);
-
-  const el = (id) => document.getElementById(id);
-  if (el('statPlayTime')) el('statPlayTime').textContent = formatTime(stats.totalPlayTimeSeconds);
-  if (el('statUptime')) el('statUptime').textContent = formatTime(stats.totalUptimeSeconds);
-  if (el('topbarPlayTime')) el('topbarPlayTime').textContent = `${t('stats.topbar.playTime')} ${formatTime(stats.totalPlayTimeSeconds)}`;
-  if (el('topbarUptime')) el('topbarUptime').textContent = `${t('stats.topbar.uptime')} ${formatTime(stats.totalUptimeSeconds)}`;
-  if (el('statLongestSession')) el('statLongestSession').textContent = formatTime(stats.longestPlaySessionSeconds);
-  if (el('statDailyAverage')) el('statDailyAverage').textContent = formatTime(avgSeconds);
-  
-  if (el('statPopupImage')) el('statPopupImage').textContent = stats.popupCounts?.image || 0;
-  if (el('statPopupVideo')) el('statPopupVideo').textContent = stats.popupCounts?.video || 0;
-  if (el('statPopupWebsite')) el('statPopupWebsite').textContent = stats.popupCounts?.website || 0;
-  if (el('statPopupAi')) el('statPopupAi').textContent = stats.popupCounts?.ai || 0;
-  
-  if (el('statCloseManual')) el('statCloseManual').textContent = stats.closeCounts?.manual || 0;
-  if (el('statCloseAuto')) el('statCloseAuto').textContent = stats.closeCounts?.auto || 0;
-  
-  // Dashboard Progress Updates
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const todayPlayTime = stats.dailyUsage?.[todayStr]?.playTimeSeconds || 0;
-  
-  // Daily progressive stamp progress
-  let currentTarget = 3600; // default 1h
-  let stampTextKey = '';
-  
-  if (todayPlayTime >= 24 * 3600) {
-    currentTarget = 24 * 3600; // Maxed out
-    stampTextKey = 'stamp.text.ultimate';
-  } else if (todayPlayTime >= 4 * 3600) {
-    currentTarget = 24 * 3600; // Aim for Ultimate
-    stampTextKey = 'stamp.text.gold';
-  } else if (todayPlayTime >= 3600) {
-    currentTarget = 4 * 3600; // Aim for Gold
-    stampTextKey = 'stamp.text.silver';
-  } else if (todayPlayTime > 0) {
-    currentTarget = 3600; // Aim for Silver
-    stampTextKey = 'stamp.text.bronze';
-  } else {
-    currentTarget = 3600; // Start by aiming for Silver (1h)
-    stampTextKey = '';
-  }
-  
-  const dailyProgress = Math.min(100, (todayPlayTime / currentTarget) * 100);
-  if (el('dailyProgressFill')) el('dailyProgressFill').style.width = `${dailyProgress}%`;
-  
-  const formatTarget = (targetSecs) => targetSecs >= 3600 ? `${targetSecs / 3600}h` : `${targetSecs / 60}m`;
-  const todayH = Math.floor(todayPlayTime / 3600);
-  const todayM = Math.floor((todayPlayTime % 3600) / 60);
-  if (el('dailyProgressText')) el('dailyProgressText').textContent = `${todayH}h ${todayM}m / ${formatTarget(currentTarget)}`;
-
-  let stampDisplay = '';
-  if (stampTextKey) {
-    const rawText = t(stampTextKey) || '...';
-    const options = rawText.split('|');
-    const seededRandom = Math.sin(now.getFullYear() * 1000 + now.getMonth() * 100 + now.getDate()) * 10000;
-    const optionIndex = Math.floor((seededRandom - Math.floor(seededRandom)) * options.length);
-    stampDisplay = options[optionIndex] || options[0];
-  }
-  if (el('dailyStampText')) {
-    el('dailyStampText').textContent = stampDisplay ? `(${stampDisplay})` : '';
-  }
-  
-  // Monthly Grand Slam progress
-  const year = now.getFullYear();
-  const month = now.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  let validDaysCount = 0;
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    if (stats.dailyUsage?.[dateStr]?.playTimeSeconds > 0) validDaysCount++;
-  }
-  
-  const monthlyProgress = (validDaysCount / daysInMonth) * 100;
-  if (el('monthlyProgressFill')) el('monthlyProgressFill').style.width = `${monthlyProgress}%`;
-  if (el('monthlyProgressText')) el('monthlyProgressText').textContent = `${validDaysCount} / ${daysInMonth} ${t('dashboard.days') || '天'}`;
-  
-  window._statsData = stats;
-  renderCalendar(stats.dailyUsage || {});
-}
-
-let currentCalendarDate = new Date();
-
-function renderCalendar(dailyUsage) {
-  const grid = document.getElementById('calendarGrid');
-  const monthLabel = document.getElementById('calendarMonthLabel');
-  const fullMonthStamp = document.getElementById('fullMonthStamp');
-  
-  if (!grid || !monthLabel) return;
-  
-  const year = currentCalendarDate.getFullYear();
-  const month = currentCalendarDate.getMonth();
-  
-  const monthDate = new Date(year, month, 1);
-  monthLabel.textContent = new Intl.DateTimeFormat(currentLocale, { year: 'numeric', month: 'long' }).format(monthDate);
-  
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfWeek = new Date(year, month, 1).getDay();
-  
-  grid.innerHTML = '';
-  
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    const emptyCell = document.createElement('div');
-    emptyCell.className = 'calendar-day empty';
-    grid.appendChild(emptyCell);
-  }
-  
-  let validDaysCount = 0;
-  
-  for (let d = 1; d <= daysInMonth; d++) {
-    const cell = document.createElement('div');
-    cell.className = 'calendar-day';
-    
-    const dayNum = document.createElement('div');
-    dayNum.className = 'calendar-day-num';
-    dayNum.textContent = d;
-    cell.appendChild(dayNum);
-    
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const usage = dailyUsage && dailyUsage[dateStr];
-    
-    if (usage && usage.playTimeSeconds > 0) {
-      validDaysCount++;
-      cell.classList.add('has-stamp');
-      const stamp = document.createElement('div');
-      
-      let stampClass = '';
-      let stampTextKey = '';
-      const playTime = usage.playTimeSeconds;
-      
-      if (playTime >= 24 * 3600) {
-        stampClass = 'stamp-ultimate';
-        stampTextKey = 'stamp.text.ultimate';
-      } else if (playTime >= 4 * 3600) {
-        stampClass = 'stamp-gold';
-        stampTextKey = 'stamp.text.gold';
-      } else if (playTime >= 3600) {
-        stampClass = 'stamp-silver';
-        stampTextKey = 'stamp.text.silver';
-      } else {
-        stampClass = 'stamp-bronze';
-        stampTextKey = 'stamp.text.bronze';
-      }
-      
-      const rawText = t(stampTextKey) || '...';
-      const options = rawText.split('|');
-      // seed the random selection by day so it doesn't change on every re-render
-      const seededRandom = Math.sin(year * 1000 + month * 100 + d) * 10000;
-      const optionIndex = Math.floor((seededRandom - Math.floor(seededRandom)) * options.length);
-      const stampText = options[optionIndex] || options[0];
-
-      stamp.className = `stamp ${stampClass}`;
-      stamp.textContent = stampText;
-      
-      const h = Math.floor(playTime / 3600);
-      const m = Math.floor((playTime % 3600) / 60);
-      if (h > 0) {
-        cell.title = t('stats.format.hours', { h, m });
-      } else {
-        cell.title = t('stats.format.minutes', { m, s: 0 }).replace(' 0秒', '').replace(' 0s', '');
-      }
-      
-      cell.appendChild(stamp);
-    }
-    
-    grid.appendChild(cell);
-  }
-  
-  if (validDaysCount === daysInMonth) {
-    if (fullMonthStamp) fullMonthStamp.classList.remove('hidden');
-    grid.classList.add('faded-by-stamp');
-  } else {
-    if (fullMonthStamp) fullMonthStamp.classList.add('hidden');
-    grid.classList.remove('faded-by-stamp');
-  }
-}
-
-document.getElementById('prevMonthBtn')?.addEventListener('click', () => {
-  currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-  renderCalendar(window._statsData?.dailyUsage || {});
-});
-
-document.getElementById('nextMonthBtn')?.addEventListener('click', () => {
-  currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-  renderCalendar(window._statsData?.dailyUsage || {});
-});
-
-function initBridge(retry = 0) {
-  const mediaPopup = getMediaPopup();
-  if (mediaPopup) {
-    mediaPopup.onStateUpdate(updateState);
-    mediaPopup.getState().then((state) => {
-      updateState(state);
-      fetchAndRenderStats();
-      setInterval(fetchAndRenderStats, 10000);
-      log(t('log.appLoaded'));
-    });
-    return;
-  }
-
-  if (retry < 20) {
-    setTimeout(() => initBridge(retry + 1), 100);
-    return;
-  }
-
-  elements.statusText.textContent = t('status.preview');
-  log(t('log.previewUnavailable'));
-}
-
-initBridge();
+})();

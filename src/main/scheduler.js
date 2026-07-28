@@ -98,6 +98,15 @@ class Scheduler {
   async start() {
     this.requestedRunning = true;
 
+    const config = this.getConfig();
+    if (!config.popupsEnabled) {
+      this.running = false;
+      clearTimeout(this.timer);
+      this.timer = null;
+      this.sendState({ messageKey: 'message.popupsDisabled' });
+      return this.getPublicState();
+    }
+
     if (this.gateBlocked) {
       this.running = false;
       clearTimeout(this.timer);
@@ -163,6 +172,13 @@ class Scheduler {
     this.scheduleNextTick();
     this.sendState();
     return this.getPublicState();
+  }
+
+  onPopupsEnabledChanged(enabled) {
+    if (!enabled && this.running) {
+      this.pause();
+      this.closeAllPopups();
+    }
   }
 }
 
