@@ -26,7 +26,16 @@
 
 <main class="app">
   <section class="hero">
-    <div id="mediaPathWarning" class="media-path-warning" hidden></div>
+    <div class="hero-left">
+      <button id="heroFoldersButton" class="hero-folders-btn" title="媒体文件夹"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 2h9v10H3Z"/></svg></button>
+      <div id="mediaPathWarning" class="media-path-warning" hidden></div>
+    </div>
+    <div class="hero-progress" id="heroProgress" title="点击查看生涯详情" style="cursor:pointer">
+      <div class="progress-box"><div class="progress-label"><span id="heroDailyLabel">今日印章</span> <span id="dailyStampText" class="daily-stamp-text"></span><span id="dailyProgressText">0 / 1h</span></div>
+      <div class="progress-track"><div class="progress-fill" id="dailyProgressFill" style="width:0%"></div></div></div>
+      <div class="progress-box"><div class="progress-label"><span id="heroMonthlyLabel">本月大满贯</span><span id="monthlyProgressText">0 / 30 天</span></div>
+      <div class="progress-track"><div class="progress-fill fill-monthly" id="monthlyProgressFill" style="width:0%"></div></div></div>
+    </div>
     <div>
       <div class="pills" style="margin-bottom:4px">
         <button id="startButton" class="go"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6,3 20,12 6,21"/></svg><span>启动</span></button>
@@ -39,6 +48,35 @@
       </div>
     </div>
   </section>
+
+  <div id="statsInlinePanel" class="stats-inline-panel" hidden>
+    <div class="stats-inline-head">
+      <h3>生涯概览</h3>
+      <button id="statsInlineCloseBtn" class="stats-inline-close" title="收起">✕</button>
+    </div>
+    <div class="stats-grid"><div class="stat-card"><div class="stat-label">总播放时长</div><div class="stat-value" id="statPlayTime">-</div></div>
+    <div class="stat-card"><div class="stat-label">总运行时长</div><div class="stat-value" id="statUptime">-</div></div>
+    <div class="stat-card"><div class="stat-label">单次最长</div><div class="stat-value" id="statLongestSession">-</div></div>
+    <div class="stat-card"><div class="stat-label">日均播放</div><div class="stat-value" id="statDailyAverage">-</div></div></div>
+    <div class="stats-grid stats-grid-secondary" style="margin-top:8px">
+    <div class="stat-card"><div class="stat-label">弹窗记录</div><div class="stat-sub-values">
+      <span>图片: <span id="statPopupImage" class="stat-accent">0</span></span>
+      <span>视频: <span id="statPopupVideo" class="stat-accent">0</span></span>
+      <span>网站: <span id="statPopupWebsite" class="stat-accent">0</span></span>
+      <span>AI 互动: <span id="statPopupAi" class="stat-accent">0</span></span>
+    </div></div>
+    <div class="stat-card"><div class="stat-label">操作习惯</div><div class="stat-sub-values">
+      <span>手动关闭: <span id="statCloseManual" class="stat-accent">0</span></span>
+      <span>自动关闭: <span id="statCloseAuto" class="stat-accent">0</span></span>
+    </div></div></div>
+    <div style="margin-top:12px">
+      <div class="calendar-header"><button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>
+      <h3 id="calendarMonthLabel" class="calendar-title"></h3><button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button></div>
+      <div class="calendar-days-header"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+      <div class="calendar-wrapper"><div id="calendarGrid" class="calendar-grid"></div>
+      <div id="fullMonthStamp" class="full-month-stamp hidden"><div class="stamp-inner" id="fullMonthStampText">大满贯</div></div></div>
+    </div>
+  </div>
 
   <div id="dashboard"></div>
   <div id="detail-view" style="display:none;">

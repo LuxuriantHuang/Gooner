@@ -53,15 +53,11 @@
     { id: "hardcore", name: "强控模式", meta: "restricted.ui", icon: "lock", hint: "隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。", configKey: "hardcoreMode", tone: "danger", section: "system" },
     { id: "autostart", name: "开机自启", meta: "auto.launch", icon: "monitor", hint: "Windows 登录后自动运行应用，可在系统设置中随时关闭。", configKey: "autoStartOnBoot", tone: "", section: "system" },
     { id: "silent", name: "静默模式", meta: "silent.boot", icon: "hidden", hint: "启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。", configKey: "silentMode", tone: "", section: "system" },
-
-    // 系统配置 (section: "config")
-    { id: "stats", name: "生涯记录", meta: "sys.stats", icon: "chart", hint: "播放时长、弹窗数量、每日活跃日历热力图。", configKey: null, tone: "", section: "config" }
   ];
 
   let SECTIONS = [
     { key: "core", name: "核心功能", cls: "core-section" },
-    { key: "system", name: "智能与系统", cls: "" },
-    { key: "config", name: "系统配置", cls: "" }
+    { key: "system", name: "智能与系统", cls: "" }
   ];
 
   // ── 全局状态 ──
@@ -77,10 +73,6 @@
   let processPickerTarget = null;
   let processPickerItems = [];
   let renameTargetProfileId = "";
-  let aiModelOptions = [];
-  let aiModelStatusText = "";
-  let aiModelStatusError = false;
-  let aiModelRequestToken = 0;
   let cardNum = 0;
 
   const AUTO_SAVE_DELAY_MS = 300;
@@ -128,7 +120,6 @@
   function getCardState(card) {
     if (!currentConfig) return false;
     if (card.id === "folders") return true;
-    if (card.id === "stats") return true;
     if (card.id === "hardcore") return currentConfig.hardcoreMode || false;
     if (card.id === "autostart") return currentConfig.autoStartOnBoot || false;
     if (card.id === "silent") return currentConfig.silentMode || false;
@@ -214,8 +205,6 @@
     if (card.count) {
       bot = '<div class="folder-count">' + getFolderCountHtml() + '</div>' +
         '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">管理 ' + arrowRight() + '</button></div>';
-    } else if (card.id === "stats") {
-      bot = '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">进入 ' + arrowRight() + '</button></div>';
     } else {
       bot = '<div class="tile-actions tile-actions-split"><button class="sw" aria-label="' + (on ? "关闭" : "开启") + card.name + '" data-action="toggle" data-id="' + card.id + '"></button><button class="link" data-action="detail" data-id="' + card.id + '">设置 ' + arrowRight() + '</button></div>';
     }
@@ -756,19 +745,7 @@
     var backBtn = document.getElementById("detailBackBtn");
     if (backBtn) backBtn.onclick = showDashboard;
     // 子页面特定后期渲染
-    if (cardId === "ai-popup") {
-      setTimeout(function () {
-        applyAiPreview();
-        void refreshAiModelOptions({ forceRefresh: false });
-      }, 100);
-
-      var apiKeyInput = document.getElementById("aiApiKey");
-      if (apiKeyInput) {
-        apiKeyInput.addEventListener("change", function () {
-          void refreshAiModelOptions({ forceRefresh: true });
-        });
-      }
-    }
+    if (cardId === "ai-popup") { setTimeout(applyAiPreview, 100); }
     if (cardId === "stats") { loadCalendarData(); loadStats(); }
     if (cardId === "process-rules") { updateProcessRulesStatus(); }
     if (cardId === "folders" && currentConfig) {
@@ -778,9 +755,10 @@
         fl.innerHTML = folders.length ? folders.map(function(f, i) {
           var p = typeof f === "string" ? f : (f.path || "");
           var w = (typeof f === "object" && f.weight != null) ? f.weight : 1;
-          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;gap:8px">' +
-            '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">' + p + '</span>' +
-            '<span style="color:var(--muted);white-space:nowrap">权重 ' + w + '</span>' +
+          return '<div class="folder-row" data-folder-index="' + i + '">' +
+            '<span class="folder-path" title="' + p + '">' + p + '</span>' +
+            '<label class="folder-weight"><span>权重</span><input type="range" min="1" max="5" step="1" value="' + w + '" data-action="folderWeight" data-index="' + i + '"><span class="folder-weight-val">' + w + '</span></label>' +
+            '<button class="folder-remove-btn" data-action="folderRemove" data-index="' + i + '" title="移除">✕</button>' +
             '</div>';
         }).join("") : '<span style="color:var(--muted);font-size:13px">还没有添加文件夹 — 点击上方按钮添加</span>';
       }
@@ -828,109 +806,6 @@
 
   function colorField(label, id, val) {
     return '<label class="field"><span>' + label + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="1" style="width:52px;text-align:center" title="透明度"></div></label>';
-  }
-
-  function escapeHtml(value) {
-    return String(value == null ? "" : value)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/\"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
-
-  function buildAiModelOptionsHtml(selectedModel) {
-    var selected = String(selectedModel || "auto").trim() || "auto";
-    var seen = Object.create(null);
-    var items = [
-      { value: "auto", label: "自动（推荐：最新可用模型）" }
-    ];
-    seen.auto = true;
-
-    for (var i = 0; i < aiModelOptions.length; i++) {
-      var modelId = String(aiModelOptions[i] || "").trim();
-      if (!modelId || seen[modelId]) continue;
-      seen[modelId] = true;
-      items.push({ value: modelId, label: modelId });
-    }
-
-    if (!seen[selected]) {
-      items.push({ value: selected, label: selected + "（当前）" });
-    }
-
-    var html = "";
-    for (var j = 0; j < items.length; j++) {
-      var item = items[j];
-      html += '<option value="' + escapeHtml(item.value) + '"' + (item.value === selected ? " selected" : "") + '>' + escapeHtml(item.label) + '</option>';
-    }
-    return html;
-  }
-
-  function updateAiModelStatus() {
-    var statusEl = document.getElementById("aiModelStatus");
-    if (!statusEl) return;
-
-    var fallbackText = "填写 API Key 后会自动拉取可用模型列表。";
-    statusEl.textContent = aiModelStatusText || fallbackText;
-    statusEl.style.color = aiModelStatusError ? "#f5a2a2" : "var(--muted)";
-  }
-
-  function renderAiModelSelect() {
-    var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
-    var selectEl = document.getElementById("aiModel");
-    if (!selectEl) return;
-    selectEl.innerHTML = buildAiModelOptionsHtml(ai.model || "auto");
-    updateAiModelStatus();
-  }
-
-  async function refreshAiModelOptions(opts) {
-    var mp = getMediaPopup();
-    if (!mp || !mp.listAiModels) return;
-
-    var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
-    var apiKeyInput = document.getElementById("aiApiKey");
-    var apiKey = String((apiKeyInput && apiKeyInput.value) || ai.apiKey || "").trim();
-    var forceRefresh = Boolean(opts && opts.forceRefresh);
-
-    if (!apiKey) {
-      aiModelOptions = [];
-      aiModelStatusError = false;
-      aiModelStatusText = "填写 API Key 后会自动拉取可用模型列表。";
-      renderAiModelSelect();
-      return;
-    }
-
-    var token = ++aiModelRequestToken;
-    aiModelStatusError = false;
-    aiModelStatusText = "正在获取模型列表...";
-    updateAiModelStatus();
-
-    try {
-      var result = await mp.listAiModels({
-        apiKey: apiKey,
-        aiConfig: ai,
-        forceRefresh: forceRefresh
-      });
-
-      if (token !== aiModelRequestToken) return;
-
-      if (result && result.ok && Array.isArray(result.models)) {
-        aiModelOptions = result.models.slice(0, 100);
-        aiModelStatusError = false;
-        aiModelStatusText = "已自动同步可用模型。";
-      } else {
-        aiModelOptions = [];
-        aiModelStatusError = true;
-        aiModelStatusText = (result && result.detail) ? result.detail : "获取模型列表失败。";
-      }
-    } catch (_error) {
-      if (token !== aiModelRequestToken) return;
-      aiModelOptions = [];
-      aiModelStatusError = true;
-      aiModelStatusText = "获取模型列表失败。";
-    }
-
-    renderAiModelSelect();
   }
 
   function clampOpacity(v, fb) { var n = Number(v); return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : (fb != null ? fb : 1); }
@@ -1138,7 +1013,7 @@
       ]) +
       switchRow("失焦自动换回", "wallpaperFocusRestoreEnabled", cfg("wallpaper.focusRestoreEnabled")) +
       '</div>' +
-      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：使用其他应用时恢复启动前壁纸；回到桌面时恢复最近的软件壁纸。仅在定时到期时换新。</p>' +
+      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：切换到其他窗口时记录壁纸，返回桌面时恢复并换新。普通壁纸与角色壁纸均适用。</p>' +
       '<div class="actions-row"><button id="testWallpaperButton" class="btn">测试普通壁纸</button><button id="refreshDesktopCharacterButton" class="btn">刷新角色壁纸</button></div>'
     );
   }
@@ -1156,7 +1031,7 @@
         switchRow("即时回复", "aiImmediateReplyEnabled", cfg("ai.immediateReplyEnabled", true)) +
         '<div class="field-row cols-2">' +
         '<label class="field"><span>AI 提供商</span><select id="aiProvider"><option value="deepseek"' + (ai.provider === "deepseek" ? " selected" : "") + '>DeepSeek</option></select></label>' +
-        '<label class="field"><span>模型</span><div style="display:flex;gap:6px"><select id="aiModel" style="flex:1">' + buildAiModelOptionsHtml(ai.model || "auto") + '</select><button id="aiRefreshModelsButton" class="btn" type="button">刷新</button></div><small id="aiModelStatus" class="desc-text" style="display:block;margin-top:4px">' + escapeHtml(aiModelStatusText || "填写 API Key 后会自动拉取可用模型列表。") + '</small></label>' +
+        '<label class="field"><span>模型</span><input id="aiModel" value="' + (ai.model || "deepseek-chat") + '"></label>' +
         '</div>' +
         '<label class="field"><span>API Key</span><input id="aiApiKey" type="password" value="' + (ai.apiKey || "") + '"></label>' +
         '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">测试 AI 弹窗</button><button id="aiTestInteractionButton" class="btn">测试主动互动</button></div>'
@@ -1387,15 +1262,7 @@
 
   // === 生涯记录 ===
   function renderStatsDetail() {
-    return panel("今日进度",
-      '<div class="stats-progress-area">' +
-        '<div class="progress-box"><div class="progress-label"><span>' + t("dashboard.dailyProgress") + ' <span id="dailyStampText" class="daily-stamp-text"></span></span><span id="dailyProgressText">0 / 1h</span></div>' +
-        '<div class="progress-track"><div class="progress-fill" id="dailyProgressFill" style="width:0%"></div></div></div>' +
-        '<div class="progress-box"><div class="progress-label"><span>' + t("dashboard.monthlyProgress") + '</span><span id="monthlyProgressText">0 / 30 ' + t("dashboard.days") + '</span></div>' +
-        '<div class="progress-track"><div class="progress-fill fill-monthly" id="monthlyProgressFill" style="width:0%"></div></div></div>' +
-      '</div>'
-    ) +
-    panel(t("stats.panel.title"),
+    return panel(t("stats.panel.title"),
       '<div class="stats-grid"><div class="stat-card"><div class="stat-label">' + t("stats.totalPlayTime") + '</div><div class="stat-value" id="statPlayTime">-</div></div>' +
       '<div class="stat-card"><div class="stat-label">' + t("stats.totalUptime") + '</div><div class="stat-value" id="statUptime">-</div></div>' +
       '<div class="stat-card"><div class="stat-label">' + t("stats.longestSession") + '</div><div class="stat-value" id="statLongestSession">-</div></div>' +
@@ -1738,7 +1605,23 @@
   function autoBindDetailControls() {
     document.addEventListener("change", function (e) {
       var el = e.target;
-      if (!el || !el.id) return;
+      if (!el) return;
+      // 文件夹权重调整
+      if (el.dataset && el.dataset.action === "folderWeight") {
+        var idx = Number(el.dataset.index);
+        var w = Math.max(1, Math.min(5, Number(el.value) || 1));
+        el.value = w;
+        var valSpan = el.parentElement && el.parentElement.querySelector(".folder-weight-val");
+        if (valSpan) valSpan.textContent = w;
+        if (currentConfig && Array.isArray(currentConfig.folders) && idx >= 0 && idx < currentConfig.folders.length) {
+          var f = currentConfig.folders[idx];
+          if (typeof f === "string") { currentConfig.folders[idx] = { path: f, weight: w }; }
+          else { f.weight = w; }
+          scheduleAutoSave({ immediate: true });
+        }
+        return;
+      }
+      if (!el.id) return;
       if (el.closest("#dashboard")) return; // 卡片区有独立处理
       if (el.closest("#detailContent")) {
         applyDetailChange(el);
@@ -1746,7 +1629,14 @@
     });
     document.addEventListener("input", function (e) {
       var el = e.target;
-      if (!el || !el.id) return;
+      if (!el) return;
+      // 文件夹权重滑块 — 拖动时实时更新数值
+      if (el.dataset && el.dataset.action === "folderWeight") {
+        var valSpan = el.parentElement && el.parentElement.querySelector(".folder-weight-val");
+        if (valSpan) valSpan.textContent = el.value;
+        return;
+      }
+      if (!el.id) return;
       if (el.closest("#detailContent") && (el.tagName === "TEXTAREA" || el.type === "text" || el.type === "password" || el.type === "number" || el.type === "color" || el.type === "range")) {
         applyDetailChange(el);
       }
@@ -1767,17 +1657,6 @@
   }
 
   function setConfigValue(id, val) {
-    if (id === "aiProvider" || id === "aiModel" || id === "aiApiKey" || id === "aiPopupScheduleEnabled" || id === "aiSinglePopupMode" || id === "aiImmediateReplyEnabled") {
-      if (!currentConfig.ai) currentConfig.ai = {};
-      if (id === "aiProvider") currentConfig.ai.provider = val;
-      else if (id === "aiModel") currentConfig.ai.model = String(val || "").trim() || "auto";
-      else if (id === "aiApiKey") currentConfig.ai.apiKey = val;
-      else if (id === "aiPopupScheduleEnabled") currentConfig.ai.popupScheduleEnabled = val;
-      else if (id === "aiSinglePopupMode") currentConfig.ai.singlePopupMode = val;
-      else if (id === "aiImmediateReplyEnabled") currentConfig.ai.immediateReplyEnabled = val;
-      return;
-    }
-
     // 直接映射常见 key
     var directKeys = [
       "popupsEnabled", "recursive", "gradual", "alwaysOnTop", "fullscreen",
@@ -1862,16 +1741,15 @@
     if (id.indexOf("desktopCharacter") === 0) {
       if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
       var dk = id.replace("desktopCharacter", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
-      if (dk === "enabled") dk = "characterEnabled";
-      if (dk === "folderPath") dk = "characterFolderPath";
-      if (dk === "intervalMinutes") dk = "intervalMinutes";
-      if (dk === "mode") dk = "characterMode";
-      if (dk === "layerMode") dk = "characterLayerMode";
+      if (dk === "Enabled") dk = "characterEnabled";
+      if (dk === "Folderpath") dk = "characterFolderPath";
+      if (dk === "Intervalminutes") dk = "intervalMinutes";
+      if (dk === "Mode") dk = "characterMode";
+      if (dk === "Layermode") dk = "characterLayerMode";
       currentConfig.wallpaper[dk] = val;
       // 同时保持向后兼容
       if (!currentConfig.desktopCharacter) currentConfig.desktopCharacter = {};
-      var compatKey = dk.replace("character", "").replace(/^[A-Z]/, function(c) { return c.toLowerCase(); });
-      currentConfig.desktopCharacter[compatKey] = val;
+      currentConfig.desktopCharacter[dk.replace("character", "").replace(/^[A-Z]/, function(c) { return c.toLowerCase(); })] = val;
       return;
     }
     // onlineMedia.*
@@ -2341,7 +2219,7 @@
       var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
       return (h ? h + "时" : "") + (m ? m + "分" : "") + s + "秒";
     };
-    var setVal = function (id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+    var setVal = function (id, v) { var els = document.querySelectorAll("#" + id); for (var i = 0; i < els.length; i++) els[i].textContent = v; };
     setVal("statPlayTime", fmt(stats.totalPlayTime));
     setVal("statUptime", fmt(stats.totalUptime));
     setVal("statLongestSession", fmt(stats.longestSession));
@@ -2371,8 +2249,8 @@
     else if (todayPlayTime >= 3600) { currentTarget = 4 * 3600; stampTextKey = "stamp.text.silver"; }
     else if (todayPlayTime > 0) { currentTarget = 3600; stampTextKey = "stamp.text.bronze"; }
     var dailyProgress = Math.min(100, (todayPlayTime / currentTarget) * 100);
-    var fillEl = document.getElementById("dailyProgressFill");
-    if (fillEl) fillEl.style.width = dailyProgress + "%";
+    var fillEls = document.querySelectorAll("#dailyProgressFill");
+    for (var fi = 0; fi < fillEls.length; fi++) fillEls[fi].style.width = dailyProgress + "%";
     var fmtTarget = function (s) { return s >= 3600 ? (s / 3600) + "h" : (s / 60) + "m"; };
     var todayH = Math.floor(todayPlayTime / 3600);
     var todayM = Math.floor((todayPlayTime % 3600) / 60);
@@ -2385,8 +2263,8 @@
       var optionIndex = Math.floor((seededRandom - Math.floor(seededRandom)) * options.length);
       stampDisplay = options[optionIndex] || options[0];
     }
-    var stampEl = document.getElementById("dailyStampText");
-    if (stampEl) stampEl.textContent = stampDisplay ? "(" + stampDisplay + ")" : "";
+    var stampEls = document.querySelectorAll("#dailyStampText");
+    for (var si = 0; si < stampEls.length; si++) stampEls[si].textContent = stampDisplay ? "(" + stampDisplay + ")" : "";
 
     // 本月大满贯进度
     var y = now.getFullYear(), mo = now.getMonth();
@@ -2397,8 +2275,8 @@
       if (stats.dailyUsage && stats.dailyUsage[ds] && stats.dailyUsage[ds].playTimeSeconds > 0) validDaysCount++;
     }
     var monthlyProgress = (validDaysCount / daysInMonth) * 100;
-    var mFillEl = document.getElementById("monthlyProgressFill");
-    if (mFillEl) mFillEl.style.width = monthlyProgress + "%";
+    var mFillEls = document.querySelectorAll("#monthlyProgressFill");
+    for (var mi2 = 0; mi2 < mFillEls.length; mi2++) mFillEls[mi2].style.width = monthlyProgress + "%";
     setVal("monthlyProgressText", validDaysCount + " / " + daysInMonth + " " + t("dashboard.days"));
   }
 
@@ -2423,6 +2301,15 @@
         }
       }
       if (t.id === "scanButton") { await saveConfig(); await mp.scanMedia(); }
+      // 文件夹删除按钮
+      if (t.dataset && t.dataset.action === "folderRemove") {
+        var idx = Number(t.dataset.index);
+        if (currentConfig && Array.isArray(currentConfig.folders) && idx >= 0 && idx < currentConfig.folders.length) {
+          currentConfig.folders.splice(idx, 1);
+          await scheduleAutoSave({ immediate: true });
+          showDetail("folders");
+        }
+      }
       if (t.id === "chooseDesktopCharacterFolderButton") {
         var path = await mp.chooseDesktopCharacterFolder();
         if (path && currentConfig) {
@@ -2443,9 +2330,6 @@
         }
       }
       if (t.id === "aiTestInteractionButton") { await saveConfig(); mp.testAiInteraction(); }
-      if (t.id === "aiRefreshModelsButton") {
-        await refreshAiModelOptions({ forceRefresh: true });
-      }
       if (t.id === "pollutionChooseCorpusBtn") {
         var folders = await mp.chooseFolders();
         if (folders && folders.folders && folders.folders.length) {
@@ -2591,6 +2475,25 @@
     // 全局设置按钮
     var settingsBtn = document.getElementById("btnSettings");
     if (settingsBtn) settingsBtn.addEventListener("click", function () { showDetail("global-settings"); });
+
+    // Hero 文件夹快捷按钮
+    var heroFoldersBtn = document.getElementById("heroFoldersButton");
+    if (heroFoldersBtn) heroFoldersBtn.addEventListener("click", function () { showDetail("folders"); });
+
+    // hero 进度条点击展开生涯详情
+    var heroProgress = document.getElementById("heroProgress");
+    var statsPanel = document.getElementById("statsInlinePanel");
+    var statsCloseBtn = document.getElementById("statsInlineCloseBtn");
+    if (heroProgress && statsPanel) {
+      heroProgress.addEventListener("click", function () {
+        var isOpen = !statsPanel.hidden;
+        statsPanel.hidden = isOpen;
+        if (!isOpen) { loadCalendarData(); loadStats(); }
+      });
+    }
+    if (statsCloseBtn && statsPanel) {
+      statsCloseBtn.addEventListener("click", function () { statsPanel.hidden = true; });
+    }
   }
 
   // ── 启动 ──
