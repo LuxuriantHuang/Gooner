@@ -6,6 +6,7 @@
   "scripts": {
     "build:native": "node scripts/build-desktop-host.js",
     "test:wallpaper-focus": "node --test test/wallpaper-focus-state.test.js",
+    "test:peer-share": "node --test test/peer-share-protocol.test.js",
     "predev": "npm run build:native",
     "dev": "electron .",
     "prestart": "npm run build:native",
@@ -46,6 +47,8 @@
     }
   },
   "dependencies": {
-    "image-size": "^1.1.1"
+    "bittorrent-dht": "^10.0.7",
+    "image-size": "^1.1.1",
+    "simple-peer": "^9.11.1"
   }
 }
