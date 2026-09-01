@@ -76,6 +76,7 @@
   let renameTargetProfileId = "";
   let cardNum = 0;
   let activeDetailCardId = "";
+  let silentModeChallengeAnswer = null;
 
   const AUTO_SAVE_DELAY_MS = 300;
 
@@ -2215,6 +2216,9 @@
       if (!el.id) return;
       if (el.closest("#dashboard")) return; // 卡片区有独立处理
       if (el.closest("#detailContent")) {
+        if (el.id === "silentMode") {
+          return;
+        }
         applyDetailChange(el);
       }
     });
@@ -2621,6 +2625,51 @@
   // 强控模式
   // ═════════════════════════════════════════════════
 
+  function resetSilentModeConfirmation() {
+    silentModeChallengeAnswer = null;
+    var overlay = document.getElementById("silentModeModalOverlay");
+    var challenge = document.getElementById("silentModeChallenge");
+    var warning = document.getElementById("silentModeWarningText");
+    var answer = document.getElementById("silentModeAnswer");
+    var error = document.getElementById("silentModeErrorText");
+    var next = document.getElementById("silentModeNextBtn");
+    var confirm = document.getElementById("silentModeConfirmBtn");
+    if (overlay) overlay.hidden = true;
+    if (challenge) challenge.hidden = true;
+    if (warning) {
+      warning.hidden = false;
+      warning.textContent = t("silent.confirmWarning");
+    }
+    if (answer) answer.value = "";
+    if (error) error.hidden = true;
+    if (next) next.hidden = false;
+    if (confirm) confirm.hidden = true;
+  }
+
+  function openSilentModeConfirmation() {
+    resetSilentModeConfirmation();
+    var overlay = document.getElementById("silentModeModalOverlay");
+    if (overlay) overlay.hidden = false;
+  }
+
+  function showSilentModeChallenge() {
+    var first = Math.floor(Math.random() * 8) + 2;
+    var second = Math.floor(Math.random() * 8) + 2;
+    silentModeChallengeAnswer = first + second;
+    var question = document.getElementById("silentModeQuestion");
+    var warning = document.getElementById("silentModeWarningText");
+    var challenge = document.getElementById("silentModeChallenge");
+    var next = document.getElementById("silentModeNextBtn");
+    var confirm = document.getElementById("silentModeConfirmBtn");
+    if (question) question.textContent = first + " + " + second + " = ?";
+    if (warning) warning.hidden = true;
+    if (challenge) challenge.hidden = false;
+    if (next) next.hidden = true;
+    if (confirm) confirm.hidden = false;
+    var answer = document.getElementById("silentModeAnswer");
+    if (answer) answer.focus();
+  }
+
   function bindHardcoreEvents() {
     // 事件委托：hardcore 控件在详情页中动态渲染
     document.addEventListener("change", function (e) {
@@ -2632,6 +2681,15 @@
           if (mo) mo.hidden = false;
         } else {
           if (currentConfig) currentConfig.hardcoreMode = false;
+          scheduleAutoSave({ immediate: true });
+        }
+      }
+      if (e.target && e.target.id === "silentMode") {
+        if (e.target.checked) {
+          e.target.checked = false;
+          openSilentModeConfirmation();
+        } else {
+          if (currentConfig) currentConfig.silentMode = false;
           scheduleAutoSave({ immediate: true });
         }
       }
@@ -2657,6 +2715,29 @@
           if (err) { err.hidden = false; err.textContent = t("hardcore.inputMismatch"); }
         }
       }
+      if (t.id === "silentModeCancelBtn") {
+        resetSilentModeConfirmation();
+        var silentToggle = document.getElementById("silentMode");
+        if (silentToggle) silentToggle.checked = false;
+      }
+      if (t.id === "silentModeNextBtn") {
+        showSilentModeChallenge();
+      }
+      if (t.id === "silentModeConfirmBtn") {
+        var silentAnswer = document.getElementById("silentModeAnswer");
+        var silentError = document.getElementById("silentModeErrorText");
+        if (silentAnswer && Number(silentAnswer.value) === silentModeChallengeAnswer) {
+          if (currentConfig) currentConfig.silentMode = true;
+          resetSilentModeConfirmation();
+          var confirmedToggle = document.getElementById("silentMode");
+          if (confirmedToggle) confirmedToggle.checked = true;
+          scheduleAutoSave({ immediate: true });
+        } else if (silentError) {
+          silentError.hidden = false;
+          silentError.textContent = t("silent.answerMismatch");
+          silentAnswer.focus();
+        }
+      }
     });
     // 硬编码模态关闭按钮
     var hcClose = document.getElementById("hardcoreCancelBtn");
@@ -2664,6 +2745,16 @@
     if (hcOverlay) {
       hcOverlay.addEventListener("click", function (ev) {
         if (ev.target === hcOverlay) { hcOverlay.hidden = true; }
+      });
+    }
+    var silentOverlay = document.getElementById("silentModeModalOverlay");
+    if (silentOverlay) {
+      silentOverlay.addEventListener("click", function (ev) {
+        if (ev.target === silentOverlay) {
+          resetSilentModeConfirmation();
+          var toggle = document.getElementById("silentMode");
+          if (toggle) toggle.checked = false;
+        }
       });
     }
   }

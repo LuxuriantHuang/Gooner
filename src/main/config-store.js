@@ -258,6 +258,7 @@ const defaultConfig = {
   autoStartOnBoot: false,
   autoRunScheduler: false,
   silentMode: false,
+  silentModeMigrationVersion: 1,
   popupsEnabled: true,
   uiLayout: {
     sectionOrder: ['core', 'media', 'system', 'config'],
@@ -935,6 +936,11 @@ function normalizeUiLayout(input) {
 
 function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   const next = { ...cloneDefaultConfig(), ...(input || {}) };
+  const hasSilentModeMigrationVersion = Object.prototype.hasOwnProperty.call(input || {}, 'silentModeMigrationVersion');
+  if (!hasSilentModeMigrationVersion && input?.silentMode === true) {
+    next.silentMode = false;
+  }
+  next.silentModeMigrationVersion = 1;
   next.language = normalizeLanguageSetting(next.language, getSystemLanguage);
   next.popupDisplayIds = normalizeDisplayIds(next.popupDisplayIds);
   next.startShortcut = normalizeShortcut(next.startShortcut);
@@ -1200,8 +1206,12 @@ async function loadConfigFile(app, getSystemLanguage) {
   const activeConfig = await readConfigCandidate(activePath);
 
   if (activeConfig) {
+    const normalizedConfig = normalizeConfig(activeConfig, getSystemLanguage);
+    if (!Object.prototype.hasOwnProperty.call(activeConfig, 'silentModeMigrationVersion')) {
+      await writeConfigFile(app, normalizedConfig, activePath);
+    }
     return {
-      config: normalizeConfig(activeConfig, getSystemLanguage),
+      config: normalizedConfig,
       configPath: activePath
     };
   }
@@ -1217,8 +1227,12 @@ async function loadConfigFile(app, getSystemLanguage) {
   const currentScore = getConfigContentScore(currentConfig);
 
   if (currentConfig && currentScore > 0) {
+    const normalizedConfig = normalizeConfig(currentConfig, getSystemLanguage);
+    if (!Object.prototype.hasOwnProperty.call(currentConfig, 'silentModeMigrationVersion')) {
+      await writeConfigFile(app, normalizedConfig, currentPath);
+    }
     return {
-      config: normalizeConfig(currentConfig, getSystemLanguage),
+      config: normalizedConfig,
       configPath: currentPath
     };
   }

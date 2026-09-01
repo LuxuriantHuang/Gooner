@@ -132,6 +132,24 @@
   </div>
 </div>
 
+<!-- 静默模式防误开启确认 -->
+<div id="silentModeModalOverlay" class="modal-overlay" hidden>
+  <div class="modal-panel">
+    <h3 data-i18n="silent.confirmTitle"></h3>
+    <p id="silentModeWarningText"></p>
+    <div id="silentModeChallenge" hidden>
+      <p><span data-i18n="silent.challengePrompt"></span> <strong id="silentModeQuestion"></strong></p>
+      <input id="silentModeAnswer" type="number" inputmode="numeric" autocomplete="off" data-i18n-placeholder="silent.answerPlaceholder">
+      <p id="silentModeErrorText" class="error-text" hidden></p>
+    </div>
+    <div class="modal-actions">
+      <button id="silentModeCancelBtn" data-i18n="buttons.cancel"></button>
+      <button id="silentModeNextBtn" class="danger" data-i18n="silent.next"></button>
+      <button id="silentModeConfirmBtn" class="danger" data-i18n="silent.confirm" hidden></button>
+    </div>
+  </div>
+</div>
+
 <!-- 重命名对话框 -->
 <div id="renameDialog" class="modal-overlay" hidden>
   <div class="modal-panel">
