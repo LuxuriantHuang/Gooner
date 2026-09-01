@@ -16,3 +16,5 @@ npm run dev
 ```powershell
 npm run dist
 ```
+
+The packaging script runs `npm ci` from `package-lock.json` before electron-builder and verifies that the runtime dependencies are present in the generated `app.asar`. Do not build the installer with a manually pruned `node_modules` directory.

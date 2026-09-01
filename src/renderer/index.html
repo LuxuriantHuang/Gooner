@@ -12,14 +12,14 @@
     <div class="brand"><span class="mark">G</span>GOONER</div>
     <div class="bar-center">
       <div class="bar-profile-group">
-        <select id="barProfileSelect" class="bar-profile-select" title="快速切换配置档案"></select>
-        <button id="barSaveConfigAsBtn" class="bar-save-btn" title="另存为新配置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+        <select id="barProfileSelect" class="bar-profile-select" data-i18n-title="config.profile.quickSwitch"></select>
+        <button id="barSaveConfigAsBtn" class="bar-save-btn" data-i18n-title="config.profile.saveAs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
       </div>
     </div>
     <div class="bar-actions">
-      <button class="icon-btn" id="btnSettings" title="全局设置">⚙</button>
-      <button class="icon-btn" id="minimizeWindowButton" title="最小化">–</button>
-      <button class="icon-btn" id="closeWindowButton" title="关闭">✕</button>
+      <button class="icon-btn" id="btnSettings" data-i18n-title="settings.global">⚙</button>
+      <button class="icon-btn" id="minimizeWindowButton" data-i18n-title="buttons.minimize">–</button>
+      <button class="icon-btn" id="closeWindowButton" data-i18n-title="buttons.close">✕</button>
     </div>
   </div>
 </div>
@@ -27,61 +27,61 @@
 <main class="app">
   <section class="hero">
     <div class="hero-left">
-      <button id="heroFoldersButton" class="hero-folders-btn" title="媒体文件夹"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 2h9v10H3Z"/></svg></button>
+      <button id="heroFoldersButton" class="hero-folders-btn" data-i18n-title="folders.title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h7l2 2h9v10H3Z"/></svg></button>
       <div id="mediaPathWarning" class="media-path-warning" hidden></div>
     </div>
-    <div class="hero-progress" id="heroProgress" title="点击查看生涯详情" style="cursor:pointer">
-      <div class="progress-box"><div class="progress-label"><span id="heroDailyLabel">今日印章</span> <span id="dailyStampText" class="daily-stamp-text"></span><span id="dailyProgressText">0 / 1h</span></div>
+    <div class="hero-progress" id="heroProgress" data-i18n-title="stats.panel.title" style="cursor:pointer">
+      <div class="progress-box"><div class="progress-label"><span id="heroDailyLabel" data-i18n="dashboard.dailyProgress"></span> <span id="dailyStampText" class="daily-stamp-text"></span><span id="dailyProgressText">0 / 1h</span></div>
       <div class="progress-track"><div class="progress-fill" id="dailyProgressFill" style="width:0%"></div></div></div>
-      <div class="progress-box"><div class="progress-label"><span id="heroMonthlyLabel">本月大满贯</span><span id="monthlyProgressText">0 / 30 天</span></div>
+      <div class="progress-box"><div class="progress-label"><span id="heroMonthlyLabel" data-i18n="dashboard.monthlyProgress"></span><span id="monthlyProgressText">0 / 30</span></div>
       <div class="progress-track"><div class="progress-fill fill-monthly" id="monthlyProgressFill" style="width:0%"></div></div></div>
     </div>
     <div>
       <div class="pills" style="margin-bottom:4px">
-        <button id="startButton" class="go"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6,3 20,12 6,21"/></svg><span>启动</span></button>
-        <button id="pauseButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/></svg><span>暂停</span></button>
-        <button id="stopButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1"/></svg><span>停止</span></button>
-        <button id="closeAllButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6l-12 12"/></svg><span>关闭全部</span></button>
+        <button id="startButton" class="go"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6,3 20,12 6,21"/></svg><span data-i18n="buttons.start"></span></button>
+        <button id="pauseButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="5" height="18"/><rect x="14" y="3" width="5" height="18"/></svg><span data-i18n="buttons.pause"></span></button>
+        <button id="stopButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="1"/></svg><span data-i18n="buttons.stop"></span></button>
+        <button id="closeAllButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6l-12 12"/></svg><span data-i18n="buttons.closeAll"></span></button>
       </div>
       <div class="pills">
-        <button id="saveButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span>保存</span></button>
+        <button id="saveButton"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg><span data-i18n="buttons.save"></span></button>
       </div>
     </div>
   </section>
 
   <div id="statsInlinePanel" class="stats-inline-panel" hidden>
     <div class="stats-inline-head">
-      <h3>生涯概览</h3>
-      <button id="statsInlineCloseBtn" class="stats-inline-close" title="收起">✕</button>
+      <h3 data-i18n="stats.panel.title"></h3>
+      <button id="statsInlineCloseBtn" class="stats-inline-close" data-i18n-title="buttons.collapse">✕</button>
     </div>
-    <div class="stats-grid"><div class="stat-card"><div class="stat-label">总播放时长</div><div class="stat-value" id="statPlayTime">-</div></div>
-    <div class="stat-card"><div class="stat-label">总运行时长</div><div class="stat-value" id="statUptime">-</div></div>
-    <div class="stat-card"><div class="stat-label">单次最长</div><div class="stat-value" id="statLongestSession">-</div></div>
-    <div class="stat-card"><div class="stat-label">日均播放</div><div class="stat-value" id="statDailyAverage">-</div></div></div>
+    <div class="stats-grid">    <div class="stat-card"><div class="stat-label" data-i18n="stats.totalPlayTime"></div><div class="stat-value" id="statPlayTime">-</div></div>
+    <div class="stat-card"><div class="stat-label" data-i18n="stats.totalUptime"></div><div class="stat-value" id="statUptime">-</div></div>
+    <div class="stat-card"><div class="stat-label" data-i18n="stats.longestSession"></div><div class="stat-value" id="statLongestSession">-</div></div>
+    <div class="stat-card"><div class="stat-label" data-i18n="stats.dailyAverage"></div><div class="stat-value" id="statDailyAverage">-</div></div></div>
     <div class="stats-grid stats-grid-secondary" style="margin-top:8px">
-    <div class="stat-card"><div class="stat-label">弹窗记录</div><div class="stat-sub-values">
-      <span>图片: <span id="statPopupImage" class="stat-accent">0</span></span>
-      <span>视频: <span id="statPopupVideo" class="stat-accent">0</span></span>
-      <span>网站: <span id="statPopupWebsite" class="stat-accent">0</span></span>
-      <span>AI 互动: <span id="statPopupAi" class="stat-accent">0</span></span>
+    <div class="stat-card"><div class="stat-label" data-i18n="stats.popups"></div><div class="stat-sub-values">
+      <span><span data-i18n="stats.popup.image"></span>: <span id="statPopupImage" class="stat-accent">0</span></span>
+      <span><span data-i18n="stats.popup.video"></span>: <span id="statPopupVideo" class="stat-accent">0</span></span>
+      <span><span data-i18n="stats.popup.website"></span>: <span id="statPopupWebsite" class="stat-accent">0</span></span>
+      <span><span data-i18n="stats.popup.ai"></span>: <span id="statPopupAi" class="stat-accent">0</span></span>
     </div></div>
-    <div class="stat-card"><div class="stat-label">操作习惯</div><div class="stat-sub-values">
-      <span>手动关闭: <span id="statCloseManual" class="stat-accent">0</span></span>
-      <span>自动关闭: <span id="statCloseAuto" class="stat-accent">0</span></span>
+    <div class="stat-card"><div class="stat-label" data-i18n="stats.closes"></div><div class="stat-sub-values">
+      <span><span data-i18n="stats.close.manual"></span>: <span id="statCloseManual" class="stat-accent">0</span></span>
+      <span><span data-i18n="stats.close.auto"></span>: <span id="statCloseAuto" class="stat-accent">0</span></span>
     </div></div></div>
     <div style="margin-top:12px">
       <div class="calendar-header"><button id="prevMonthBtn" class="calendar-nav-btn">&lt;</button>
       <h3 id="calendarMonthLabel" class="calendar-title"></h3><button id="nextMonthBtn" class="calendar-nav-btn">&gt;</button></div>
-      <div class="calendar-days-header"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+      <div class="calendar-days-header"><span data-i18n="calendar.sun"></span><span data-i18n="calendar.mon"></span><span data-i18n="calendar.tue"></span><span data-i18n="calendar.wed"></span><span data-i18n="calendar.thu"></span><span data-i18n="calendar.fri"></span><span data-i18n="calendar.sat"></span></div>
       <div class="calendar-wrapper"><div id="calendarGrid" class="calendar-grid"></div>
-      <div id="fullMonthStamp" class="full-month-stamp hidden"><div class="stamp-inner" id="fullMonthStampText">大满贯</div></div></div>
+      <div id="fullMonthStamp" class="full-month-stamp hidden"><div class="stamp-inner" id="fullMonthStampText" data-i18n="stamp.fullMonth"></div></div></div>
     </div>
   </div>
 
   <div id="dashboard"></div>
   <div id="detail-view" style="display:none;">
     <div class="detail-bar">
-      <button id="detailBackBtn" class="detail-back">← 返回总控台</button>
+      <button id="detailBackBtn" class="detail-back">← <span data-i18n="buttons.back"></span></button>
       <span id="detailTitle" class="detail-title"></span>
       <span></span>
     </div>
@@ -91,9 +91,9 @@
 
 <footer class="statusbar">
   <div class="status-left">
-    <span id="statusIndicator">调度器就绪</span>
-    <span id="statusWindowCount">0 个窗口</span>
-    <span id="statusMediaCount">0 项媒体</span>
+    <span id="statusIndicator" data-i18n="status.ready"></span>
+    <span id="statusWindowCount" data-i18n="stats.popupCount" data-i18n-params='{"count":0}'></span>
+    <span id="statusMediaCount" data-i18n="stats.mediaCount" data-i18n-params='{"count":0}'></span>
   </div>
   <span id="statusVersion">v0.2.0</span>
   <span id="statusScheduler" style="display:none;"></span>
@@ -105,15 +105,15 @@
 <div id="processPickerOverlay" class="modal-overlay" hidden>
   <div class="modal-panel process-picker-modal">
     <div class="modal-head">
-      <h3 id="processPickerTitle">选择运行中进程</h3>
-      <button id="processPickerCloseButton" class="modal-close">✕</button>
+      <h3 id="processPickerTitle" data-i18n="processRules.pickerTitle"></h3>
+      <button id="processPickerCloseButton" class="modal-close" data-i18n-title="buttons.close">✕</button>
     </div>
-    <input id="processPickerSearch" type="text" placeholder="输入进程名过滤" class="modal-search">
+    <input id="processPickerSearch" type="text" data-i18n-placeholder="processRules.searchPlaceholder" class="modal-search">
     <div id="processPickerList" class="process-picker-list"></div>
     <div class="modal-foot">
       <span id="processPickerStatus"></span>
-      <button id="processPickerRefreshButton">刷新</button>
-      <button id="processPickerAddButton" class="primary">添加选中进程</button>
+      <button id="processPickerRefreshButton" data-i18n="processRules.refresh"></button>
+      <button id="processPickerAddButton" class="primary" data-i18n="processRules.addSelected"></button>
     </div>
   </div>
 </div>
@@ -121,13 +121,13 @@
 <!-- 强控确认 -->
 <div id="hardcoreModalOverlay" class="modal-overlay" hidden>
   <div class="modal-panel">
-    <h3>确认开启强控模式</h3>
-    <p>开启后主窗口和任务栏图标将完全隐藏。请输入 <strong id="hardcoreTargetText"></strong> 确认：</p>
+    <h3 data-i18n="hardcore.confirmTitle"></h3>
+    <p><span data-i18n="hardcore.confirmNote"></span> <strong id="hardcoreTargetText"></strong> <span data-i18n="hardcore.confirmSuffix"></span></p>
     <input id="hardcoreInput" type="text" autocomplete="off">
     <p id="hardcoreErrorText" class="error-text" hidden></p>
     <div class="modal-actions">
-      <button id="hardcoreCancelBtn">取消</button>
-      <button id="hardcoreConfirmBtn" class="danger">确认开启</button>
+      <button id="hardcoreCancelBtn" data-i18n="buttons.cancel"></button>
+      <button id="hardcoreConfirmBtn" class="danger" data-i18n="hardcore.confirm"></button>
     </div>
   </div>
 </div>
@@ -135,11 +135,11 @@
 <!-- 重命名对话框 -->
 <div id="renameDialog" class="modal-overlay" hidden>
   <div class="modal-panel">
-    <h3>编辑档案名</h3>
+    <h3 data-i18n="config.profile.renameTitle"></h3>
     <input id="renameInput" type="text">
     <div class="modal-actions">
-      <button id="renameBtnCancel">取消</button>
-      <button id="renameBtnConfirm" class="primary">确认</button>
+      <button id="renameBtnCancel" data-i18n="buttons.cancel"></button>
+      <button id="renameBtnConfirm" class="primary" data-i18n="buttons.confirm"></button>
     </div>
     <button id="renameDialogClose" class="modal-close">✕</button>
   </div>
@@ -149,7 +149,7 @@
 <div id="aiCardModal" class="modal-overlay" hidden>
   <div class="modal-panel card-modal">
     <div class="modal-head">
-      <h3 id="aiCardModalTitle">选择角色卡</h3>
+      <h3 id="aiCardModalTitle" data-i18n="ai.card.modalTitle"></h3>
       <button id="aiCardModalClose" class="modal-close">✕</button>
     </div>
     <div id="aiCardGrid" class="card-grid"></div>
@@ -159,11 +159,11 @@
 <!-- 头像裁剪 -->
 <div id="aiAvatarCropperModal" class="modal-overlay" hidden>
   <div class="modal-panel cropper-modal">
-    <h3>裁剪头像</h3>
+    <h3 data-i18n="ai.cropper.title"></h3>
     <canvas id="aiCropperCanvas"></canvas>
     <div class="modal-actions">
-      <button id="aiBtnCancelAvatarCrop">取消</button>
-      <button id="aiBtnSaveAvatarCrop" class="primary">保存</button>
+      <button id="aiBtnCancelAvatarCrop" data-i18n="ai.cropper.cancel"></button>
+      <button id="aiBtnSaveAvatarCrop" class="primary" data-i18n="ai.cropper.save"></button>
     </div>
     <button id="aiCropperModalClose" class="modal-close">✕</button>
   </div>

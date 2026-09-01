@@ -49,6 +49,24 @@
       'config.profile.prompt.template': '请选择预设模板 (可选: default, work, casual, insane):\n留空则复制当前配置',
       'config.profile.createFailed': '创建失败: ',
       'config.profile.renameTitle': '编辑档案名',
+      'config.profile.quickSwitch': '快速切换配置档案',
+      'config.profile.saveAs': '另存为新配置',
+      'settings.global': '全局设置',
+      'hardcore.confirmTitle': '确认开启强控模式',
+      'hardcore.confirmNote': '开启后主窗口和任务栏图标将完全隐藏。请输入',
+      'hardcore.confirmSuffix': '确认：',
+      'hardcore.confirm': '确认开启',
+      'status.configSaved': '配置已保存',
+      'status.configManuallySaved': '配置已手动保存',
+      'processRules.loadingShort': '加载中...',
+      'processRules.loadFailedShort': '加载失败',
+      'processRules.noMatchesShort': '没有匹配的进程',
+      'processRules.count': '{count} 个进程',
+      'hardcore.inputMismatch': '输入不匹配，请重新输入。',
+      'profile.prompt.new': '请输入新配置档案名称:',
+      'media.warning.none': '未设置任何媒体来源 — 请添加本地文件夹或网络媒体地址',
+      'media.warning.local': '未设置本地媒体路径',
+      'media.warning.online': '未设置网络媒体地址',
       'visual.title': '视觉控制 (Visual Media Control)',
       'visual.description': '在屏幕最上层铺设透明的视觉媒体图层。',
       'visual.enable': '启用视觉控制',
@@ -70,6 +88,7 @@
       'visual.flashInterval': '闪烁触发间隔',
       'visual.flashJitter': '随机波动区间（正负）',
       'visual.flashWarning': '⚠️ 癫痫警告：开启此功能会以不可预知的频率瞬间全屏闪烁图像，光敏性癫痫患者请勿开启！',
+      'advanced.navAria': '高级设置导航',
       'stamp.text.bronze': '废物贱奴|垃圾婊子|脑瘫骚狗|无能贱种',
       'stamp.text.silver': '初入媚黑|黑茎破处|传播媚黑|跪舔黑屌',
       'stamp.text.gold': '黑爹专用|黑屌奴|黑屄妓女|黑种苗床',
@@ -121,6 +140,57 @@
       'buttons.minimize': '最小化',
       'buttons.confirm': '确认',
       'buttons.cancel': '取消',
+      'buttons.back': '返回总控台',
+      'status.paused': '已暂停',
+      'settings.appearanceTitle': '外观与语言',
+      'settings.appearanceNote': 'UI 主题跟随配置档案，界面语言全局生效。',
+      'settings.uiTheme': 'UI 主题',
+      'settings.language': '界面语言',
+      'settings.theme.default': '默认暗色 (工业矩阵)',
+      'settings.theme.light': '极简白噪音',
+      'settings.theme.matrix': '黑客帝国',
+      'settings.theme.cyberpunk': '赛博朋克',
+      'settings.theme.bnwo': 'BNWO',
+      'settings.theme.space': '深邃星空',
+      'settings.language.system': '跟随系统',
+      'settings.language.zh': '简体中文',
+      'settings.language.en': 'English',
+      'settings.shortcutsTitle': '快捷键',
+      'settings.shortcutsNote': '点击输入框后直接按组合键录制。Backspace/Delete 清空。',
+      'settings.shortcut.start': '启动',
+      'settings.shortcut.pause': '暂停',
+      'settings.shortcut.stop': '停止',
+      'settings.shortcut.closeAll': '关闭全部',
+      'dashboard.section.core': '核心功能',
+      'dashboard.section.system': '智能与系统',
+      'dashboard.action.manage': '管理',
+      'dashboard.action.settings': '设置',
+      'dashboard.card.popup': '媒体弹窗',
+      'dashboard.card.wallpaper': '自动换壁纸',
+      'dashboard.card.aiPopup': 'AI 文本弹窗',
+      'dashboard.card.ghost': '幽灵底片',
+      'dashboard.card.xray': 'X 光模式',
+      'dashboard.card.waterfall': '媒体瀑布',
+      'dashboard.card.flash': '潜意识闪烁',
+      'dashboard.card.pollution': '输入干预',
+      'dashboard.card.processRules': '进程规则',
+      'dashboard.card.peerShare': '联机共享',
+      'dashboard.card.hardcore': '强控模式',
+      'dashboard.card.autostart': '开机自启',
+      'dashboard.card.silent': '静默模式',
+      'dashboard.card.popupHint': '全局总开关。关闭后停止创建新弹窗，并关闭当前所有媒体窗口。',
+      'dashboard.card.wallpaperHint': '按设定间隔自动更换桌面壁纸，支持普通图片与智能角色随机切换。',
+      'dashboard.card.aiPopupHint': '生成短文本并以独立窗口展示，含主动互动子模块。',
+      'dashboard.card.ghostHint': '半透明图片持续覆盖屏幕，按设定间隔自动切换新图片。可调透明度和切换频率。',
+      'dashboard.card.xrayHint': '鼠标周围圆形区域显示完整图片，其余部分被遮罩。可调半径和遮罩透明度。',
+      'dashboard.card.waterfallHint': '图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。',
+      'dashboard.card.flashHint': '按随机间隔在屏幕上短暂闪烁图片。光敏性癫痫患者请勿开启。',
+      'dashboard.card.pollutionHint': '剪贴板污染 + 输入框注入。所有细分能力可在详情中单独开关。',
+      'dashboard.card.processRulesHint': '根据运行中软件的允许/排除名单，自动启停弹窗调度。',
+      'dashboard.card.peerShareHint': '创建/加入房间，与好友直接互传图片和视频，接收内容只在内存中预览，不落盘。',
+      'dashboard.card.hardcoreHint': '隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。',
+      'dashboard.card.autostartHint': 'Windows 登录后自动运行应用，可在系统设置中随时关闭。',
+      'dashboard.card.silentHint': '启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。',
       'config.file.title': '配置文件',
       'config.file.current': '当前配置文件',
       'config.file.switch': '切换配置文件',
@@ -197,6 +267,30 @@
       'wallpaper.maxRatioDeviation': '允许的最大宽高比偏差（如 0.20 代表 20%）',
       'wallpaper.note': '由于要完美适配您的多显示器（如横竖屏差异），程序会自动为各个显示器寻找对应比例的壁纸图片。如果没有合适的图片将跳过。',
       'wallpaper.test': '手动测试换壁纸',
+      'wallpaper.panelTitle': '自动换壁纸',
+      'wallpaper.panelNote': '按设定间隔自动更换桌面壁纸。同时开启“普通”和“智能角色”时，每次随机选择一种模式。',
+      'wallpaper.enableNormal': '开启普通壁纸',
+      'wallpaper.minResolutionShort': '最低分辨率',
+      'wallpaper.ratioDeviationShort': '宽高比偏差',
+      'wallpaper.characterSection': '🎭 智能角色（子模块）',
+      'wallpaper.enableCharacter': '开启角色壁纸',
+      'wallpaper.characterFolder': '角色文件夹',
+      'wallpaper.chooseFolder': '选择',
+      'wallpaper.blendMode': '融合模式',
+      'wallpaper.blend.diffuse': '弥散光',
+      'wallpaper.blend.directional': '定向渐变',
+      'wallpaper.blend.mask': 'UI 掩膜',
+      'wallpaper.layerMode': '桌面层级',
+      'wallpaper.layer.system': '系统壁纸',
+      'wallpaper.layer.behindIcons': '桌面背后',
+      'wallpaper.layer.foreground': '桌面前景',
+      'wallpaper.layer.topBehindIcons': '顶层（图标后）',
+      'wallpaper.layer.topBottom': '顶层（底部）',
+      'wallpaper.layer.topFront': '顶层（前）',
+      'wallpaper.focusRestore': '失焦自动换回',
+      'wallpaper.focusNote': '失焦换回：切换到其他窗口时恢复原壁纸，返回桌面时重新应用上次壁纸；下一次定时到点后再轮换。普通壁纸与角色壁纸均适用。',
+      'wallpaper.testNormal': '测试普通壁纸',
+      'wallpaper.refreshCharacter': '刷新角色壁纸',
       'desktopCharacter.title': '智能角色桌面背景',
       'desktopCharacter.enabled': '仅在桌面显示角色背景',
       'desktopCharacter.note': '只读取专属文件夹及其子目录中的透明 PNG。角色背景仅在桌面获得焦点时显示，切换到普通应用后会隐藏并恢复系统壁纸。',
@@ -599,7 +693,180 @@
       'visual.flashJitter': '随机波动区间（正负）',
       'visual.flashWarning': '⚠️ 癫痫警告：开启此功能会以不可预知的频率瞬间全屏闪烁图像，光敏性癫痫患者请勿开启！',
       'hardcore.enable_text': '我已彻底沉沦，自愿开启强控模式，绝不后悔',
-      'hardcore.disable_text': '我请求主人的宽恕，让我暂作喘息'
+      'hardcore.disable_text': '我请求主人的宽恕，让我暂作喘息',
+      'legacy.popupEffects': '弹窗效果',
+      'legacy.popupLifetime': '自然消失时间',
+      'legacy.popupLifetimeJitter': '消失时间波动',
+      'legacy.popupLifetimeNote': '设为 0:0:0 时不会自动消失；大于 0 时，图片和 AI 文本弹窗会缓慢淡出并关闭。',
+      'legacy.popupOpacity': '弹窗透明度 (%)',
+      'legacy.recursive': '递归扫描子文件夹',
+      'legacy.gradual': '窗口逐渐增多',
+      'legacy.alwaysOnTop': '置顶显示',
+      'legacy.fullscreen': '全屏覆盖',
+      'legacy.muted': '视频静音',
+      'legacy.videoNormalize': '统一视频音量',
+      'legacy.videoTarget': '目标音量 (0.1-1.0)',
+      'legacy.closeVideo': '视频完成关闭',
+      'legacy.chaosVideo': '混乱视频',
+      'legacy.clickToClose': '点击关闭',
+      'legacy.randomClose': '关闭按钮随机位',
+      'legacy.disableClose': '禁止手动关闭',
+      'legacy.developer': '开发者模式',
+      'legacy.windowSize': '窗口尺寸',
+      'legacy.windowSizeNote': '为图片和视频分别设置弹窗大小，或使用统一尺寸。',
+      'legacy.splitSize': '分离图片/视频尺寸',
+      'legacy.sharedWidth': '统一宽度',
+      'legacy.sharedHeight': '统一高度',
+      'legacy.sizeJitter': '尺寸波动',
+      'legacy.imagePopup': '图片弹窗',
+      'legacy.videoPopup': '视频弹窗',
+      'legacy.imageWidth': '图片宽度',
+      'legacy.imageHeight': '图片高度',
+      'legacy.videoWidth': '视频宽度',
+      'legacy.videoHeight': '视频高度',
+      'legacy.closeStyle': '关闭按钮样式',
+      'legacy.textSize': '文字大小',
+      'legacy.radius': '圆角',
+      'legacy.paddingX': '左右边距',
+      'legacy.paddingY': '上下边距',
+      'legacy.offsetX': 'X偏移',
+      'legacy.offsetY': 'Y偏移',
+      'legacy.cardEditor': '角色卡与提示词',
+      'legacy.editCard': '编辑角色卡',
+      'legacy.new': '新建',
+      'legacy.clone': '克隆',
+      'legacy.delete': '删除',
+      'legacy.roleName': '角色名字',
+      'legacy.avatarPath': '角色头像路径',
+      'legacy.browse': '浏览',
+      'legacy.systemPrompt': '系统提示词',
+      'legacy.knowledgeBase': '知识库',
+      'legacy.contextMemory': '上下文记忆',
+      'legacy.oneTimeGuidance': '一次性回复指导',
+      'legacy.userName': '用户名字',
+      'legacy.companionName': '陪伴者名字',
+      'legacy.popupCardUse': '文本弹窗使用',
+      'legacy.interactionCardUse': '主动互动使用',
+      'legacy.pollutionCardUse': '输入干预使用',
+      'legacy.companionRole': '陪伴者身份',
+      'legacy.appearanceDesc': '外貌描述',
+      'legacy.dailyPersona': '日常人格',
+      'legacy.sceneLibrary': '场景库',
+      'legacy.aiBasic': '基础配置',
+      'legacy.aiBasicNote': '配置 AI 模型和基本行为。',
+      'legacy.aiProvider': 'AI 提供商',
+      'legacy.model': '模型',
+      'legacy.testAiPopup': '测试 AI 弹窗',
+      'legacy.testInteraction': '测试主动互动',
+      'legacy.livePreview': '实时预览',
+      'legacy.calendar': '日历热力图',
+      'legacy.localFolders': '本地文件夹',
+      'legacy.manageLocal': '管理本地图片和视频文件夹。',
+      'legacy.loading': '加载中...',
+      'legacy.testOnline': '测试弹出一条网络媒体',
+      'legacy.searchLinks': '搜索链接...',
+      'legacy.noMatches': '没有匹配条目',
+      'legacy.processNote': '根据运行中软件的名单，自动启停弹窗调度。每行一个进程名。',
+      'legacy.blacklist': '黑名单',
+      'legacy.whitelist': '白名单',
+      'legacy.chooseRunning': '选择运行中进程',
+      'legacy.peerUnavailable': '未连接',
+      'legacy.receivingRecords': '暂无接收记录',
+      'folders.sourceCount': '{count} <em>个来源</em>',
+      'peer.testFailed': '测试失败: {detail}',
+      'peer.udpOk': '本机 UDP 出入站：正常',
+      'peer.udpFailed': '本机 UDP 出入站：异常（可能被防火墙拦截）',
+      'peer.dhtOk': '公网 DHT 发现网络：正常（已连接 {count} 个节点）',
+      'peer.dhtWeak': '公网 DHT 发现网络：较弱（仅 {count} 个节点，跨网络发现可能较慢，局域网内发现不受影响）',
+      'processRules.status.enabled': '进程规则已启用',
+      'processRules.status.blacklistShort': '黑名单: {names}',
+      'processRules.status.whitelistShort': '白名单: {names}',
+      'peer.roomStatus': '已加入房间 "{room}" · 本机 ID {id} · 已连接 {count} 个对端',
+      'peer.notConnected': '未连接',
+      'peer.sendTargets': '发送目标（勾选要发给谁，默认全部）：',
+      'peer.remote': '对端 {id}',
+      'peer.waiting': '等待对端加入房间...',
+      'peer.noRecords': '暂无接收记录',
+      'peer.saving': '保存中...',
+      'peer.testing': '测试中...',
+      'peer.enterRoomCode': '请输入或生成房间码',
+      'peer.joinFailed': '加入房间失败',
+      'peer.joinedLobby': '已加入公共大厅',
+      'peer.joinedRoom': '已加入房间 {room}',
+      'peer.selectTarget': '请至少勾选一个发送目标',
+      'peer.connectFirst': '请先加入房间并等待对端连接',
+      'peer.sentTo': '已发送给 {id}',
+      'peer.sendFailed': '发送失败: {detail}',
+      'website.noMatches': '没有匹配条目',
+      'calendar.month': '{year}年{month}月'
+      ,'dashboard.dragTile': '拖动排序'
+      ,'dashboard.dragSection': '拖动排序分类'
+      ,'dashboard.modules': '模块'
+      ,'dashboard.meta.popup.engine': '弹窗引擎'
+      ,'dashboard.meta.wallpaper': '壁纸'
+      ,'dashboard.meta.gen.text': '文本生成'
+      ,'dashboard.meta.ghost.gallery': '幽灵底片'
+      ,'dashboard.meta.xray.reveal': 'X 光揭示'
+      ,'dashboard.meta.media.waterfall': '媒体瀑布'
+      ,'dashboard.meta.subliminal.flash': '潜意识闪烁'
+      ,'dashboard.meta.input.control': '输入控制'
+      ,'dashboard.meta.process.gate': '进程门控'
+      ,'dashboard.meta.p2p.share': 'P2P 共享'
+      ,'dashboard.meta.restricted.ui': '受限界面'
+      ,'dashboard.meta.auto.launch': '自动启动'
+      ,'dashboard.meta.silent.boot': '静默启动'
+      ,'legacy.enableAiSchedule': '让 AI 参与弹窗调度'
+      ,'legacy.singlePopup': '单弹窗模式'
+      ,'legacy.immediateReply': '即时回复'
+      ,'legacy.popupAppearanceWindow': '弹窗外观 · 窗口'
+      ,'legacy.popupAppearanceCard': '弹窗外观 · 卡片'
+      ,'legacy.popupAppearanceShadow': '弹窗外观 · 阴影'
+      ,'legacy.popupAppearanceClose': '弹窗外观 · 关闭按钮'
+      ,'legacy.interaction': '主动互动'
+      ,'legacy.interactionNote': '根据预设上下文定时生成主动互动内容。'
+      ,'legacy.enableInteraction': '开启主动互动'
+      ,'legacy.tone': '语气'
+      ,'legacy.includeForeground': '包含前台应用信息'
+      ,'legacy.ghostNote': '半透明图片持续覆盖屏幕，按设定间隔自动切换。'
+      ,'legacy.enableGhost': '开启幽灵底片'
+      ,'legacy.opacity': '透明度 (%)'
+      ,'legacy.switchInterval': '切换间隔'
+      ,'legacy.xrayNote': '鼠标周围圆形区域显示完整图片，其余部分被遮罩。'
+      ,'legacy.enableXray': '开启 X 光'
+      ,'legacy.radiusPx': '半径 (px)'
+      ,'legacy.maskOpacity': '遮罩透明度 (%)'
+      ,'legacy.waterfallNote': '图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。'
+      ,'legacy.enableWaterfall': '开启瀑布'
+      ,'legacy.speed': '速度'
+      ,'legacy.count': '数量'
+      ,'legacy.sizePx': '大小 (px)'
+      ,'legacy.flashWarning': '⚠️ 癫痫警告：开启此功能会以不可预知的频率瞬间全屏闪烁图像，光敏性癫痫患者请勿开启！'
+      ,'legacy.enableFlash': '开启闪烁'
+      ,'legacy.triggerInterval': '触发间隔'
+      ,'legacy.randomJitter': '随机波动'
+      ,'legacy.pollutionNote': '剪贴板污染 + 输入框注入。所有细分能力可单独开关。'
+      ,'legacy.phraseMode': '词组模式'
+      ,'legacy.corpusMode': '语料库模式'
+      ,'legacy.aiMode': 'AI 模式'
+      ,'legacy.phrasePool': '词组池（逗号分隔）'
+      ,'legacy.corpusPath': '语料库路径'
+      ,'legacy.corpusMin': '语料最小字数'
+      ,'legacy.clipboardChance': '剪贴板概率 (%)'
+      ,'legacy.inputMin': '输入间隔最小值(分)'
+      ,'legacy.inputMax': '输入间隔最大值(分)'
+      ,'legacy.localFolderNote': '管理本地图片和视频文件夹。'
+      ,'legacy.websiteSchedule': '网站参与弹窗调度'
+      ,'legacy.bulkLinks': '批量编辑链接'
+      ,'legacy.websiteNote': '每行: 名称 | 链接。! 禁用，# 注释。'
+      ,'legacy.testWebsite': '测试网站弹窗'
+      ,'legacy.saveWebsite': '保存网站库'
+      ,'legacy.processRules': '进程规则'
+      ,'legacy.enableProcessRules': '启用进程规则'
+      ,'legacy.autoStartWhitelist': '命中白名单自动启动'
+      ,'legacy.autoStopBlacklist': '命中黑名单自动停止'
+      ,'legacy.autoStopWhitelistExit': '退出白名单自动停止'
+      ,'legacy.checkInterval': '检测间隔(秒)'
+      ,'legacy.noConnection': '未连接'
     },
     'en-US': {
       'app.title': 'Gooner',
@@ -643,6 +910,24 @@
       'config.profile.prompt.template': 'Please select a preset template (optional: default, work, casual, insane):\nLeave empty to duplicate the current config',
       'config.profile.createFailed': 'Failed to create: ',
       'config.profile.renameTitle': 'Rename Profile',
+      'config.profile.quickSwitch': 'Quick switch profile',
+      'config.profile.saveAs': 'Save as new profile',
+      'settings.global': 'Global settings',
+      'hardcore.confirmTitle': 'Confirm Hardcore Mode',
+      'hardcore.confirmNote': 'The main window and taskbar icon will be hidden. Enter',
+      'hardcore.confirmSuffix': 'to confirm:',
+      'hardcore.confirm': 'Confirm Enable',
+      'status.configSaved': 'Configuration saved',
+      'status.configManuallySaved': 'Configuration saved manually',
+      'processRules.loadingShort': 'Loading...',
+      'processRules.loadFailedShort': 'Load failed',
+      'processRules.noMatchesShort': 'No matching processes',
+      'processRules.count': '{count} processes',
+      'hardcore.inputMismatch': 'Input does not match. Please try again.',
+      'profile.prompt.new': 'Enter a name for the new config profile:',
+      'media.warning.none': 'No media sources configured — add a local folder or online media URL',
+      'media.warning.local': 'No local media path configured',
+      'media.warning.online': 'No online media URL configured',
       'visual.title': 'Visual Media Control',
       'visual.description': 'Overlay transparent visual media on the top level of the screen.',
       'visual.enable': 'Enable Visual Control',
@@ -663,6 +948,7 @@
       'visual.flashEnable': 'Enable Subliminal Flash',
       'visual.flashInterval': 'Flash Interval',
       'visual.flashJitter': 'Random Jitter (+/-)',
+      'advanced.navAria': 'Advanced settings navigation',
       'stamp.text.bronze': 'Not Bad|Keep Going|Good Effort|Nice',
       'stamp.text.silver': 'Great|Awesome|Getting Better|Skilled',
       'stamp.text.gold': 'Excellent|Godlike|Amazing|Outstanding',
@@ -714,6 +1000,57 @@
       'buttons.minimize': 'Minimize',
       'buttons.confirm': 'Confirm',
       'buttons.cancel': 'Cancel',
+      'buttons.back': 'Back to Dashboard',
+      'status.paused': 'Paused',
+      'settings.appearanceTitle': 'Appearance & Language',
+      'settings.appearanceNote': 'The UI theme follows the config profile; the interface language applies globally.',
+      'settings.uiTheme': 'UI Theme',
+      'settings.language': 'Interface Language',
+      'settings.theme.default': 'Default Dark (Industrial Matrix)',
+      'settings.theme.light': 'Minimal White Noise',
+      'settings.theme.matrix': 'The Matrix',
+      'settings.theme.cyberpunk': 'Cyberpunk',
+      'settings.theme.bnwo': 'BNWO',
+      'settings.theme.space': 'Deep Space',
+      'settings.language.system': 'Follow System',
+      'settings.language.zh': 'Simplified Chinese',
+      'settings.language.en': 'English',
+      'settings.shortcutsTitle': 'Shortcuts',
+      'settings.shortcutsNote': 'Click an input and press a key combination to record it. Backspace/Delete clears it.',
+      'settings.shortcut.start': 'Start',
+      'settings.shortcut.pause': 'Pause',
+      'settings.shortcut.stop': 'Stop',
+      'settings.shortcut.closeAll': 'Close All',
+      'dashboard.section.core': 'Core Features',
+      'dashboard.section.system': 'Smart & System',
+      'dashboard.action.manage': 'Manage',
+      'dashboard.action.settings': 'Settings',
+      'dashboard.card.popup': 'Media Popups',
+      'dashboard.card.wallpaper': 'Auto Wallpaper',
+      'dashboard.card.aiPopup': 'AI Text Popups',
+      'dashboard.card.ghost': 'Ghost Gallery',
+      'dashboard.card.xray': 'X-Ray Mode',
+      'dashboard.card.waterfall': 'Media Waterfall',
+      'dashboard.card.flash': 'Subliminal Flash',
+      'dashboard.card.pollution': 'Input Intervention',
+      'dashboard.card.processRules': 'Process Rules',
+      'dashboard.card.peerShare': 'Peer Sharing',
+      'dashboard.card.hardcore': 'Hardcore Mode',
+      'dashboard.card.autostart': 'Auto Start',
+      'dashboard.card.silent': 'Silent Mode',
+      'dashboard.card.popupHint': 'Global master switch. Turning it off stops new popups and closes all media windows.',
+      'dashboard.card.wallpaperHint': 'Automatically changes the desktop wallpaper at the configured interval, including random character wallpapers.',
+      'dashboard.card.aiPopupHint': 'Generates short text and displays it in a separate window, including proactive interactions.',
+      'dashboard.card.ghostHint': 'Keeps translucent images over the screen and switches them at intervals. Opacity and timing are configurable.',
+      'dashboard.card.xrayHint': 'Shows the full image around the cursor while masking the rest. Radius and mask opacity are configurable.',
+      'dashboard.card.waterfallHint': 'Images continuously fall from the top of the screen. Speed, count, size, and opacity are configurable.',
+      'dashboard.card.flashHint': 'Briefly flashes images at random intervals. Do not use if you are photosensitive.',
+      'dashboard.card.pollutionHint': 'Clipboard pollution and input injection. Each capability can be toggled separately in its details.',
+      'dashboard.card.processRulesHint': 'Automatically pauses or starts popup scheduling based on allowed and excluded running processes.',
+      'dashboard.card.peerShareHint': 'Create or join a room to transfer images and videos directly with friends. Received content is previewed in memory only.',
+      'dashboard.card.hardcoreHint': 'Hides the main window and taskbar icon. Configure a global shortcut first so control can always be restored.',
+      'dashboard.card.autostartHint': 'Runs the app automatically after Windows sign-in. You can disable it in system settings.',
+      'dashboard.card.silentHint': 'Automatically hides the main window after startup. The tray icon and shortcuts remain available.',
       'config.file.title': 'Config File',
       'config.file.current': 'Current config file',
       'config.file.switch': 'Switch Config File',
@@ -790,6 +1127,30 @@
       'wallpaper.maxRatioDeviation': 'Maximum aspect ratio deviation (e.g. 0.20 means 20%)',
       'wallpaper.note': 'To perfectly fit your multi-monitor setup, the app will automatically search for images matching each monitor\'s orientation and aspect ratio. If no suitable image is found, it skips the change.',
       'wallpaper.test': 'Test Wallpaper Now',
+      'wallpaper.panelTitle': 'Auto Wallpaper',
+      'wallpaper.panelNote': 'Changes the desktop wallpaper at the configured interval. When both “Normal” and “Smart Character” are enabled, one mode is selected randomly each time.',
+      'wallpaper.enableNormal': 'Enable Normal Wallpaper',
+      'wallpaper.minResolutionShort': 'Minimum Resolution',
+      'wallpaper.ratioDeviationShort': 'Aspect Ratio Deviation',
+      'wallpaper.characterSection': '🎭 Smart Character (Submodule)',
+      'wallpaper.enableCharacter': 'Enable Character Wallpaper',
+      'wallpaper.characterFolder': 'Character Folder',
+      'wallpaper.chooseFolder': 'Choose',
+      'wallpaper.blendMode': 'Blend Mode',
+      'wallpaper.blend.diffuse': 'Diffuse Glow',
+      'wallpaper.blend.directional': 'Directional Gradient',
+      'wallpaper.blend.mask': 'UI Mask',
+      'wallpaper.layerMode': 'Desktop Layer',
+      'wallpaper.layer.system': 'System Wallpaper',
+      'wallpaper.layer.behindIcons': 'Behind Desktop Icons',
+      'wallpaper.layer.foreground': 'Desktop Foreground',
+      'wallpaper.layer.topBehindIcons': 'Top Layer (Behind Icons)',
+      'wallpaper.layer.topBottom': 'Top Layer (Bottom)',
+      'wallpaper.layer.topFront': 'Top Layer (Front)',
+      'wallpaper.focusRestore': 'Restore on Focus Loss',
+      'wallpaper.focusNote': 'When focus moves to another window, the original wallpaper is restored. When the desktop regains focus, the last applied wallpaper is restored; rotation waits for the next scheduled interval. Applies to both normal and character wallpapers.',
+      'wallpaper.testNormal': 'Test Normal Wallpaper',
+      'wallpaper.refreshCharacter': 'Refresh Character Wallpaper',
       'desktopCharacter.title': 'Smart Character Desktop Background',
       'desktopCharacter.enabled': 'Show character background only on the desktop',
       'desktopCharacter.note': 'Only reads transparent PNG files from the dedicated folder and its subfolders. The character background appears only while the desktop has focus, then hides and restores the system wallpaper when another app is focused.',
@@ -1190,8 +1551,182 @@
       'visual.flashEnable': 'Enable Subliminal Flashing',
       'visual.flashInterval': 'Flash Interval',
       'visual.flashJitter': 'Random Jitter (+/-)',
+      'visual.flashWarning': '⚠️ Epilepsy warning: this feature flashes images fullscreen at unpredictable intervals. Do not enable it if you have photosensitive epilepsy!',
       'hardcore.enable_text': 'I surrender completely to the hardcore mode.',
-      'hardcore.disable_text': 'I beg for mercy and request a temporary release.'
+      'hardcore.disable_text': 'I beg for mercy and request a temporary release.',
+      'legacy.popupEffects': 'Popup Effects',
+      'legacy.popupLifetime': 'Auto-dismiss Time',
+      'legacy.popupLifetimeJitter': 'Dismiss Time Jitter',
+      'legacy.popupLifetimeNote': 'At 0:0:0, popups stay open; above 0, image and AI text popups fade out and close.',
+      'legacy.popupOpacity': 'Popup Opacity (%)',
+      'legacy.recursive': 'Scan Subfolders Recursively',
+      'legacy.gradual': 'Gradually Increase Windows',
+      'legacy.alwaysOnTop': 'Always on Top',
+      'legacy.fullscreen': 'Fullscreen Overlay',
+      'legacy.muted': 'Mute Videos',
+      'legacy.videoNormalize': 'Normalize Video Volume',
+      'legacy.videoTarget': 'Target Volume (0.1-1.0)',
+      'legacy.closeVideo': 'Close When Video Finishes',
+      'legacy.chaosVideo': 'Chaos Video',
+      'legacy.clickToClose': 'Close on Click',
+      'legacy.randomClose': 'Random Close Button Position',
+      'legacy.disableClose': 'Disable Manual Close',
+      'legacy.developer': 'Developer Mode',
+      'legacy.windowSize': 'Window Size',
+      'legacy.windowSizeNote': 'Set popup sizes separately for images and videos, or use one shared size.',
+      'legacy.splitSize': 'Separate Image/Video Sizes',
+      'legacy.sharedWidth': 'Shared Width',
+      'legacy.sharedHeight': 'Shared Height',
+      'legacy.sizeJitter': 'Size Jitter',
+      'legacy.imagePopup': 'Image Popup',
+      'legacy.videoPopup': 'Video Popup',
+      'legacy.imageWidth': 'Image Width',
+      'legacy.imageHeight': 'Image Height',
+      'legacy.videoWidth': 'Video Width',
+      'legacy.videoHeight': 'Video Height',
+      'legacy.closeStyle': 'Close Button Style',
+      'legacy.textSize': 'Text Size',
+      'legacy.radius': 'Radius',
+      'legacy.paddingX': 'Horizontal Padding',
+      'legacy.paddingY': 'Vertical Padding',
+      'legacy.offsetX': 'X Offset',
+      'legacy.offsetY': 'Y Offset',
+      'legacy.cardEditor': 'Role Card and Prompts',
+      'legacy.editCard': 'Edit Role Card',
+      'legacy.new': 'New',
+      'legacy.clone': 'Clone',
+      'legacy.delete': 'Delete',
+      'legacy.roleName': 'Role Name',
+      'legacy.avatarPath': 'Avatar Path',
+      'legacy.browse': 'Browse',
+      'legacy.systemPrompt': 'System Prompt',
+      'legacy.knowledgeBase': 'Knowledge Base',
+      'legacy.contextMemory': 'Context Memory',
+      'legacy.oneTimeGuidance': 'One-time Reply Guidance',
+      'legacy.userName': 'User Name',
+      'legacy.companionName': 'Companion Name',
+      'legacy.popupCardUse': 'Text Popup Card',
+      'legacy.interactionCardUse': 'Interaction Card',
+      'legacy.pollutionCardUse': 'Input Intervention Card',
+      'legacy.companionRole': 'Companion Role',
+      'legacy.appearanceDesc': 'Appearance Description',
+      'legacy.dailyPersona': 'Daily Persona',
+      'legacy.sceneLibrary': 'Scene Library',
+      'legacy.aiBasic': 'Basic Configuration',
+      'legacy.aiBasicNote': 'Configure the AI model and basic behavior.',
+      'legacy.aiProvider': 'AI Provider',
+      'legacy.model': 'Model',
+      'legacy.testAiPopup': 'Test AI Popup',
+      'legacy.testInteraction': 'Test Interaction',
+      'legacy.livePreview': 'Live Preview',
+      'legacy.calendar': 'Activity Calendar',
+      'legacy.localFolders': 'Local Folders',
+      'legacy.manageLocal': 'Manage local image and video folders.',
+      'legacy.loading': 'Loading...',
+      'legacy.testOnline': 'Test One Online Media Popup',
+      'legacy.searchLinks': 'Search links...',
+      'legacy.noMatches': 'No matching entries',
+      'legacy.processNote': 'Automatically start or pause scheduling based on running processes. One process per line.',
+      'legacy.blacklist': 'Blacklist',
+      'legacy.whitelist': 'Whitelist',
+      'legacy.chooseRunning': 'Choose Running Process',
+      'legacy.peerUnavailable': 'Not connected',
+      'legacy.receivingRecords': 'No received records',
+      'folders.sourceCount': '{count} <em> sources</em>',
+      'peer.testFailed': 'Test failed: {detail}',
+      'peer.udpOk': 'Local UDP inbound/outbound: normal',
+      'peer.udpFailed': 'Local UDP inbound/outbound: abnormal (possibly blocked by firewall)',
+      'peer.dhtOk': 'Public DHT discovery: normal ({count} nodes connected)',
+      'peer.dhtWeak': 'Public DHT discovery: weak ({count} nodes; cross-network discovery may be slow)',
+      'processRules.status.enabled': 'Process rules enabled',
+      'processRules.status.blacklistShort': 'Blacklist: {names}',
+      'processRules.status.whitelistShort': 'Whitelist: {names}',
+      'peer.roomStatus': 'Joined room "{room}" · Local ID {id} · {count} peers connected',
+      'peer.notConnected': 'Not connected',
+      'peer.sendTargets': 'Send to (select recipients; all by default):',
+      'peer.remote': 'Peer {id}',
+      'peer.waiting': 'Waiting for peers to join...',
+      'peer.noRecords': 'No received records',
+      'peer.saving': 'Saving...',
+      'peer.testing': 'Testing...',
+      'peer.enterRoomCode': 'Enter or generate a room code',
+      'peer.joinFailed': 'Failed to join room',
+      'peer.joinedLobby': 'Joined public lobby',
+      'peer.joinedRoom': 'Joined room {room}',
+      'peer.selectTarget': 'Select at least one recipient',
+      'peer.connectFirst': 'Join a room and wait for a peer connection first',
+      'peer.sentTo': 'Sent to {id}',
+      'peer.sendFailed': 'Send failed: {detail}',
+      'website.noMatches': 'No matching entries',
+      'calendar.month': '{year}/{month}'
+      ,'dashboard.dragTile': 'Drag to reorder'
+      ,'dashboard.dragSection': 'Drag section to reorder'
+      ,'dashboard.modules': 'modules'
+      ,'dashboard.meta.popup.engine': 'Popup Engine'
+      ,'dashboard.meta.wallpaper': 'Wallpaper'
+      ,'dashboard.meta.gen.text': 'Text Generation'
+      ,'dashboard.meta.ghost.gallery': 'Ghost Gallery'
+      ,'dashboard.meta.xray.reveal': 'X-Ray Reveal'
+      ,'dashboard.meta.media.waterfall': 'Media Waterfall'
+      ,'dashboard.meta.subliminal.flash': 'Subliminal Flash'
+      ,'dashboard.meta.input.control': 'Input Control'
+      ,'dashboard.meta.process.gate': 'Process Gate'
+      ,'dashboard.meta.p2p.share': 'P2P Share'
+      ,'dashboard.meta.restricted.ui': 'Restricted UI'
+      ,'dashboard.meta.auto.launch': 'Auto Launch'
+      ,'dashboard.meta.silent.boot': 'Silent Boot'
+      ,'legacy.enableAiSchedule': 'Include AI in popup scheduling'
+      ,'legacy.singlePopup': 'Single Popup Mode'
+      ,'legacy.immediateReply': 'Immediate Reply'
+      ,'legacy.popupAppearanceWindow': 'Popup Appearance · Window'
+      ,'legacy.popupAppearanceCard': 'Popup Appearance · Card'
+      ,'legacy.popupAppearanceShadow': 'Popup Appearance · Shadow'
+      ,'legacy.popupAppearanceClose': 'Popup Appearance · Close Button'
+      ,'legacy.interaction': 'State Interaction'
+      ,'legacy.interactionNote': 'Generate proactive interaction content on a schedule using the configured context.'
+      ,'legacy.enableInteraction': 'Enable Proactive Interaction'
+      ,'legacy.tone': 'Tone'
+      ,'legacy.includeForeground': 'Include Foreground App'
+      ,'legacy.ghostNote': 'Keep a translucent image overlay on screen and switch it at the configured interval.'
+      ,'legacy.enableGhost': 'Enable Ghost Gallery'
+      ,'legacy.opacity': 'Opacity (%)'
+      ,'legacy.switchInterval': 'Switch Interval'
+      ,'legacy.xrayNote': 'Show the complete image in a circle around the mouse and mask the rest.'
+      ,'legacy.enableXray': 'Enable X-Ray'
+      ,'legacy.radiusPx': 'Radius (px)'
+      ,'legacy.maskOpacity': 'Mask Opacity (%)'
+      ,'legacy.waterfallNote': 'Images continuously fall from the top of the screen; adjust speed, count, size, and opacity.'
+      ,'legacy.enableWaterfall': 'Enable Waterfall'
+      ,'legacy.speed': 'Speed'
+      ,'legacy.count': 'Count'
+      ,'legacy.sizePx': 'Size (px)'
+      ,'legacy.flashWarning': '⚠️ Epilepsy warning: this feature flashes images fullscreen at unpredictable intervals. Do not enable it if you have photosensitive epilepsy!'
+      ,'legacy.enableFlash': 'Enable Flashing'
+      ,'legacy.triggerInterval': 'Trigger Interval'
+      ,'legacy.randomJitter': 'Random Jitter'
+      ,'legacy.pollutionNote': 'Clipboard pollution + input injection. Each capability can be toggled separately.'
+      ,'legacy.phraseMode': 'Phrase Mode'
+      ,'legacy.corpusMode': 'Corpus Mode'
+      ,'legacy.aiMode': 'AI Mode'
+      ,'legacy.phrasePool': 'Phrase Pool (comma separated)'
+      ,'legacy.corpusPath': 'Corpus Path'
+      ,'legacy.corpusMin': 'Minimum Corpus Length'
+      ,'legacy.clipboardChance': 'Clipboard Chance (%)'
+      ,'legacy.inputMin': 'Minimum Input Interval (minutes)'
+      ,'legacy.inputMax': 'Maximum Input Interval (minutes)'
+      ,'legacy.localFolderNote': 'Manage local image and video folders.'
+      ,'legacy.websiteSchedule': 'Include websites in popup scheduling'
+      ,'legacy.bulkLinks': 'Bulk Edit Links'
+      ,'legacy.websiteNote': 'One per line: name | URL. ! disables, # comments.'
+      ,'legacy.testWebsite': 'Test Website Popup'
+      ,'legacy.saveWebsite': 'Save Website Library'
+      ,'legacy.processRules': 'Process Rules'
+      ,'legacy.enableProcessRules': 'Enable Process Rules'
+      ,'legacy.autoStartWhitelist': 'Auto-start when whitelist matches'
+      ,'legacy.autoStopBlacklist': 'Auto-stop when blacklist matches'
+      ,'legacy.autoStopWhitelistExit': 'Auto-stop when leaving whitelist'
+      ,'legacy.checkInterval': 'Check Interval (seconds)'
+      ,'legacy.noConnection': 'Not connected'
     }
   };
 

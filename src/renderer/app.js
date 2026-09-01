@@ -39,21 +39,21 @@
   // { id, name, meta, icon, hint, configKey, tone, count, section, idx }
   let CARD_DEFS = [
     // 核心功能 (section: "core")
-    { id: "popup", name: "媒体弹窗", meta: "popup.engine", icon: "bell", hint: "全局总开关。关闭后停止创建新弹窗，并关闭当前所有媒体窗口。", configKey: "popupsEnabled", tone: "", section: "core" },
-    { id: "wallpaper", name: "自动换壁纸", meta: "wallpaper", icon: "image", hint: "按设定间隔自动更换桌面壁纸，支持普通图片与智能角色随机切换。", configKey: "wallpaperEnabled", tone: "", section: "core" },
-    { id: "ai-popup", name: "AI 文本弹窗", meta: "gen.text", icon: "chat", hint: "生成短文本并以独立窗口展示，含主动互动子模块。", configKey: "aiPopupScheduleEnabled", tone: "", section: "core" },
-    { id: "ghost", name: "幽灵底片", meta: "ghost.gallery", icon: "ghost", hint: "半透明图片持续覆盖屏幕，按设定间隔自动切换新图片。可调透明度和切换频率。", configKey: "visualGhostEnabled", tone: "", section: "core" },
-    { id: "xray", name: "X 光模式", meta: "xray.reveal", icon: "xray", hint: "鼠标周围圆形区域显示完整图片，其余部分被遮罩。可调半径和遮罩透明度。", configKey: "visualXrayEnabled", tone: "", section: "core" },
-    { id: "waterfall", name: "媒体瀑布", meta: "media.waterfall", icon: "fall", hint: "图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。", configKey: "visualWaterfallEnabled", tone: "", section: "core" },
-    { id: "flash", name: "潜意识闪烁", meta: "subliminal.flash", icon: "flash", hint: "按随机间隔在屏幕上短暂闪烁图片。⚠ 光敏性癫痫患者请勿开启。", configKey: "visualFlashEnabled", tone: "danger", section: "core" },
-    { id: "pollution", name: "输入干预", meta: "input.control", icon: "keyboard", hint: "剪贴板污染 + 输入框注入。所有细分能力可在详情中单独开关。", configKey: "pollutionEnabled", tone: "", section: "core" },
+    { id: "popup", i18nKey: "popup", hintKey: "popupHint", name: "媒体弹窗", meta: "popup.engine", icon: "bell", hint: "全局总开关。关闭后停止创建新弹窗，并关闭当前所有媒体窗口。", configKey: "popupsEnabled", tone: "", section: "core" },
+    { id: "wallpaper", i18nKey: "wallpaper", hintKey: "wallpaperHint", name: "自动换壁纸", meta: "wallpaper", icon: "image", hint: "按设定间隔自动更换桌面壁纸，支持普通图片与智能角色随机切换。", configKey: "wallpaperEnabled", tone: "", section: "core" },
+    { id: "ai-popup", i18nKey: "aiPopup", hintKey: "aiPopupHint", name: "AI 文本弹窗", meta: "gen.text", icon: "chat", hint: "生成短文本并以独立窗口展示，含主动互动子模块。", configKey: "aiPopupScheduleEnabled", tone: "", section: "core" },
+    { id: "ghost", i18nKey: "ghost", hintKey: "ghostHint", name: "幽灵底片", meta: "ghost.gallery", icon: "ghost", hint: "半透明图片持续覆盖屏幕，按设定间隔自动切换新图片。可调透明度和切换频率。", configKey: "visualGhostEnabled", tone: "", section: "core" },
+    { id: "xray", i18nKey: "xray", hintKey: "xrayHint", name: "X 光模式", meta: "xray.reveal", icon: "xray", hint: "鼠标周围圆形区域显示完整图片，其余部分被遮罩。可调半径和遮罩透明度。", configKey: "visualXrayEnabled", tone: "", section: "core" },
+    { id: "waterfall", i18nKey: "waterfall", hintKey: "waterfallHint", name: "媒体瀑布", meta: "media.waterfall", icon: "fall", hint: "图片从屏幕顶部持续下落，可调速度、数量、大小和透明度。", configKey: "visualWaterfallEnabled", tone: "", section: "core" },
+    { id: "flash", i18nKey: "flash", hintKey: "flashHint", name: "潜意识闪烁", meta: "subliminal.flash", icon: "flash", hint: "按随机间隔在屏幕上短暂闪烁图片。⚠ 光敏性癫痫患者请勿开启。", configKey: "visualFlashEnabled", tone: "danger", section: "core" },
+    { id: "pollution", i18nKey: "pollution", hintKey: "pollutionHint", name: "输入干预", meta: "input.control", icon: "keyboard", hint: "剪贴板污染 + 输入框注入。所有细分能力可在详情中单独开关。", configKey: "pollutionEnabled", tone: "", section: "core" },
 
     // 智能与系统 (section: "system")
-    { id: "process-rules", name: "进程规则", meta: "process.gate", icon: "shield", hint: "根据运行中软件的允许/排除名单，自动启停弹窗调度。", configKey: "processRulesEnabled", tone: "", section: "system" },
-    { id: "peer-share", name: "联机共享", meta: "p2p.share", icon: "globe", hint: "创建/加入房间，与好友直接互传图片和视频，接收内容只在内存中预览，不落盘。", configKey: "peerShareEnabled", tone: "", section: "system" },
-    { id: "hardcore", name: "强控模式", meta: "restricted.ui", icon: "lock", hint: "隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。", configKey: "hardcoreMode", tone: "danger", section: "system" },
-    { id: "autostart", name: "开机自启", meta: "auto.launch", icon: "monitor", hint: "Windows 登录后自动运行应用，可在系统设置中随时关闭。", configKey: "autoStartOnBoot", tone: "", section: "system" },
-    { id: "silent", name: "静默模式", meta: "silent.boot", icon: "hidden", hint: "启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。", configKey: "silentMode", tone: "", section: "system" },
+    { id: "process-rules", i18nKey: "processRules", hintKey: "processRulesHint", name: "进程规则", meta: "process.gate", icon: "shield", hint: "根据运行中软件的允许/排除名单，自动启停弹窗调度。", configKey: "processRulesEnabled", tone: "", section: "system" },
+    { id: "peer-share", i18nKey: "peerShare", hintKey: "peerShareHint", name: "联机共享", meta: "p2p.share", icon: "globe", hint: "创建/加入房间，与好友直接互传图片和视频，接收内容只在内存中预览，不落盘。", configKey: "peerShareEnabled", tone: "", section: "system" },
+    { id: "hardcore", i18nKey: "hardcore", hintKey: "hardcoreHint", name: "强控模式", meta: "restricted.ui", icon: "lock", hint: "隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。", configKey: "hardcoreMode", tone: "danger", section: "system" },
+    { id: "autostart", i18nKey: "autostart", hintKey: "autostartHint", name: "开机自启", meta: "auto.launch", icon: "monitor", hint: "Windows 登录后自动运行应用，可在系统设置中随时关闭。", configKey: "autoStartOnBoot", tone: "", section: "system" },
+    { id: "silent", i18nKey: "silent", hintKey: "silentHint", name: "静默模式", meta: "silent.boot", icon: "hidden", hint: "启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。", configKey: "silentMode", tone: "", section: "system" },
   ];
 
   let SECTIONS = [
@@ -75,15 +75,61 @@
   let processPickerItems = [];
   let renameTargetProfileId = "";
   let cardNum = 0;
+  let activeDetailCardId = "";
 
   const AUTO_SAVE_DELAY_MS = 300;
 
   // ── i18n ──
-  const { resolveLanguage, translate } = window.appI18n || {
+  const { resolveLanguage, translate, dictionaries } = window.appI18n || {
     resolveLanguage: (v, fb) => v || fb || "zh-CN",
     translate: (_l, k) => k
   };
   function t(key, params) { return translate(currentLocale, key, params); }
+
+  // Keep legacy detail renderers localized without changing their data/config behavior.
+  // The shared dictionary remains the source of truth; this only resolves exact
+  // legacy labels that predate the data-i18n attributes.
+  function localizeText(value) {
+    if (typeof value !== "string" || !dictionaries || !dictionaries["zh-CN"]) return value;
+    var keys = Object.keys(dictionaries["zh-CN"]);
+    for (var i = 0; i < keys.length; i++) {
+      if (dictionaries["zh-CN"][keys[i]] === value) return t(keys[i]);
+    }
+    return value;
+  }
+
+  function localizeHtml(value) {
+    if (typeof value !== "string" || !dictionaries || !dictionaries["zh-CN"]) return value;
+    var keys = Object.keys(dictionaries["zh-CN"]).filter(function (key) {
+      return key.indexOf("legacy.") === 0;
+    }).sort(function (a, b) {
+      return String(dictionaries["zh-CN"][b]).length - String(dictionaries["zh-CN"][a]).length;
+    });
+    for (var i = 0; i < keys.length; i++) {
+      var source = dictionaries["zh-CN"][keys[i]];
+      if (source && value.indexOf(source) !== -1) {
+        value = value.split(source).join(t(keys[i]));
+      }
+    }
+    return value;
+  }
+
+  function refreshI18nElements() {
+    var nodes = document.querySelectorAll("[data-i18n]");
+    for (var i = 0; i < nodes.length; i++) {
+      var params = {};
+      try { params = JSON.parse(nodes[i].getAttribute("data-i18n-params") || "{}"); } catch (e) {}
+      nodes[i].textContent = t(nodes[i].getAttribute("data-i18n"), params);
+    }
+    var titleNodes = document.querySelectorAll("[data-i18n-title]");
+    for (var j = 0; j < titleNodes.length; j++) {
+      titleNodes[j].title = t(titleNodes[j].getAttribute("data-i18n-title"));
+    }
+    var placeholderNodes = document.querySelectorAll("[data-i18n-placeholder]");
+    for (var k = 0; k < placeholderNodes.length; k++) {
+      placeholderNodes[k].placeholder = t(placeholderNodes[k].getAttribute("data-i18n-placeholder"));
+    }
+  }
 
   // ── IPC 桥接 ──
   function getMediaPopup() { return window.mediaPopup; }
@@ -103,7 +149,7 @@
     if (!mp || !mp.saveConfig) return { blocked: true };
     try {
       const result = await mp.saveConfig(currentConfig);
-      if (result && result.ok) log("配置已保存");
+      if (result && result.ok) log(t("status.configSaved"));
       return result || { ok: true };
     } catch (e) { console.error("saveConfig error", e); return { blocked: true }; }
   }
@@ -201,14 +247,14 @@
     if (!el || !lastPeerSelfTestResult) return;
     var r = lastPeerSelfTestResult;
     if (!r.ok) {
-      el.textContent = "测试失败: " + r.detail;
+      el.textContent = t("peer.testFailed", { detail: r.detail });
       return;
     }
     var parts = [];
-    parts.push(r.udpOk ? "本机UDP出入站：正常" : "本机UDP出入站：异常（可能被防火墙拦截）");
+    parts.push(r.udpOk ? t("peer.udpOk") : t("peer.udpFailed"));
     parts.push(r.dhtOk
-      ? ("公网DHT发现网络：正常（已连接 " + r.dhtNodeCount + " 个节点）")
-      : ("公网DHT发现网络：较弱（仅 " + r.dhtNodeCount + " 个节点，跨网络发现可能较慢，局域网内发现不受影响）"));
+      ? t("peer.dhtOk", { count: r.dhtNodeCount })
+      : t("peer.dhtWeak", { count: r.dhtNodeCount }));
     el.textContent = parts.join(" · ");
   }
   async function autoJoinPeerShareRoom() {
@@ -229,13 +275,15 @@
   function getFolderCountHtml() {
     const folders = (currentConfig && currentConfig.folders) ? currentConfig.folders : [];
     const count = Array.isArray(folders) ? folders.length : 0;
-    return count + ' <em>个来源</em>';
+    return t("folders.sourceCount", { count: count });
   }
 
   // ── 渲染卡片 ──
   function renderTile(card) {
     cardNum++;
     const on = getCardState(card);
+    var cardName = card.i18nKey ? t("dashboard.card." + card.i18nKey) : card.name;
+    var cardHint = card.hintKey ? t("dashboard.card." + card.hintKey) : card.hint;
     var cls = "tile";
     if (on) cls += " on";
     if (card.tone) cls += " " + card.tone;
@@ -244,17 +292,17 @@
     var bot = "";
     if (card.count) {
       bot = '<div class="folder-count">' + getFolderCountHtml() + '</div>' +
-        '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">管理 ' + arrowRight() + '</button></div>';
+        '<div class="tile-actions"><button class="link tile-btn-full" data-action="detail" data-id="' + card.id + '">' + t("dashboard.action.manage") + ' ' + arrowRight() + '</button></div>';
     } else {
-      bot = '<div class="tile-actions tile-actions-split"><button class="sw" aria-label="' + (on ? "关闭" : "开启") + card.name + '" data-action="toggle" data-id="' + card.id + '"></button><button class="link" data-action="detail" data-id="' + card.id + '">设置 ' + arrowRight() + '</button></div>';
+      bot = '<div class="tile-actions tile-actions-split"><button class="sw" aria-label="' + (on ? t("buttons.close") : t("buttons.openFolder")) + cardName + '" data-action="toggle" data-id="' + card.id + '"></button><button class="link" data-action="detail" data-id="' + card.id + '">' + t("dashboard.action.settings") + ' ' + arrowRight() + '</button></div>';
     }
 
     return '<article class="' + cls + '" data-card-id="' + card.id + '" data-section="' + card.section + '">' +
-      '<span class="tile-grip" title="拖动排序"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span>' +
-      '<div class="hint">' + card.hint + '</div>' +
+      '<span class="tile-grip" title="' + t("dashboard.dragTile") + '"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span>' +
+      '<div class="hint">' + cardHint + '</div>' +
       '<div class="tile-top"><span class="glyph">' + icon(card.icon) + '</span><span class="idx">' + String(cardNum).padStart(2, "0") + '</span></div>' +
-      '<h3>' + card.name + '</h3>' +
-      '<p class="meta">' + card.meta + '</p>' +
+      '<h3>' + cardName + '</h3>' +
+      '<p class="meta">' + t("dashboard.meta." + card.meta) + '</p>' +
       bot +
       '</article>';
   }
@@ -269,7 +317,7 @@
       var cards = CARD_DEFS.filter(function (c) { return c.section === sec.key; });
       if (!cards.length) continue;
       html += '<section class="sec' + (sec.cls ? " " + sec.cls : "") + '" data-section-key="' + sec.key + '">';
-      html += '<div class="sec-head"><span class="sec-grip" title="拖动排序分类"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span><h2>' + sec.name + '</h2><span class="sec-count">' + cards.length + ' modules</span></div>';
+      html +=             '<div class="sec-head"><span class="sec-grip" title="' + t("dashboard.dragSection") + '"><svg viewBox="0 0 12 14" width="10" height="12"><circle cx="3" cy="2" r="1.2" fill="currentColor"/><circle cx="9" cy="2" r="1.2" fill="currentColor"/><circle cx="3" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/></svg></span><h2>' + t("dashboard.section." + sec.key) + '</h2><span class="sec-count">' + cards.length + ' ' + t("dashboard.modules") + '</span></div>';
       html += '<div class="grid">';
       for (var i = 0; i < cards.length; i++) { html += renderTile(cards[i]); }
       html += '</div></section>';
@@ -740,6 +788,7 @@
   // ═════════════════════════════════════════════════
 
   function showDashboard() {
+    activeDetailCardId = "";
     document.getElementById("dashboard").style.display = "";
     document.getElementById("detail-view").style.display = "none";
     document.querySelector(".hero").style.display = "";
@@ -748,12 +797,15 @@
   }
 
   function showDetail(cardId) {
+    activeDetailCardId = cardId;
     document.getElementById("dashboard").style.display = "none";
     document.querySelector(".hero").style.display = "none";
     var dv = document.getElementById("detail-view");
     dv.style.display = "";
     var card = CARD_DEFS.find(function (c) { return c.id === cardId; });
-    document.getElementById("detailTitle").textContent = card ? card.name : cardId;
+    document.getElementById("detailTitle").textContent = card
+      ? (card.i18nKey ? t("dashboard.card." + card.i18nKey) : card.name)
+      : cardId;
     document.getElementById("detailContent").innerHTML = renderDetailContent(cardId);
     bindDetailEvents(cardId);
   }
@@ -813,7 +865,7 @@
   // ═════════════════════════════════════════════════
 
   function panel(title, body, cls) {
-    return '<section class="detail-panel' + (cls ? " " + cls : "") + '"><h3>' + title + '</h3>' + body + '</section>';
+    return '<section class="detail-panel' + (cls ? " " + cls : "") + '"><h3>' + localizeText(title) + '</h3>' + localizeHtml(body) + '</section>';
   }
 
   function escapeHtml(value) {
@@ -826,37 +878,37 @@
   }
 
   function switchRow(label, id, checked) {
-    return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '><i></i></label>';
+    return '<label class="switch-row"><span>' + localizeText(label) + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '><i></i></label>';
   }
 
   function clockField(label, idBase, vals) {
     var h = vals && vals[0] != null ? vals[0] : 0;
     var m = vals && vals[1] != null ? vals[1] : 0;
     var s = vals && vals[2] != null ? vals[2] : 0;
-    return '<div class="field"><span>' + label + '</span><div class="compact-digital-clock">' +
-      '<div class="clock-unit"><span class="clock-unit-label">时</span><input id="' + idBase + 'Hours" type="number" min="0" max="24" step="1" value="' + h + '"></div>' +
+    return '<div class="field"><span>' + localizeText(label) + '</span><div class="compact-digital-clock">' +
+      '<div class="clock-unit"><span class="clock-unit-label">' + t("schedule.time.hour") + '</span><input id="' + idBase + 'Hours" type="number" min="0" max="24" step="1" value="' + h + '"></div>' +
       '<span class="clock-colon">:</span>' +
-      '<div class="clock-unit"><span class="clock-unit-label">分</span><input id="' + idBase + 'Minutes" type="number" min="0" max="59" step="1" value="' + m + '"></div>' +
+      '<div class="clock-unit"><span class="clock-unit-label">' + t("schedule.time.minute") + '</span><input id="' + idBase + 'Minutes" type="number" min="0" max="59" step="1" value="' + m + '"></div>' +
       '<span class="clock-colon">:</span>' +
-      '<div class="clock-unit"><span class="clock-unit-label">秒</span><input id="' + idBase + 'Seconds" type="number" min="0" max="59" step="1" value="' + s + '"></div>' +
+      '<div class="clock-unit"><span class="clock-unit-label">' + t("schedule.time.second") + '</span><input id="' + idBase + 'Seconds" type="number" min="0" max="59" step="1" value="' + s + '"></div>' +
       '</div></div>';
   }
 
   function numField(label, id, val, min, max, step) {
-    return '<label class="field"><span>' + label + '</span><input id="' + id + '" type="number" min="' + (min || 0) + '" max="' + (max || 9999) + '" step="' + (step || 1) + '" value="' + (val != null ? val : "") + '"></label>';
+    return '<label class="field"><span>' + localizeText(label) + '</span><input id="' + id + '" type="number" min="' + (min || 0) + '" max="' + (max || 9999) + '" step="' + (step || 1) + '" value="' + (val != null ? val : "") + '"></label>';
   }
 
   function selectField(label, id, val, opts) {
-    var html = '<label class="field"><span>' + label + '</span><select id="' + id + '">';
+    var html = '<label class="field"><span>' + localizeText(label) + '</span><select id="' + id + '">';
     for (var i = 0; i < opts.length; i++) {
-      html += '<option value="' + opts[i][0] + '"' + (val === opts[i][0] ? " selected" : "") + '>' + opts[i][1] + '</option>';
+      html += '<option value="' + opts[i][0] + '"' + (val === opts[i][0] ? " selected" : "") + '>' + localizeText(opts[i][1]) + '</option>';
     }
     html += '</select></label>';
     return html;
   }
 
   function colorField(label, id, val) {
-    return '<label class="field"><span>' + label + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="1" style="width:52px;text-align:center" title="透明度"></div></label>';
+    return '<label class="field"><span>' + localizeText(label) + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="1" style="width:52px;text-align:center" title="' + t("ui.opacity") + '"></div></label>';
   }
 
   function clampOpacity(v, fb) { var n = Number(v); return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : (fb != null ? fb : 1); }
@@ -970,60 +1022,60 @@
     var selectedDisplayIds = Array.isArray(currentConfig && currentConfig.popupDisplayIds) ? currentConfig.popupDisplayIds.map(String) : [];
     var displayOptions = displays.length ? displays.map(function (display) {
       var displayId = String(display.id);
-      var label = "显示器 " + (Number(display.index) + 1) + (display.isPrimary ? "（主显示器）" : "");
+      var label = t("appearance.display.item", { index: Number(display.index) + 1 }) + (display.isPrimary ? " (" + t("appearance.display.primary") + ")" : "");
       return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="popupDisplay_' + escapeHtml(displayId) + '" data-display-id="' + escapeHtml(displayId) + '"' + (selectedDisplayIds.indexOf(displayId) !== -1 ? ' checked' : '') + '><i></i></label>';
-    }).join("") : '<p class="desc-text">暂未检测到显示器信息。</p>';
-    html += panel("显示器范围", '<p class="desc-text">勾选后，媒体弹窗和 AI 文本弹窗只会出现在选中的显示器。一个都不勾选时使用全部显示器。</p><div class="field-row cols-2">' + displayOptions + '</div>');
-    html += panel("调度参数",
-      '<p class="desc-text">控制弹窗的触发频率、数量限制和播放行为。</p>' +
+    }).join("") : '<p class="desc-text">' + t("appearance.display.empty") + '</p>';
+    html += panel(t("appearance.displayTitle"), '<p class="desc-text">' + t("appearance.displayNote") + '</p><div class="field-row cols-2">' + displayOptions + '</div>');
+    html += panel(t("nav.schedule"),
+      '<p class="desc-text">' + t("schedule.scrubNote") + '</p>' +
       '<div class="field-row cols-2">' +
-      clockField("弹出间隔", "interval", [cfg("intervalHours",0), cfg("intervalMinutes",0), cfg("intervalSeconds",0)]) +
-      clockField("随机波动", "jitter", [cfg("jitterHours",0), cfg("jitterMinutes",0), cfg("jitterSeconds",0)]) +
+      clockField(t("schedule.interval"), "interval", [cfg("intervalHours",0), cfg("intervalMinutes",0), cfg("intervalSeconds",0)]) +
+      clockField(t("schedule.jitter"), "jitter", [cfg("jitterHours",0), cfg("jitterMinutes",0), cfg("jitterSeconds",0)]) +
       '</div>' +
       '<div class="field-row cols-4">' +
-      numField("每次弹窗数量", "burstCount", cfg("burstCount", 1), 1, 20) +
-      numField("最小弹窗数", "minWindows", cfg("minWindows", 0), 0, 500) +
-      numField("最大窗口数", "maxWindows", cfg("maxWindows", 50), 1, 500) +
-      numField("最大视频数", "maxVideoWindows", cfg("maxVideoWindows", 5), -1, 500) +
+      numField(t("schedule.burstCount"), "burstCount", cfg("burstCount", 1), 1, 20) +
+      numField(t("schedule.minWindows"), "minWindows", cfg("minWindows", 0), 0, 500) +
+      numField(t("schedule.maxWindows"), "maxWindows", cfg("maxWindows", 50), 1, 500) +
+      numField(t("schedule.maxVideoWindows"), "maxVideoWindows", cfg("maxVideoWindows", 5), -1, 500) +
       '</div>' +
-      selectField("播放顺序", "order", cfg("order", "random"), [["random", "随机"], ["name", "按文件名"]]) +
-      switchRow("无限窗口", "unlimitedWindows", cfg("unlimitedWindows")) +
-      '<p class="warning-text" id="unlimitedWarning" style="display:none">无限窗口可能迅速耗尽内存或显卡资源，严重时会导致电脑卡死。</p>'
+      selectField(t("schedule.order"), "order", cfg("order", "random"), [["random", t("order.random")], ["name", t("order.name")]]) +
+      switchRow(t("schedule.unlimitedWindows"), "unlimitedWindows", cfg("unlimitedWindows")) +
+      '<p class="warning-text" id="unlimitedWarning" style="display:none">' + t("schedule.unlimitedWarning") + '</p>'
     );
 
-    html += panel("弹窗效果",
+    html += panel(t("legacy.popupEffects"),
       '<div class="field-row cols-2">' +
-      clockField("自然消失时间", "popupLifetime", [cfg("popupLifetimeHours",0), cfg("popupLifetimeMinutes",0), cfg("popupLifetimeSeconds",0)]) +
-      clockField("消失时间波动", "popupLifetimeJitter", [cfg("popupLifetimeJitterHours",0), cfg("popupLifetimeJitterMinutes",0), cfg("popupLifetimeJitterSeconds",0)]) +
+      clockField(t("legacy.popupLifetime"), "popupLifetime", [cfg("popupLifetimeHours",0), cfg("popupLifetimeMinutes",0), cfg("popupLifetimeSeconds",0)]) +
+      clockField(t("legacy.popupLifetimeJitter"), "popupLifetimeJitter", [cfg("popupLifetimeJitterHours",0), cfg("popupLifetimeJitterMinutes",0), cfg("popupLifetimeJitterSeconds",0)]) +
       '</div>' +
-      '<p class="desc-text">设为 0:0:0 时不会自动消失；大于 0 时，图片和 AI 文本弹窗会缓慢淡出并关闭。</p>' +
-      numField("弹窗透明度 (%)", "popupOpacity", cfg("popupOpacity", 100), 10, 100) +
+      '<p class="desc-text">' + t("legacy.popupLifetimeNote") + '</p>' +
+      numField(t("legacy.popupOpacity"), "popupOpacity", cfg("popupOpacity", 100), 10, 100) +
       '<div class="field-row cols-2">' +
-      switchRow("递归扫描子文件夹", "recursive", cfg("recursive")) +
-      switchRow("窗口逐渐增多", "gradual", cfg("gradual")) +
-      switchRow("置顶显示", "alwaysOnTop", cfg("alwaysOnTop")) +
-      switchRow("全屏覆盖", "fullscreen", cfg("fullscreen")) +
-      switchRow("视频静音", "muted", cfg("muted")) +
-      switchRow("统一视频音量", "videoVolumeNormalizationEnabled", cfg("videoVolumeNormalizationEnabled")) +
+      switchRow(t("legacy.recursive"), "recursive", cfg("recursive")) +
+      switchRow(t("legacy.gradual"), "gradual", cfg("gradual")) +
+      switchRow(t("legacy.alwaysOnTop"), "alwaysOnTop", cfg("alwaysOnTop")) +
+      switchRow(t("legacy.fullscreen"), "fullscreen", cfg("fullscreen")) +
+      switchRow(t("legacy.muted"), "muted", cfg("muted")) +
+      switchRow(t("legacy.videoNormalize"), "videoVolumeNormalizationEnabled", cfg("videoVolumeNormalizationEnabled")) +
       '<div id="videoVolumeNormalizationPanel"' + (cfg("videoVolumeNormalizationEnabled") ? '' : ' hidden') + '>' +
-      numField("目标音量 (0.1-1.0)", "videoVolumeNormalizationTarget", cfg("videoVolumeNormalizationTarget", 0.7), 0.1, 1, 0.01) +
+      numField(t("legacy.videoTarget"), "videoVolumeNormalizationTarget", cfg("videoVolumeNormalizationTarget", 0.7), 0.1, 1, 0.01) +
       '</div>' +
-      switchRow("视频完成关闭", "closeVideoOnEnded", cfg("closeVideoOnEnded")) +
-      switchRow("混乱视频", "chaosVideo", cfg("chaosVideo")) +
-      switchRow("点击关闭", "clickToClose", cfg("clickToClose")) +
-      switchRow("关闭按钮随机位", "randomCloseButton", cfg("randomCloseButton")) +
-      switchRow("禁止手动关闭", "disableManualClose", cfg("disableManualClose")) +
-      switchRow("开发者模式", "developerMode", cfg("developerMode")) +
+      switchRow(t("legacy.closeVideo"), "closeVideoOnEnded", cfg("closeVideoOnEnded")) +
+      switchRow(t("legacy.chaosVideo"), "chaosVideo", cfg("chaosVideo")) +
+      switchRow(t("legacy.clickToClose"), "clickToClose", cfg("clickToClose")) +
+      switchRow(t("legacy.randomClose"), "randomCloseButton", cfg("randomCloseButton")) +
+      switchRow(t("legacy.disableClose"), "disableManualClose", cfg("disableManualClose")) +
+      switchRow(t("legacy.developer"), "developerMode", cfg("developerMode")) +
       '</div>'
     );
 
-    html += panel("窗口尺寸", '<p class="desc-text">为图片和视频分别设置弹窗大小，或使用统一尺寸。</p>' +
-      switchRow("分离图片/视频尺寸", "separateMediaSizeSettings", cfg("separateMediaSizeSettings")) +
+    html += panel(t("legacy.windowSize"), '<p class="desc-text">' + t("legacy.windowSizeNote") + '</p>' +
+      switchRow(t("legacy.splitSize"), "separateMediaSizeSettings", cfg("separateMediaSizeSettings")) +
       // Shared panel
       '<div id="sharedSizePanel"><div class="field-row cols-4">' +
-      numField("统一宽度", "sharedBaseWidth", cfg("imageBaseWidth", 400), 100, 2000) +
-      numField("统一高度", "sharedBaseHeight", cfg("imageBaseHeight", 300), 100, 2000) +
-      numField("尺寸波动", "sharedSizeJitter", cfg("imageSizeJitter", 0), 0, 1000) +
+      numField(t("legacy.sharedWidth"), "sharedBaseWidth", cfg("imageBaseWidth", 400), 100, 2000) +
+      numField(t("legacy.sharedHeight"), "sharedBaseHeight", cfg("imageBaseHeight", 300), 100, 2000) +
+      numField(t("legacy.sizeJitter"), "sharedSizeJitter", cfg("imageSizeJitter", 0), 0, 1000) +
       '</div></div>' +
       // Separate panels
       '<div id="separateSizePanels" hidden><h4 style="font-size:11px;color:var(--text);margin:8px 0 4px">图片弹窗</h4><div class="field-row cols-4">' +
@@ -1037,7 +1089,7 @@
       '</div></div>'
     );
 
-    html += panel("关闭按钮样式",
+    html += panel(t("legacy.closeStyle"),
       '<div class="field-row cols-3">' +
       numField("文字大小", "closeButtonFontSize", cfg("closeButtonFontSize", 13), 8, 48) +
       numField("圆角", "closeButtonBorderRadius", cfg("closeButtonBorderRadius", 6), 0, 32) +
@@ -1053,31 +1105,31 @@
 
   // === 壁纸（含智能角色子模块） ===
   function renderWallpaperDetail() {
-    return panel("自动换壁纸", '<p class="desc-text">按设定间隔自动更换桌面壁纸。同时开启"普通"和"智能角色"时，每次随机选择一种模式。</p>' +
-      switchRow("开启普通壁纸", "wallpaperEnabled", cfg("wallpaper.enabled")) +
+    return panel(t("wallpaper.panelTitle"), '<p class="desc-text">' + t("wallpaper.panelNote") + '</p>' +
+      switchRow(t("wallpaper.enableNormal"), "wallpaperEnabled", cfg("wallpaper.enabled")) +
       '<div class="field-row cols-3">' +
-      numField("更换间隔(分钟)", "wallpaperIntervalMinutes", cfg("wallpaper.intervalMinutes", 60), 1, 10080) +
-      numField("最低分辨率", "wallpaperMinResolution", cfg("wallpaper.minResolution", 0), 0, 8000) +
-      numField("宽高比偏差", "wallpaperMaxRatioDeviation", cfg("wallpaper.maxRatioDeviation", 0.2), 0, 1, 0.01) +
+      numField(t("wallpaper.intervalMinutes"), "wallpaperIntervalMinutes", cfg("wallpaper.intervalMinutes", 60), 1, 10080) +
+      numField(t("wallpaper.minResolutionShort"), "wallpaperMinResolution", cfg("wallpaper.minResolution", 0), 0, 8000) +
+      numField(t("wallpaper.ratioDeviationShort"), "wallpaperMaxRatioDeviation", cfg("wallpaper.maxRatioDeviation", 0.2), 0, 1, 0.01) +
       '</div>' +
       '<hr style="border-color:#2a2e36;margin:12px 0">' +
-      '<h3 style="margin:0 0 8px;color:#8892a4">🎭 智能角色（子模块）</h3>' +
-      switchRow("开启角色壁纸", "desktopCharacterEnabled", cfg("wallpaper.characterEnabled")) +
-      '<label class="field"><span>角色文件夹</span><div style="display:flex;gap:6px"><input id="desktopCharacterFolderPath" readonly value="' + (cfg("wallpaper.characterFolderPath") || "") + '"><button id="chooseDesktopCharacterFolderButton" class="btn">选择</button></div></label>' +
+      '<h3 style="margin:0 0 8px;color:#8892a4">' + t("wallpaper.characterSection") + '</h3>' +
+      switchRow(t("wallpaper.enableCharacter"), "desktopCharacterEnabled", cfg("wallpaper.characterEnabled")) +
+      '<label class="field"><span>' + t("wallpaper.characterFolder") + '</span><div style="display:flex;gap:6px"><input id="desktopCharacterFolderPath" readonly value="' + (cfg("wallpaper.characterFolderPath") || "") + '"><button id="chooseDesktopCharacterFolderButton" class="btn">' + t("wallpaper.chooseFolder") + '</button></div></label>' +
       '<div class="field-row cols-3">' +
-      selectField("融合模式", "desktopCharacterMode", cfg("wallpaper.characterMode", "diffuse"), [["diffuse", "弥散光"], ["directional", "定向渐变"], ["mask", "UI 掩膜"]]) +
-      selectField("桌面层级", "desktopCharacterLayerMode", cfg("wallpaper.characterLayerMode", "system-wallpaper"), [
-        ["system-wallpaper", "系统壁纸"],
-        ["progman-behind-icons", "桌面背后"],
-        ["progman-front", "桌面前景"],
-        ["top-level-behind-icons", "顶层(图标后)"],
-        ["top-level-bottom", "顶层(底部)"],
-        ["top-level-front", "顶层(前)"]
+      selectField(t("wallpaper.blendMode"), "desktopCharacterMode", cfg("wallpaper.characterMode", "diffuse"), [["diffuse", t("wallpaper.blend.diffuse")], ["directional", t("wallpaper.blend.directional")], ["mask", t("wallpaper.blend.mask")]]) +
+      selectField(t("wallpaper.layerMode"), "desktopCharacterLayerMode", cfg("wallpaper.characterLayerMode", "system-wallpaper"), [
+        ["system-wallpaper", t("wallpaper.layer.system")],
+        ["progman-behind-icons", t("wallpaper.layer.behindIcons")],
+        ["progman-front", t("wallpaper.layer.foreground")],
+        ["top-level-behind-icons", t("wallpaper.layer.topBehindIcons")],
+        ["top-level-bottom", t("wallpaper.layer.topBottom")],
+        ["top-level-front", t("wallpaper.layer.topFront")]
       ]) +
-      switchRow("失焦自动换回", "wallpaperFocusRestoreEnabled", cfg("wallpaper.focusRestoreEnabled")) +
+      switchRow(t("wallpaper.focusRestore"), "wallpaperFocusRestoreEnabled", cfg("wallpaper.focusRestoreEnabled")) +
       '</div>' +
-      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：切换到其他窗口时恢复原壁纸，返回桌面时重新应用上次壁纸；下一次定时到点后再轮换。普通壁纸与角色壁纸均适用。</p>' +
-      '<div class="actions-row"><button id="testWallpaperButton" class="btn">测试普通壁纸</button><button id="refreshDesktopCharacterButton" class="btn">刷新角色壁纸</button></div>'
+      '<p class="desc-text" style="margin-top:4px;color:#6b7385">' + t("wallpaper.focusNote") + '</p>' +
+      '<div class="actions-row"><button id="testWallpaperButton" class="btn">' + t("wallpaper.testNormal") + '</button><button id="refreshDesktopCharacterButton" class="btn">' + t("wallpaper.refreshCharacter") + '</button></div>'
     );
   }
   
@@ -1209,18 +1261,18 @@
     var pa = ai.popupAppearance || {};
     var nn = function(v, fb) { var n = Number(v); return Number.isFinite(n) ? n : fb; };
     return (
-      panel("基础配置", '<p class="desc-text">配置 AI 模型和基本行为。</p>' +
-        switchRow("让 AI 参与弹窗调度", "aiPopupScheduleEnabled", cfg("ai.popupScheduleEnabled")) +
-        switchRow("单弹窗模式", "aiSinglePopupMode", cfg("ai.singlePopupMode", true)) +
-        switchRow("即时回复", "aiImmediateReplyEnabled", cfg("ai.immediateReplyEnabled", true)) +
+      panel(t("legacy.aiBasic"), '<p class="desc-text">' + t("legacy.aiBasicNote") + '</p>' +
+        switchRow(t("legacy.enableAiSchedule"), "aiPopupScheduleEnabled", cfg("ai.popupScheduleEnabled")) +
+        switchRow(t("legacy.singlePopup"), "aiSinglePopupMode", cfg("ai.singlePopupMode", true)) +
+        switchRow(t("legacy.immediateReply"), "aiImmediateReplyEnabled", cfg("ai.immediateReplyEnabled", true)) +
         '<div class="field-row cols-2">' +
-        '<label class="field"><span>AI 提供商</span><select id="aiProvider"><option value="deepseek"' + (ai.provider === "deepseek" ? " selected" : "") + '>DeepSeek</option></select></label>' +
-        '<label class="field"><span>模型</span><input id="aiModel" value="' + (ai.model || "deepseek-chat") + '"></label>' +
+        '<label class="field"><span>' + t("legacy.aiProvider") + '</span><select id="aiProvider"><option value="deepseek"' + (ai.provider === "deepseek" ? " selected" : "") + '>DeepSeek</option></select></label>' +
+        '<label class="field"><span>' + t("legacy.model") + '</span><input id="aiModel" value="' + (ai.model || "deepseek-chat") + '"></label>' +
         '</div>' +
         '<label class="field"><span>API Key</span><input id="aiApiKey" type="password" value="' + (ai.apiKey || "") + '"></label>' +
-        '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">测试 AI 弹窗</button><button id="aiTestInteractionButton" class="btn">测试主动互动</button></div>'
+        '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">' + t("legacy.testAiPopup") + '</button><button id="aiTestInteractionButton" class="btn">' + t("legacy.testInteraction") + '</button></div>'
       ) + renderAiCardEditor() +
-      panel("弹窗外观 · 窗口", '<div class="field-row cols-3">' +
+      panel(t("legacy.popupAppearanceWindow"), '<div class="field-row cols-3">' +
         numField("窗口宽度", "aiPopupWidth", nn(pa.popupWidth, 420), 200, 2000) +
         numField("窗口高度", "aiPopupHeight", nn(pa.popupHeight, 320), 150, 2000) +
         numField("预览缩放", "aiPopupPreviewScale", 1, 0.2, 2, 0.1) +
@@ -1231,7 +1283,7 @@
         colorField("文字色", "aiPopupTextColor", pa.textColor || "#f4f7fb") +
         '</div>'
       ) +
-      panel("弹窗外观 · 卡片", '<div class="field-row cols-3">' +
+      panel(t("legacy.popupAppearanceCard"), '<div class="field-row cols-3">' +
         colorField("卡背景", "aiPopupCardBackgroundColor", pa.cardBackgroundColor || "#050505") +
         colorField("卡边框", "aiPopupCardBorderColor", pa.cardBorderColor || "#1f2b33") +
         numField("边框宽", "aiPopupCardBorderWidth", nn(pa.cardBorderWidth, 0), 0, 20) +
@@ -1240,7 +1292,7 @@
         numField("内边Y", "aiPopupCardPaddingY", nn(pa.cardPaddingY, 0), 0, 80) +
         '</div>'
       ) +
-      panel("弹窗外观 · 阴影", '<div class="field-row cols-3">' +
+      panel(t("legacy.popupAppearanceShadow"), '<div class="field-row cols-3">' +
         colorField("投影色", "aiPopupCardShadowColor", pa.cardShadowColor || "#000000") +
         numField("投影模糊", "aiPopupCardShadowBlur", nn(pa.cardShadowBlur, 24), 0, 100) +
         numField("投影扩展", "aiPopupCardShadowSpread", nn(pa.cardShadowSpread, 0), 0, 50) +
@@ -1253,7 +1305,7 @@
         numField("字阴影Y", "aiPopupTextShadowOffsetY", nn(pa.textShadowOffsetY, 2), -20, 20) +
         '</div>'
       ) +
-      panel("弹窗外观 · 关闭按钮", '<div class="field-row cols-3">' +
+      panel(t("legacy.popupAppearanceClose"), '<div class="field-row cols-3">' +
         numField("字号", "aiPopupCloseButtonFontSize", nn(pa.closeButtonFontSize, 13), 8, 36) +
         numField("圆角", "aiPopupCloseButtonBorderRadius", nn(pa.closeButtonBorderRadius, 6), 0, 20) +
         numField("内边X", "aiPopupCloseButtonPaddingX", nn(pa.closeButtonPaddingX, 12), 4, 40) +
@@ -1267,14 +1319,14 @@
         colorField("悬浮文字", "aiPopupCloseButtonHoverTextColor", pa.closeButtonHoverTextColor || "#ffffff") +
         '</div>'
       ) +
-      panel("主动互动", '<p class="desc-text">根据预设上下文定时生成主动互动内容。</p>' +
+      panel(t("legacy.interaction"), '<p class="desc-text">根据预设上下文定时生成主动互动内容。</p>' +
         switchRow("开启主动互动", "aiInteractionEnabled", cfg("ai.interactionEnabled")) +
         clockField("互动间隔", "aiInteractionInterval", [cfg("ai.interactionIntervalHours", 0), cfg("ai.interactionIntervalMinutes", 10), cfg("ai.interactionIntervalSeconds", 0)]) +
         selectField("语气", "aiInteractionTone", cfg("ai.interactionTone", "teasing"), [["teasing", "调戏"], ["gentle", "温柔"], ["strict", "严厉"], ["playful", "玩耍"]]) +
         switchRow("包含前台应用信息", "aiInteractionIncludeForegroundApp", cfg("ai.interactionIncludeForegroundApp"))
       ) +
       // Live preview panel
-      '<section class="detail-panel"><h3>实时预览</h3><div style="overflow:auto;border:1px solid var(--line);border-radius:2px;background:var(--bg);padding:10px;min-height:200px">' +
+      '<section class="detail-panel"><h3>' + t("legacy.livePreview") + '</h3><div style="overflow:auto;border:1px solid var(--line);border-radius:2px;background:var(--bg);padding:10px;min-height:200px">' +
       '<div id="aiPreview" style="position:relative;overflow:hidden;width:420px;height:320px;background:#050505;transform:scale(1);transform-origin:top left">' +
       '<div id="aiPreviewText" style="color:#f4f7fb;font-size:16px;line-height:1.5;text-align:left;padding:0 2px;margin:20px;border:0 solid #1f2b33;border-radius:8px;box-shadow:0 8px 24px 0 rgba(0,0,0,0.45);text-shadow:0 2px 10px rgba(0,0,0,0.55)">预览文本 — Preview Text</div>' +
       '<button id="aiPreviewCloseBtn" style="position:absolute;left:6px;top:6px;font-size:13px;border-radius:6px;padding:6px 12px;background:#000;color:#fff;border:1px solid #fff;cursor:default">✕</button>' +
@@ -1352,7 +1404,7 @@
 
   // === 媒体文件夹（含在线媒体源 & 网站库） ===
   function renderFoldersDetail() {
-    return panel("本地文件夹", '<p class="desc-text">管理本地图片和视频文件夹。</p>' +
+    return panel(t("legacy.localFolders"), '<p class="desc-text">' + t("legacy.localFolderNote") + '</p>' +
       '<div id="folderList" class="detail-panel" style="min-height:60px;border:1px dashed var(--line);padding:12px;color:var(--muted);">加载中...</div>' +
       '<div class="actions-row"><button id="addFoldersButton" class="btn primary">添加文件夹</button><button id="scanButton" class="btn">扫描媒体</button></div>'
     ) +
@@ -1360,18 +1412,18 @@
       '<label class="field"><span>媒体源 URL</span><input id="onlineMediaSourceUrl" value="' + (cfg("onlineMedia.sourceUrl") || "") + '" placeholder="https://raw.githubusercontent.com/..."></label>' +
       '<div class="actions-row"><button id="testOnlineMediaButton" class="btn">测试弹出一条网络媒体</button></div>'
     ) +
-    panel("网站库", switchRow("网站参与弹窗调度", "websiteLibraryEnabled", cfg("websiteLibrary.enabled")) +
-      '<label class="field"><span>批量编辑链接</span><textarea id="websiteLibraryText" rows="8">' + (cfg("websiteLibrary.text") || getWebsiteTextFromEntries()) + '</textarea></label>' +
-      '<p class="desc-text">每行: 名称 | 链接。! 禁用，# 注释。</p>' +
-      '<div class="actions-row"><button id="websiteShowPopupButton" class="btn">测试网站弹窗</button><button id="websiteSaveButton" class="btn primary">保存网站库</button></div>' +
+    panel(t("website.title"), switchRow(t("legacy.websiteSchedule"), "websiteLibraryEnabled", cfg("websiteLibrary.enabled")) +
+      '<label class="field"><span>' + t("legacy.bulkLinks") + '</span><textarea id="websiteLibraryText" rows="8">' + (cfg("websiteLibrary.text") || getWebsiteTextFromEntries()) + '</textarea></label>' +
+      '<p class="desc-text">' + t("legacy.websiteNote") + '</p>' +
+      '<div class="actions-row"><button id="websiteShowPopupButton" class="btn">' + t("legacy.testWebsite") + '</button><button id="websiteSaveButton" class="btn primary">' + t("legacy.saveWebsite") + '</button></div>' +
       '<input id="websiteLibrarySearch" type="text" placeholder="搜索链接..." style="margin-top:8px;width:100%"><div id="websiteLibraryList"></div>'
     );
   }
 
   // === 进程规则 ===
   function renderProcessRulesDetail() {
-    return panel("进程规则", '<p class="desc-text">根据运行中软件的名单，自动启停弹窗调度。每行一个进程名。</p>' +
-      switchRow("启用进程规则", "processRulesEnabled", cfg("processRules.enabled")) +
+    return panel(t("legacy.processRules"), '<p class="desc-text">' + t("legacy.processNote") + '</p>' +
+      switchRow(t("legacy.enableProcessRules"), "processRulesEnabled", cfg("processRules.enabled")) +
       '<div class="field-row cols-2">' +
       '<label class="field"><span>黑名单</span><textarea id="processRulesBlacklist" rows="4">' + (cfg("processRules.blacklist") ? cfg("processRules.blacklist").join("\n") : "") + '</textarea><button id="chooseBlacklistProcessButton" class="btn" style="margin-top:4px">选择运行中进程</button></label>' +
       '<label class="field"><span>白名单</span><textarea id="processRulesWhitelist" rows="4">' + (cfg("processRules.whitelist") ? cfg("processRules.whitelist").join("\n") : "") + '</textarea><button id="chooseWhitelistProcessButton" class="btn" style="margin-top:4px">选择运行中进程</button></label>' +
@@ -1454,27 +1506,27 @@
   // === 全局设置（齿轮按钮，含主题+语言+快捷键） ===
   function renderGlobalSettingsDetail() {
     var gLang = getGlobalLanguage();
-    return panel("外观与语言", '<p class="desc-text">UI 主题跟随配置档案，界面语言全局生效。</p>' +
-      '<label class="field"><span>UI 主题</span><select id="uiThemeSelector">' +
-      '<option value="default"' + (cfg("uiTheme", "default") === "default" ? " selected" : "") + '>默认暗色 (工业矩阵)</option>' +
-      '<option value="light"' + (cfg("uiTheme") === "light" ? " selected" : "") + '>极简白噪音</option>' +
-      '<option value="matrix"' + (cfg("uiTheme") === "matrix" ? " selected" : "") + '>黑客帝国</option>' +
-      '<option value="cyberpunk"' + (cfg("uiTheme") === "cyberpunk" ? " selected" : "") + '>赛博朋克</option>' +
-      '<option value="bnwo"' + (cfg("uiTheme") === "bnwo" ? " selected" : "") + '>BNWO</option>' +
-      '<option value="space"' + (cfg("uiTheme") === "space" ? " selected" : "") + '>深邃星空</option>' +
+    return panel(t("settings.appearanceTitle"), '<p class="desc-text">' + t("settings.appearanceNote") + '</p>' +
+      '<label class="field"><span>' + t("settings.uiTheme") + '</span><select id="uiThemeSelector">' +
+      '<option value="default"' + (cfg("uiTheme", "default") === "default" ? " selected" : "") + '>' + t("settings.theme.default") + '</option>' +
+      '<option value="light"' + (cfg("uiTheme") === "light" ? " selected" : "") + '>' + t("settings.theme.light") + '</option>' +
+      '<option value="matrix"' + (cfg("uiTheme") === "matrix" ? " selected" : "") + '>' + t("settings.theme.matrix") + '</option>' +
+      '<option value="cyberpunk"' + (cfg("uiTheme") === "cyberpunk" ? " selected" : "") + '>' + t("settings.theme.cyberpunk") + '</option>' +
+      '<option value="bnwo"' + (cfg("uiTheme") === "bnwo" ? " selected" : "") + '>' + t("settings.theme.bnwo") + '</option>' +
+      '<option value="space"' + (cfg("uiTheme") === "space" ? " selected" : "") + '>' + t("settings.theme.space") + '</option>' +
       '</select></label>' +
-      '<label class="field"><span>界面语言</span><select id="language">' +
-      '<option value="system"' + (gLang === "system" ? " selected" : "") + '>跟随系统</option>' +
-      '<option value="zh-CN"' + (gLang === "zh-CN" ? " selected" : "") + '>简体中文</option>' +
-      '<option value="en-US"' + (gLang === "en-US" ? " selected" : "") + '>English</option>' +
+      '<label class="field"><span>' + t("settings.language") + '</span><select id="language">' +
+      '<option value="system"' + (gLang === "system" ? " selected" : "") + '>' + t("settings.language.system") + '</option>' +
+      '<option value="zh-CN"' + (gLang === "zh-CN" ? " selected" : "") + '>' + t("settings.language.zh") + '</option>' +
+      '<option value="en-US"' + (gLang === "en-US" ? " selected" : "") + '>' + t("settings.language.en") + '</option>' +
       '</select></label>'
     ) +
-    panel("快捷键", '<p class="desc-text">点击输入框后直接按组合键录制。Backspace/Delete 清空。</p>' +
+    panel(t("settings.shortcutsTitle"), '<p class="desc-text">' + t("settings.shortcutsNote") + '</p>' +
       '<div class="field-row cols-2">' +
-      '<label class="field"><span>启动</span><input id="startShortcut" class="shortcut-input" readonly value="' + (cfg("startShortcut") || "") + '"><div id="startShortcutStatus" class="shortcut-status"></div></label>' +
-      '<label class="field"><span>暂停</span><input id="pauseShortcut" class="shortcut-input" readonly value="' + (cfg("pauseShortcut") || "") + '"><div id="pauseShortcutStatus" class="shortcut-status"></div></label>' +
-      '<label class="field"><span>停止</span><input id="stopShortcut" class="shortcut-input" readonly value="' + (cfg("stopShortcut") || "") + '"><div id="stopShortcutStatus" class="shortcut-status"></div></label>' +
-      '<label class="field"><span>关闭全部</span><input id="closeAllShortcut" class="shortcut-input" readonly value="' + (cfg("closeAllShortcut") || "") + '"><div id="closeAllShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>' + t("settings.shortcut.start") + '</span><input id="startShortcut" class="shortcut-input" readonly value="' + (cfg("startShortcut") || "") + '"><div id="startShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>' + t("settings.shortcut.pause") + '</span><input id="pauseShortcut" class="shortcut-input" readonly value="' + (cfg("pauseShortcut") || "") + '"><div id="pauseShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>' + t("settings.shortcut.stop") + '</span><input id="stopShortcut" class="shortcut-input" readonly value="' + (cfg("stopShortcut") || "") + '"><div id="stopShortcutStatus" class="shortcut-status"></div></label>' +
+      '<label class="field"><span>' + t("settings.shortcut.closeAll") + '</span><input id="closeAllShortcut" class="shortcut-input" readonly value="' + (cfg("closeAllShortcut") || "") + '"><div id="closeAllShortcutStatus" class="shortcut-status"></div></label>' +
       '</div>'
     );
   }
@@ -1511,12 +1563,12 @@
     var el = document.getElementById("processRulesStatus");
     if (!el || !currentConfig || !currentConfig.processRules) return;
     var rules = currentConfig.processRules;
-    if (!rules.enabled) { el.textContent = "进程规则未启用"; return; }
+    if (!rules.enabled) { el.textContent = t("processRules.status.disabled"); return; }
     var bl = (rules.blacklist || []).join(", ");
     var wl = (rules.whitelist || []).join(", ");
-    var parts = ["进程规则已启用"];
-    if (bl) parts.push("黑名单: " + bl);
-    if (wl) parts.push("白名单: " + wl);
+    var parts = [t("processRules.status.enabled")];
+    if (bl) parts.push(t("processRules.status.blacklistShort", { names: bl }));
+    if (wl) parts.push(t("processRules.status.whitelistShort", { names: wl }));
     el.textContent = parts.join(" · ");
   }
 
@@ -1542,8 +1594,8 @@
     var s = window.PeerShareUI.getState();
     if (statusEl) {
       statusEl.textContent = s.active
-        ? ("已加入房间 \"" + s.roomCode + "\" · 本机 ID " + s.selfPeerId.slice(0, 8) + " · 已连接 " + s.peers.length + " 个对端")
-        : "未连接";
+        ? t("peer.roomStatus", { room: s.roomCode, id: s.selfPeerId.slice(0, 8), count: s.peers.length })
+        : t("peer.notConnected");
     }
     if (listEl) {
       // 默认全选所有对端；新出现的对端也默认勾选为发送目标，方便在多人房间里指定发给谁。
@@ -1551,16 +1603,16 @@
         if (!(id in peerSelectedTargets)) peerSelectedTargets[id] = true;
       });
       listEl.innerHTML = s.active && s.peers.length
-        ? '<div style="font-size:12px;color:var(--muted);padding:2px 0 4px">发送目标（勾选要发给谁，默认全部）：</div>' +
+        ? '<div style="font-size:12px;color:var(--muted);padding:2px 0 4px">' + t("peer.sendTargets") + '</div>' +
           s.peers.map(function (id) {
             var checked = peerSelectedTargets[id] !== false ? " checked" : "";
             var nick = s.peerDisplayNames && s.peerDisplayNames[id];
-            var label = nick ? (nick + " (" + id.slice(0, 8) + ")") : ("对端 " + id.slice(0, 8));
+            var label = nick ? (nick + " (" + id.slice(0, 8) + ")") : t("peer.remote", { id: id.slice(0, 8) });
             return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:2px 0">' +
               '<input type="checkbox" data-peer-target="' + id + '"' + checked + '> ' + label +
               '</label>';
           }).join("")
-        : '<span style="color:var(--muted);font-size:12px">' + (s.active ? "等待对端加入房间..." : "") + '</span>';
+        : '<span style="color:var(--muted);font-size:12px">' + (s.active ? t("peer.waiting") : "") + '</span>';
       var targetChecks = listEl.querySelectorAll("[data-peer-target]");
       for (var t = 0; t < targetChecks.length; t++) {
         targetChecks[t].addEventListener("change", function () {
@@ -1574,7 +1626,7 @@
     var el = document.getElementById("peerIncomingList");
     if (!el) return;
     if (!peerIncomingRecords.length) {
-      el.innerHTML = "暂无接收记录";
+      el.innerHTML = t("peer.noRecords");
       return;
     }
     el.innerHTML = peerIncomingRecords.map(function (rec, idx) {
@@ -1635,7 +1687,7 @@
         var idx3 = Number(this.getAttribute("data-peer-save"));
         var rec3 = peerIncomingRecords[idx3];
         if (!rec3) return;
-        this.textContent = "保存中...";
+        this.textContent = t("peer.saving");
         var r3 = await savePeerReceivedRecord(rec3);
         rec3.saveResult = r3;
         renderPeerIncomingList();
@@ -1729,7 +1781,7 @@
     if (selfTestBtn) {
       selfTestBtn.onclick = async function () {
         if (!window.peerShare || !window.peerShare.selfTest) return;
-        selfTestResultEl.textContent = "测试中...";
+        selfTestResultEl.textContent = t("peer.testing");
         lastPeerSelfTestResult = await window.peerShare.selfTest();
         renderPeerSelfTestResult();
       };
@@ -1739,12 +1791,12 @@
       joinBtn.onclick = async function () {
         var useLobby = useLobbyToggle ? useLobbyToggle.checked : true;
         var code = useLobby ? "" : (roomInput ? roomInput.value.trim() : "");
-        if (!useLobby && !code) { if (sendStatusEl) sendStatusEl.textContent = "请输入或生成房间码"; return; }
+        if (!useLobby && !code) { if (sendStatusEl) sendStatusEl.textContent = t("peer.enterRoomCode"); return; }
         var result = await window.PeerShareUI.joinRoom(code);
         if (!result || !result.ok) {
-          if (sendStatusEl) sendStatusEl.textContent = "加入房间失败";
+          if (sendStatusEl) sendStatusEl.textContent = t("peer.joinFailed");
         } else if (sendStatusEl) {
-          sendStatusEl.textContent = result.isPublicLobby ? "已加入公共大厅" : ("已加入房间 " + result.roomCode);
+          sendStatusEl.textContent = result.isPublicLobby ? t("peer.joinedLobby") : t("peer.joinedRoom", { room: result.roomCode });
         }
         updatePeerRoomStatus();
       };
@@ -1768,12 +1820,12 @@
           var s = window.PeerShareUI.getState();
           var targets = s.peers.filter(function (id) { return peerSelectedTargets[id] !== false; });
           if (!s.active || !targets.length) {
-            if (sendStatusEl) sendStatusEl.textContent = s.active ? "请至少勾选一个发送目标" : "请先加入房间并等待对端连接";
+            if (sendStatusEl) sendStatusEl.textContent = s.active ? t("peer.selectTarget") : t("peer.connectFirst");
             return;
           }
           for (var i = 0; i < targets.length; i++) {
             var res = await window.PeerShareUI.sendFile(targets[i], file);
-            if (sendStatusEl) sendStatusEl.textContent = res && res.ok ? ("已发送给 " + targets[i].slice(0, 8)) : ("发送失败: " + (res && res.errorKey));
+            if (sendStatusEl) sendStatusEl.textContent = res && res.ok ? t("peer.sentTo", { id: targets[i].slice(0, 8) }) : t("peer.sendFailed", { detail: res && res.errorKey });
           }
         };
         input.click();
@@ -1844,13 +1896,13 @@
     var kw = (searchEl && searchEl.value || "").trim().toLowerCase();
     var filtered = kw ? entries.filter(function(e) { return e.label.toLowerCase().indexOf(kw) !== -1 || e.url.toLowerCase().indexOf(kw) !== -1; }) : entries;
     listEl.innerHTML = "";
-    if (!filtered.length) { listEl.innerHTML = '<p class="desc-text">没有匹配条目</p>'; return; }
+    if (!filtered.length) { listEl.innerHTML = '<p class="desc-text">' + t("website.noMatches") + '</p>'; return; }
     for (var i = 0; i < filtered.length; i++) {
       var e = filtered[i];
       var row = document.createElement("div");
       row.style.cssText = "display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line);font-size:11px;gap:8px";
       row.innerHTML = '<span style="color:' + (e.enabled ? "var(--text)" : "var(--subtle)") + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' +
-        (e.enabled ? "" : '<span class="badge badge-danger" style="margin-right:4px">禁用</span>') + e.label +
+        (e.enabled ? "" : '<span class="badge badge-danger" style="margin-right:4px">' + t("website.disabled") + '</span>') + e.label +
         '</span><span style="color:var(--subtle);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px">' + e.url + '</span>';
       listEl.appendChild(row);
     }
@@ -1892,7 +1944,7 @@
     if (!grid || !label) return;
     var y = currentCalendarDate.getFullYear();
     var m = currentCalendarDate.getMonth();
-    label.textContent = y + "年" + (m + 1) + "月";
+    label.textContent = t("calendar.month", { year: y, month: m + 1 });
     var firstDay = new Date(y, m, 1).getDay();
     var daysInMonth = new Date(y, m + 1, 0).getDate();
     grid.innerHTML = "";
@@ -2007,11 +2059,11 @@
     if (!state) return;
     if (ind) {
       var running = state.running;
-      ind.textContent = running ? "调度器运行中" : (state.paused ? "调度器已暂停" : "调度器已停止");
+      ind.textContent = running ? t("status.running") : (state.paused ? t("status.paused") : t("status.stopped"));
       ind.className = running ? "live" : "";
     }
-    if (wc) wc.textContent = (state.popupCount || 0) + " 个窗口";
-    if (mc) mc.textContent = (state.mediaCount || 0) + " 项媒体";
+    if (wc) wc.textContent = t("stats.popupCount", { count: state.popupCount || 0 });
+    if (mc) mc.textContent = t("stats.mediaCount", { count: state.mediaCount || 0 });
   }
 
   // ═════════════════════════════════════════════════
@@ -2045,7 +2097,7 @@
     var saveBtn = document.getElementById("saveButton");
     if (saveBtn) saveBtn.addEventListener("click", async () => {
       var result = await saveConfig();
-      if (!result || !result.blocked) log("配置已手动保存");
+      if (!result || !result.blocked) log(t("status.configManuallySaved"));
     });
 
     // 快速切换配置档案（Bar 下拉）
@@ -2090,11 +2142,39 @@
     currentLocale = resolveLanguage(lang, navigator.language);
   }
 
+  function refreshLocalizedView() {
+    refreshI18nElements();
+    var buttonLabels = {
+      startButton: "buttons.start",
+      pauseButton: "buttons.pause",
+      stopButton: "buttons.stop",
+      closeAllButton: "buttons.closeAll",
+      saveButton: "buttons.save"
+    };
+    Object.keys(buttonLabels).forEach(function (id) {
+      var button = document.getElementById(id);
+      var label = button && button.querySelector("span");
+      if (label) label.textContent = t(buttonLabels[id]);
+    });
+    var backButton = document.getElementById("detailBackBtn");
+    if (backButton) backButton.textContent = "← " + t("buttons.back");
+    if (currentState) updateStatusBar(currentState);
+    if (activeDetailCardId) {
+      showDetail(activeDetailCardId);
+    } else {
+      renderAllCards();
+    }
+  }
+
   function bindThemeEvents() {
-    // 监听 #uiThemeSelector change (在 detail 页面中)
+    // 监听主题和语言选择器（在 detail 页面中）
     document.addEventListener("change", function (e) {
       if (e.target && e.target.id === "uiThemeSelector") {
         applyTheme(e.target.value);
+      }
+      if (e.target && e.target.id === "language") {
+        setGlobalLanguage(e.target.value);
+        refreshLocalizedView();
       }
     });
   }
@@ -2456,11 +2536,11 @@
   async function loadProcessPickerList() {
     var mp = getMediaPopup();
     if (!mp || !mp.listProcesses) return;
-    document.getElementById("processPickerStatus").textContent = "加载中...";
+    document.getElementById("processPickerStatus").textContent = t("processRules.loadingShort");
     var result = await mp.listProcesses();
     if (!result || !result.ok) {
       processPickerItems = [];
-      document.getElementById("processPickerStatus").textContent = "加载失败";
+      document.getElementById("processPickerStatus").textContent = t("processRules.loadFailedShort");
       renderProcessPickerList();
       return;
     }
@@ -2479,7 +2559,7 @@
     });
     list.innerHTML = "";
     if (!matched.length) {
-      list.innerHTML = '<div class="empty">没有匹配的进程</div>';
+      list.innerHTML = '<div class="empty">' + t("processRules.noMatchesShort") + '</div>';
       return;
     }
     for (var i = 0; i < matched.length; i++) {
@@ -2493,7 +2573,7 @@
       row.appendChild(document.createTextNode(" " + item.name + (item.path ? " — " + item.path : "")));
       list.appendChild(row);
     }
-    document.getElementById("processPickerStatus").textContent = matched.length + " 个进程";
+    document.getElementById("processPickerStatus").textContent = t("processRules.count", { count: matched.length });
   }
 
   async function addSelectedProcessesToRuleList() {
@@ -2562,7 +2642,7 @@
           scheduleAutoSave({ immediate: true });
         } else {
           var err = document.getElementById("hardcoreErrorText");
-          if (err) { err.hidden = false; err.textContent = "输入不匹配，请重新输入。"; }
+          if (err) { err.hidden = false; err.textContent = t("hardcore.inputMismatch"); }
         }
       }
     });
@@ -2669,7 +2749,7 @@
       if (t.id === "btnNewProfile") {
         var mp = getMediaPopup();
         if (!mp || !mp.createProfile) return;
-        var name = prompt("请输入新配置档案名称:");
+        var name = prompt(t("profile.prompt.new"));
         if (!name) return;
         await mp.createProfile({ name: name, templateId: "default" });
         await loadProfiles();
@@ -2937,15 +3017,15 @@
 
     if (!hasFolders && !hasOnline) {
       el.className = "media-path-warning media-path-warning--critical";
-      el.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> 未设置任何媒体来源 — 请添加本地文件夹或网络媒体地址';
+      el.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> ' + t("media.warning.none");
       el.hidden = false;
     } else if (!hasFolders) {
       el.className = "media-path-warning media-path-warning--hint";
-      el.innerHTML = '未设置本地媒体路径';
+      el.innerHTML = t("media.warning.local");
       el.hidden = false;
     } else {
       el.className = "media-path-warning media-path-warning--hint";
-      el.innerHTML = '未设置网络媒体地址';
+      el.innerHTML = t("media.warning.online");
       el.hidden = false;
     }
   }
@@ -2968,13 +3048,14 @@
   async function initApp() {
     // 应用全局语言偏好
     setGlobalLanguage(getGlobalLanguage());
+    refreshI18nElements();
 
     var mp = getMediaPopup();
     if (!mp) {
       // 预览模式
       currentConfig = {};
       renderAllCards();
-      document.getElementById("statusIndicator").textContent = "预览模式（未连接后端）";
+      document.getElementById("statusIndicator").textContent = t("status.preview");
       return;
     }
 
