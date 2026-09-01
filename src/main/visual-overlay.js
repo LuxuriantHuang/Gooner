@@ -7,6 +7,7 @@ let overlayWindows = [];
 let currentConfig = null;
 let flashTimer = null;
 let isSchedulerRunning = false;
+const synchronizedWallpaperByDisplay = new Map();
 
 function onSchedulerStateChange(isRunning) {
   isSchedulerRunning = isRunning;
@@ -20,7 +21,7 @@ function createOverlayWindow() {
 
   const displays = screen.getAllDisplays();
 
-  displays.forEach((display) => {
+  displays.forEach((display, displayIndex) => {
     const { x, y, width, height } = display.bounds;
 
     const overlayWindow = new BrowserWindow({
@@ -68,6 +69,7 @@ function createOverlayWindow() {
 
     // Store monitor ID in the window object to filter media specifically for it later
     overlayWindow.monitorId = display.id;
+    overlayWindow.displayIndex = displayIndex;
     overlayWindow.monitorBounds = display.bounds;
 
     overlayWindows.push(overlayWindow);
@@ -151,7 +153,12 @@ function getMediaFilesForFlash() {
 function onConfigChange(config) {
   currentConfig = config;
   const vc = config.visualIntervention || {};
-  const enabled = (vc.enabled && isSchedulerRunning) || config.hardcoreMode;
+  const hasVisualFeature = vc.enabled
+    || vc.ghostEnabled
+    || vc.xrayEnabled
+    || vc.waterfallEnabled
+    || vc.flashEnabled;
+  const enabled = (hasVisualFeature && isSchedulerRunning) || config.hardcoreMode;
 
   if (enabled) {
     if (overlayWindows.length === 0) {
@@ -199,6 +206,8 @@ async function sendConfigToOverlay() {
 
         overlayWindow.webContents.send('visual:update-config', {
           ghostEnabled: vc.ghostEnabled || false,
+          ghostSyncWithWallpaper: vc.ghostSyncWithWallpaper || false,
+          synchronizedMedia: synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null,
           xrayEnabled: vc.xrayEnabled || false,
           waterfallEnabled: isWaterfall,
           ghostOpacity: vc.ghostOpacity || 5,
@@ -216,11 +225,38 @@ async function sendConfigToOverlay() {
           hardcore: currentConfig.hardcoreMode
         });
       }
+
     }
+  }
+}
+
+function onWallpapersApplied(entries, monitors = []) {
+  const monitorIndexById = new Map(monitors.map((monitor, index) => [String(monitor.id), index]));
+  const assignedDisplays = new Set();
+  for (const [monitorId, imagePath] of entries) {
+    const displayIndex = monitorIndexById.get(String(monitorId));
+    if (displayIndex !== undefined) {
+      const monitor = monitors[displayIndex];
+      const matchingWindow = overlayWindows.find((overlayWindow) => {
+        if (!overlayWindow || assignedDisplays.has(overlayWindow.displayIndex)) return false;
+        const bounds = overlayWindow.monitorBounds;
+        return bounds.width === monitor.width && bounds.height === monitor.height;
+      });
+      const targetIndex = matchingWindow ? matchingWindow.displayIndex : displayIndex;
+      synchronizedWallpaperByDisplay.set(targetIndex, imagePath);
+      console.log(`[VisualOverlay] Synced display ${targetIndex} to wallpaper: ${imagePath}`);
+      assignedDisplays.add(targetIndex);
+    }
+  }
+  for (const overlayWindow of overlayWindows) {
+    if (!overlayWindow || overlayWindow.isDestroyed()) continue;
+    const media = synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null;
+    overlayWindow.webContents.send('visual:wallpaper-sync', media);
   }
 }
 
 module.exports = {
   onConfigChange,
-  onSchedulerStateChange
+  onSchedulerStateChange,
+  onWallpapersApplied
 };

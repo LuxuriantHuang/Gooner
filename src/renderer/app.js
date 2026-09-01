@@ -1338,6 +1338,7 @@
   function renderGhostDetail() {
     return panel(t("dashboard.card.ghost"), '<p class="desc-text">' + t("legacy.ghostNote") + '</p>' +
       switchRow(t("legacy.enableGhost"), "visualGhostEnabled", cfg("visual.ghostEnabled")) +
+      switchRow(t("legacy.ghostSyncWithWallpaper"), "visualGhostSyncWithWallpaper", cfg("visual.ghostSyncWithWallpaper")) +
       '<div class="field-row cols-2">' +
       numField(t("legacy.opacity"), "visualGhostOpacity", cfg("visual.ghostOpacity", 5), 1, 100) +
       clockField(t("legacy.switchInterval"), "visualGhostInterval", [cfg("visual.ghostIntervalMinutes", 5), cfg("visual.ghostIntervalSeconds", 0)]) +
@@ -2309,6 +2310,7 @@
       var vk = id.replace("visual", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
       // 修复驼峰
       if (vk === "Ghostenabled") vk = "ghostEnabled";
+      if (vk === "Ghostsyncwithwallpaper") vk = "ghostSyncWithWallpaper";
       if (vk === "Xrayenabled") vk = "xrayEnabled";
       if (vk === "Waterfallenabled") vk = "waterfallEnabled";
       if (vk === "Flashenabled") vk = "flashEnabled";

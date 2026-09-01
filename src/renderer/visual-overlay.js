@@ -51,8 +51,14 @@ function updateGhost() {
 
   ambientLayer.style.display = 'block';
   ambientLayer.style.opacity = (currentConfig.ghostOpacity || 5) / 100;
-  const media = getRandomMedia();
+  ambientLayer.style.backgroundPosition = currentConfig.ghostSyncWithWallpaper
+    ? 'center bottom'
+    : 'center center';
+  const media = currentConfig.ghostSyncWithWallpaper
+    ? currentConfig.synchronizedMedia
+    : getRandomMedia();
   if (media) ambientLayer.style.backgroundImage = `url('file://${media.replace(/\\/g, '/')}')`;
+  else ambientLayer.style.backgroundImage = 'none';
   
   // Change ghost image based on interval
   const updateGhostInterval = () => {
@@ -68,7 +74,18 @@ function updateGhost() {
     }, ms);
   };
   
-  updateGhostInterval();
+  if (!currentConfig.ghostSyncWithWallpaper) {
+    updateGhostInterval();
+  }
+}
+
+function updateSynchronizedGhost(media) {
+  if (!currentConfig || !currentConfig.ghostEnabled || !currentConfig.ghostSyncWithWallpaper) return;
+  if (media) {
+    console.info('[VisualOverlayRenderer] Applying synchronized ghost media:', media);
+    ambientLayer.style.backgroundPosition = 'center bottom';
+    ambientLayer.style.backgroundImage = `url('file://${media.replace(/\\/g, '/')}')`;
+  }
 }
 
 function updateXray() {
@@ -196,6 +213,11 @@ ipcRenderer.on('visual:update-config', (event, config) => {
   updateGhost();
   updateXray();
   updateWaterfall();
+});
+
+ipcRenderer.on('visual:wallpaper-sync', (event, media) => {
+  if (currentConfig) currentConfig.synchronizedMedia = media;
+  updateSynchronizedGhost(media);
 });
 
 ipcRenderer.on('visual:trigger-flash', (event, explicitlyProvidedMedia) => {

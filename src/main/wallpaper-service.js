@@ -63,10 +63,11 @@ namespace WH {
 `;
 
 class WallpaperService {
-  constructor({ getConfig, getMediaLibrary, getDesktopCharacterService }) {
+  constructor({ getConfig, getMediaLibrary, getDesktopCharacterService, onWallpapersApplied }) {
     this.getConfig = getConfig;
     this.getMediaLibrary = getMediaLibrary;
     this.getDesktopCharacterService = getDesktopCharacterService;
+    this.onWallpapersApplied = onWallpapersApplied;
     this.timer = null;
     this.scriptPath = path.join(app.getPath('userData'), 'wallpaper-helper.ps1');
     this.initialized = false;
@@ -350,7 +351,14 @@ if ($args[0] -eq "list") {
       this.lastAppliedWallpapers.set(monitorId, imagePath);
       console.log(`[WallpaperService] Applied scheduled wallpaper for ${monitorId}`);
     }
+    this._notifyWallpapersApplied(entries);
     return true;
+  }
+
+  _notifyWallpapersApplied(entries, monitors = this.cachedMonitors || []) {
+    if (typeof this.onWallpapersApplied === 'function' && entries.length > 0) {
+      this.onWallpapersApplied(entries, monitors);
+    }
   }
 
   /**
@@ -417,6 +425,7 @@ if ($args[0] -eq "list") {
     for (const [monitorId, imagePath] of entries) {
       this.lastAppliedWallpapers.set(monitorId, imagePath);
     }
+    this._notifyWallpapersApplied(entries, monitors);
     return { changedCount: entries.length, errors, entries };
   }
 
@@ -476,6 +485,7 @@ if ($args[0] -eq "list") {
     for (const [monitorId, imagePath] of entries) {
       this.lastAppliedWallpapers.set(monitorId, imagePath);
     }
+    this._notifyWallpapersApplied(entries, monitors);
     return { changedCount: entries.length, errors, entries };
   }
 
@@ -697,6 +707,7 @@ if ($args[0] -eq "list") {
     // 启动时先保存用户原始壁纸（在任何 tick 之前），用于失焦恢复和退出恢复
     // 无论 focusRestoreEnabled 是否开启都保存，因为用户可能后来才开启
     const wpCfg = this.getConfig().wallpaper;
+    const syncWithGhost = Boolean(this.getConfig().visualIntervention?.ghostSyncWithWallpaper);
     if (wpCfg && (wpCfg.enabled || wpCfg.characterEnabled)) {
       try {
         await this.initScript();
@@ -726,7 +737,7 @@ if ($args[0] -eq "list") {
     try {
       isDesktopFocused = await this._isDesktopFocused({ refresh: true });
       this.focusState.desktopFocused = isDesktopFocused;
-      if (isDesktopFocused) {
+      if (isDesktopFocused || (syncWithGhost && (wpCfg.enabled || wpCfg.characterEnabled))) {
         await this.tick(false, { ignoreFocus: true });
       }
     } catch (error) {
@@ -761,10 +772,14 @@ if ($args[0] -eq "list") {
   onConfigChange(oldConfig, newConfig) {
     const oldWp = oldConfig.wallpaper || {};
     const newWp = newConfig.wallpaper || {};
+    const oldVisual = oldConfig.visualIntervention || {};
+    const newVisual = newConfig.visualIntervention || {};
     const oldCharFolder = oldWp.characterFolderPath || (oldConfig.desktopCharacter && oldConfig.desktopCharacter.folderPath) || '';
     const newCharFolder = newWp.characterFolderPath || (newConfig.desktopCharacter && newConfig.desktopCharacter.folderPath) || '';
     const wasAnyActive = oldWp.enabled || (oldWp.characterEnabled && oldCharFolder);
     const isAnyActive = newWp.enabled || (newWp.characterEnabled && newCharFolder);
+    const syncJustEnabled = newVisual.ghostSyncWithWallpaper && !oldVisual.ghostSyncWithWallpaper;
+    const applyImmediately = newVisual.ghostSyncWithWallpaper && (newWp.enabled || newWp.characterEnabled);
 
     if (isAnyActive && !wasAnyActive) {
       if (this.originalWallpapers.size === 0) {
@@ -783,15 +798,19 @@ if ($args[0] -eq "list") {
               }
             }
           }
-          this.tick().finally(() => this.scheduleNextTick());
+          this.tick(false, { ignoreFocus: applyImmediately }).finally(() => this.scheduleNextTick());
         });
       } else {
-        this.tick().finally(() => this.scheduleNextTick());
+        this.tick(false, { ignoreFocus: applyImmediately }).finally(() => this.scheduleNextTick());
       }
     } else if (!isAnyActive) {
       this.stop();
     } else {
       this.scheduleNextTick();
+    }
+
+    if (syncJustEnabled && isAnyActive && wasAnyActive) {
+      this.tick(false, { ignoreFocus: true }).finally(() => this.scheduleNextTick());
     }
 
     if (newWp.focusRestoreEnabled !== oldWp.focusRestoreEnabled) {

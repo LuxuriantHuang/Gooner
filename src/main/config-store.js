@@ -124,6 +124,7 @@ const defaultPollutionConfig = {
 const defaultVisualInterventionConfig = {
   enabled: false,
   ghostEnabled: false,
+  ghostSyncWithWallpaper: false,
   xrayEnabled: false,
   waterfallEnabled: false,
   ghostOpacity: 5, // percentage

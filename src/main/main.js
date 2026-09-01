@@ -1400,7 +1400,8 @@ async function createMainWindow() {
   wallpaperService = new WallpaperService({
     getConfig: () => config,
     getMediaLibrary: () => mediaLibrary,
-    getDesktopCharacterService: () => desktopCharacterService
+    getDesktopCharacterService: () => desktopCharacterService,
+    onWallpapersApplied: (entries, monitors) => visualOverlay.onWallpapersApplied(entries, monitors)
   });
 
   mainWindow = new BrowserWindow({
