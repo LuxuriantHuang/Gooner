@@ -69,3 +69,21 @@ contextBridge.exposeInMainWorld('aiTextPopup', {
   close: () => ipcRenderer.invoke('aiPopup:close'),
   fitWindow: (contentHeight) => ipcRenderer.invoke('aiPopup:fitWindow', contentHeight)
 });
+
+contextBridge.exposeInMainWorld('peerShare', {
+  join: (roomCode) => ipcRenderer.invoke('peer:join', roomCode),
+  leave: () => ipcRenderer.invoke('peer:leave'),
+  listPeers: () => ipcRenderer.invoke('peer:listPeers'),
+  sendSignal: (toPeerId, payload) => ipcRenderer.invoke('peer:sendSignal', toPeerId, payload),
+  validateFileOffer: (offer) => ipcRenderer.invoke('peer:validateFileOffer', offer),
+  buildFileOffer: (meta) => ipcRenderer.invoke('peer:buildFileOffer', meta),
+  selfTest: () => ipcRenderer.invoke('peer:selfTest'),
+  chooseReceiveFolder: () => ipcRenderer.invoke('peer:chooseReceiveFolder'),
+  getReceiveFolder: () => ipcRenderer.invoke('peer:getReceiveFolder'),
+  saveReceivedFile: (fileName, data) => ipcRenderer.invoke('peer:saveReceivedFile', { fileName, data }),
+  onSignal: (callback) => {
+    const listener = (_event, data) => callback(data);
+    ipcRenderer.on('peer:signal', listener);
+    return () => ipcRenderer.removeListener('peer:signal', listener);
+  }
+});

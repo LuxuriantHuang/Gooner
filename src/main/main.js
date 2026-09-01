@@ -25,6 +25,8 @@ const { Scheduler } = require('./scheduler');
 const { WallpaperService } = require('./wallpaper-service');
 const { DesktopCharacterService } = require('./desktop-character-service');
 const { WindowManager } = require('./window-manager');
+const { PeerShareService, selfTestConnectivity } = require('./peer-share-service');
+const { PUBLIC_ROOM_CODE, validateFileOffer, buildFileOffer, generateTransferId, getChunkCount, sanitizeFileName } = require('./peer-share-protocol');
 const profileManager = require('./profile-manager');
 const pollution = require('./pollution');
 const visualOverlay = require('./visual-overlay');
@@ -121,6 +123,14 @@ let scheduler = null;
 let wallpaperService = null;
 let desktopCharacterService = null;
 let windowManager = null;
+let peerShareService = null;
+let peerShareState = {
+  active: false,
+  roomCode: '',
+  peerId: '',
+  peers: [],
+  lastError: null
+};
 let interactionTimer = null;
 let interactionInFlight = false;
 let processRuleTimer = null;
@@ -1346,6 +1356,7 @@ function getPublicState(extra = {}) {
     popupCount: windowManager?.popupCount || 0,
     popupsEnabled: config?.popupsEnabled !== false,
     shortcutRegistration,
+    peerShare: peerShareState,
     ...extra
   };
 }
@@ -1426,6 +1437,9 @@ async function createMainWindow() {
           await wallpaperService.stop();
         } finally {
           await desktopCharacterService.stop();
+          if (peerShareService) {
+            await peerShareService.stop().catch(() => {});
+          }
           app.quit();
         }
       })();
@@ -1756,6 +1770,145 @@ ipcMain.handle('popups:closeAll', () => {
   return getPublicState();
 });
 
+function ensurePeerShareService() {
+  if (peerShareService) {
+    return peerShareService;
+  }
+  peerShareService = new PeerShareService({
+    log: (...args) => console.log(...args),
+    onSignal: ({ fromPeerId, payload }) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('peer:signal', { fromPeerId, payload });
+      }
+    },
+    onPeerListUpdate: (peers) => {
+      peerShareState = { ...peerShareState, peers };
+      sendState();
+    },
+    onError: ({ errorKey, detail }) => {
+      peerShareState = { ...peerShareState, lastError: { errorKey, detail, at: Date.now() } };
+      sendState();
+    }
+  });
+  return peerShareService;
+}
+
+ipcMain.handle('peer:selfTest', async () => {
+  try {
+    return { ok: true, ...(await selfTestConnectivity()) };
+  } catch (error) {
+    return { ok: false, detail: error?.message };
+  }
+});
+
+ipcMain.handle('peer:join', async (_event, roomCode) => {
+  try {
+    const service = ensurePeerShareService();
+    // 未显式传房间码时，按配置决定：默认加入公共大厅（所有人都能互相发现），
+    // 关闭"使用大厅"后则回退到用户上次使用的自定义房间码。
+    const effectiveRoomCode = roomCode || (config?.peerShare?.useLobby !== false
+      ? PUBLIC_ROOM_CODE
+      : (config?.peerShare?.lastRoomCode || PUBLIC_ROOM_CODE));
+    const result = await service.start(effectiveRoomCode, { displayName: config?.peerShare?.displayName || '' });
+    peerShareState = {
+      active: true,
+      roomCode: result.roomCode,
+      peerId: result.peerId,
+      peers: [],
+      lastError: null
+    };
+    if (result.roomCode !== PUBLIC_ROOM_CODE) {
+      config.peerShare = { ...config.peerShare, lastRoomCode: result.roomCode };
+      writeConfigFile(config).catch(() => {});
+    }
+    sendState();
+    return { ok: true, ...result, isPublicLobby: result.roomCode === PUBLIC_ROOM_CODE };
+  } catch (error) {
+    return { ok: false, errorKey: 'peer.error.invalidRoomCode', detail: error?.message };
+  }
+});
+
+ipcMain.handle('peer:leave', async () => {
+  if (peerShareService) {
+    await peerShareService.stop();
+  }
+  peerShareState = { active: false, roomCode: '', peerId: '', peers: [], lastError: null };
+  sendState();
+  return getPublicState();
+});
+
+ipcMain.handle('peer:listPeers', () => {
+  return peerShareService ? peerShareService.listPeers() : [];
+});
+
+ipcMain.handle('peer:sendSignal', (_event, toPeerId, payload) => {
+  if (!peerShareService) {
+    return { ok: false, errorKey: 'peer.error.notActive' };
+  }
+  const sent = peerShareService.sendSignal(toPeerId, payload);
+  return { ok: sent };
+});
+
+ipcMain.handle('peer:validateFileOffer', (_event, offer) => {
+  const maxFileSizeBytes = (config?.peerShare?.maxFileSizeMb || 200) * 1024 * 1024;
+  return validateFileOffer(offer, { maxFileSizeBytes });
+});
+
+ipcMain.handle('peer:buildFileOffer', (_event, meta) => {
+  const offer = buildFileOffer({ transferId: generateTransferId(), ...meta });
+  const maxFileSizeBytes = (config?.peerShare?.maxFileSizeMb || 200) * 1024 * 1024;
+  const validation = validateFileOffer(offer, { maxFileSizeBytes });
+  return { offer, validation, chunkCount: getChunkCount(offer.size) };
+});
+
+function getPeerReceiveFolder() {
+  const configured = config?.peerShare?.receiveFolder;
+  if (configured && typeof configured === 'string') {
+    return configured;
+  }
+  return path.join(app.getPath('downloads'), 'Gooner-Received');
+}
+
+ipcMain.handle('peer:chooseReceiveFolder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: translate(getActiveLanguage(), 'dialog.chooseFoldersTitle') || '选择接收文件夹',
+    properties: ['openDirectory', 'createDirectory']
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false };
+  }
+  const folder = result.filePaths[0];
+  config.peerShare = { ...config.peerShare, receiveFolder: folder };
+  writeConfigFile(config).catch(() => {});
+  return { ok: true, folder };
+});
+
+ipcMain.handle('peer:getReceiveFolder', () => {
+  return getPeerReceiveFolder();
+});
+
+// 把已在渲染进程内存中拼装好的接收文件写入磁盘的接收专用文件夹；
+// 文件名做安全清理并在重名时自动加序号后缀，避免互相覆盖。
+ipcMain.handle('peer:saveReceivedFile', async (_event, { fileName, data }) => {
+  try {
+    const folder = getPeerReceiveFolder();
+    await fs.promises.mkdir(folder, { recursive: true });
+    const safeName = sanitizeFileName(fileName) || 'received-file';
+    const ext = path.extname(safeName);
+    const base = ext ? safeName.slice(0, -ext.length) : safeName;
+    let finalPath = path.join(folder, safeName);
+    let counter = 1;
+    while (fs.existsSync(finalPath)) {
+      finalPath = path.join(folder, `${base} (${counter})${ext}`);
+      counter += 1;
+    }
+    await fs.promises.writeFile(finalPath, Buffer.from(data));
+    return { ok: true, filePath: finalPath };
+  } catch (error) {
+    return { ok: false, detail: error?.message };
+  }
+});
+
 ipcMain.handle('wallpaper:test', async () => {
   if (wallpaperService) {
     const beforeCount = mediaLibrary.length;
@@ -1997,5 +2150,8 @@ app.on('before-quit', () => {
   // 壁纸恢复已在 close 事件中处理，这里只做清理
   if (wallpaperService) {
     wallpaperService.stop().catch(() => {});
+  }
+  if (peerShareService) {
+    peerShareService.stop().catch(() => {});
   }
 });

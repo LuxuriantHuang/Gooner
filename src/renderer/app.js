@@ -50,6 +50,7 @@
 
     // 智能与系统 (section: "system")
     { id: "process-rules", name: "进程规则", meta: "process.gate", icon: "shield", hint: "根据运行中软件的允许/排除名单，自动启停弹窗调度。", configKey: "processRulesEnabled", tone: "", section: "system" },
+    { id: "peer-share", name: "联机共享", meta: "p2p.share", icon: "globe", hint: "创建/加入房间，与好友直接互传图片和视频，接收内容只在内存中预览，不落盘。", configKey: "peerShareEnabled", tone: "", section: "system" },
     { id: "hardcore", name: "强控模式", meta: "restricted.ui", icon: "lock", hint: "隐藏主窗口和任务栏。请先配置全局快捷键，确保始终可恢复控制。", configKey: "hardcoreMode", tone: "danger", section: "system" },
     { id: "autostart", name: "开机自启", meta: "auto.launch", icon: "monitor", hint: "Windows 登录后自动运行应用，可在系统设置中随时关闭。", configKey: "autoStartOnBoot", tone: "", section: "system" },
     { id: "silent", name: "静默模式", meta: "silent.boot", icon: "hidden", hint: "启动后自动收起主窗口。通知区图标和快捷键仍可用于控制。", configKey: "silentMode", tone: "", section: "system" },
@@ -140,6 +141,7 @@
       if (key === "visualFlashEnabled") return !!(currentConfig.visualIntervention && currentConfig.visualIntervention.flashEnabled);
       if (key === "wallpaperEnabled") return !!(currentConfig.wallpaper && (currentConfig.wallpaper.enabled || currentConfig.wallpaper.characterEnabled));
       if (key === "processRulesEnabled") return !!(currentConfig.processRules && currentConfig.processRules.enabled);
+      if (key === "peerShareEnabled") return !!(currentConfig.peerShare && currentConfig.peerShare.enabled);
       return !!(currentConfig[key]);
     }
     return false;
@@ -179,11 +181,49 @@
       } else if (key === "processRulesEnabled") {
         if (!currentConfig.processRules) currentConfig.processRules = {};
         currentConfig.processRules.enabled = on;
+      } else if (key === "peerShareEnabled") {
+        if (!currentConfig.peerShare) currentConfig.peerShare = {};
+        currentConfig.peerShare.enabled = on;
+        if (!on) { void leavePeerRoom(); }
+        else { void autoJoinPeerShareRoom(); }
       } else {
         currentConfig[key] = on;
       }
     }
     await scheduleAutoSave({ immediate: true });
+  }
+
+  // 打开"启用联机共享"开关后自动执行一次连通性自检并直接加入房间（默认公共大厅），
+  // 免去用户手动点"测试连通性"+"加入房间"两个按钮。
+  var lastPeerSelfTestResult = null;
+  function renderPeerSelfTestResult() {
+    var el = document.getElementById("peerSelfTestResult");
+    if (!el || !lastPeerSelfTestResult) return;
+    var r = lastPeerSelfTestResult;
+    if (!r.ok) {
+      el.textContent = "测试失败: " + r.detail;
+      return;
+    }
+    var parts = [];
+    parts.push(r.udpOk ? "本机UDP出入站：正常" : "本机UDP出入站：异常（可能被防火墙拦截）");
+    parts.push(r.dhtOk
+      ? ("公网DHT发现网络：正常（已连接 " + r.dhtNodeCount + " 个节点）")
+      : ("公网DHT发现网络：较弱（仅 " + r.dhtNodeCount + " 个节点，跨网络发现可能较慢，局域网内发现不受影响）"));
+    el.textContent = parts.join(" · ");
+  }
+  async function autoJoinPeerShareRoom() {
+    if (!window.PeerShareUI || !currentConfig || !currentConfig.peerShare) return;
+    ensurePeerShareCallbacksBound();
+    if (window.peerShare && window.peerShare.selfTest) {
+      try {
+        lastPeerSelfTestResult = await window.peerShare.selfTest();
+        renderPeerSelfTestResult();
+      } catch (_e) {}
+    }
+    var useLobby = currentConfig.peerShare.useLobby !== false;
+    var code = useLobby ? "" : (currentConfig.peerShare.lastRoomCode || "");
+    await window.PeerShareUI.joinRoom(code);
+    updatePeerRoomStatus();
   }
 
   function getFolderCountHtml() {
@@ -732,6 +772,7 @@
       case "desktop-char": return renderWallpaperDetail();
       case "interaction": return renderAiPopupDetail();
       case "process-rules": return renderProcessRulesDetail();
+      case "peer-share": return renderPeerShareDetail();
       case "hardcore": return renderHardcoreDetail();
       case "autostart": return renderAutostartDetail();
       case "silent": return renderSilentDetail();
@@ -748,6 +789,7 @@
     if (cardId === "ai-popup") { setTimeout(applyAiPreview, 100); }
     if (cardId === "stats") { loadCalendarData(); loadStats(); }
     if (cardId === "process-rules") { updateProcessRulesStatus(); }
+    if (cardId === "peer-share") { setTimeout(initPeerShareDetail, 50); }
     if (cardId === "folders" && currentConfig) {
       var fl = document.getElementById("folderList");
       if (fl) {
@@ -1202,7 +1244,42 @@
     );
   }
 
-  // === 强控模式 ===
+  // === 联机共享 ===
+  function renderPeerShareDetail() {
+    return panel("联机共享", '<p class="desc-text">与好友创建/加入同一个房间码，直接通过 WebRTC 互传图片和视频。接收到的内容只保存在内存中用于预览，关闭预览即释放，不写入磁盘、不经过任何云端服务器。</p>' +
+      switchRow("启用联机共享", "peerShareEnabled", cfg("peerShare.enabled")) +
+      '<label class="field"><span>显示昵称</span><input id="peerDisplayName" value="' + (cfg("peerShare.displayName") || "") + '" placeholder="给好友看到的名字（可选）"></label>' +
+      '<div class="field-row cols-2">' +
+      numField("单文件大小上限(MB)", "peerMaxFileSizeMb", cfg("peerShare.maxFileSizeMb", 200), 1, 2048) +
+      numField("同时传输数上限", "peerMaxConcurrentTransfers", cfg("peerShare.maxConcurrentTransfers", 2), 1, 10) +
+      '</div>' +
+      switchRow("同房间自动接收（不再逐个确认）", "peerAutoAcceptFromRoom", cfg("peerShare.autoAcceptFromRoom")) +
+      '<div class="actions-row" style="margin-top:8px"><button id="peerSelfTestBtn" class="btn">测试联机连通性</button></div>' +
+      '<p id="peerSelfTestResult" class="desc-text"></p>'
+    ) +
+    panel("房间", '<p class="desc-text">默认所有开启联机共享的用户会自动加入同一个公共大厅，方便直接互相发现和交流；如果想小范围交流，关闭"使用公共大厅"并输入/生成自己的房间码即可。</p>' +
+      switchRow("使用公共大厅（推荐）", "peerUseLobby", cfg("peerShare.useLobby", true) !== false) +
+      '<div class="field-row cols-2" id="peerCustomRoomRow">' +
+      '<label class="field"><span>自定义房间码</span><input id="peerRoomCodeInput" value="' + (cfg("peerShare.lastRoomCode") || "") + '" placeholder="输入或生成一个房间码"></label>' +
+      '<label class="field"><span>&nbsp;</span><div class="actions-row"><button id="peerGenerateRoomCodeBtn" class="btn">随机生成</button></div></label>' +
+      '</div>' +
+      '<div class="actions-row"><button id="peerJoinRoomBtn" class="btn primary">加入房间</button><button id="peerLeaveRoomBtn" class="btn">离开房间</button></div>' +
+      '<p id="peerRoomStatus" class="desc-text">未连接</p>' +
+      '<div id="peerList" style="margin-top:8px"></div>'
+    ) +
+    panel("接收保存", '<p class="desc-text">收到的图片/视频默认只在内存中预览；也可以保存到本地文件夹，或开启自动保存到该文件夹。</p>' +
+      '<label class="field"><span>接收文件夹</span><input id="peerReceiveFolderInput" readonly value="' + (cfg("peerShare.receiveFolder") || "（未设置，默认为下载目录\\Gooner-Received）") + '"></label>' +
+      '<div class="actions-row"><button id="peerChooseReceiveFolderBtn" class="btn">选择文件夹</button></div>' +
+      switchRow("接收后自动保存到该文件夹", "peerAutoSaveReceived", cfg("peerShare.autoSaveReceived"))
+    ) +
+    panel("发送文件", '<p class="desc-text">选择一张图片或一段视频发送给上方"房间"里勾选的对端；不勾选默认发给所有已连接的人。</p>' +
+      '<div class="actions-row"><button id="peerPickFileBtn" class="btn">选择文件</button></div>' +
+      '<div id="peerSendStatus" class="desc-text"></div>'
+    ) +
+    panel("接收记录", '<div id="peerIncomingList" style="min-height:40px;color:var(--muted);font-size:13px">暂无接收记录</div>');
+  }
+
+
   function renderHardcoreDetail() {
     return panel("强控模式", '<p class="desc-text">开启后主窗口和任务栏图标完全隐藏。请先配置全局快捷键确保可恢复。</p>' +
       switchRow("启用强控模式", "hardcoreModeToggle", cfg("hardcoreMode")), "danger-panel"
@@ -1299,6 +1376,288 @@
     if (bl) parts.push("黑名单: " + bl);
     if (wl) parts.push("白名单: " + wl);
     el.textContent = parts.join(" · ");
+  }
+
+  // ═════════════════════════════════════════════════
+  // 联机共享 (peer-share.js 提供底层 SimplePeer/IPC 逻辑，这里只做 UI 绑定)
+  // ═════════════════════════════════════════════════
+
+  var peerIncomingRecords = [];
+  var peerSelectedTargets = {}; // peerId -> true 已勾选为发送对象，默认全选
+
+  async function leavePeerRoom() {
+    if (window.PeerShareUI) {
+      await window.PeerShareUI.leaveRoom();
+    }
+    peerSelectedTargets = {};
+    updatePeerRoomStatus();
+  }
+
+  function updatePeerRoomStatus() {
+    var statusEl = document.getElementById("peerRoomStatus");
+    var listEl = document.getElementById("peerList");
+    if (!window.PeerShareUI) return;
+    var s = window.PeerShareUI.getState();
+    if (statusEl) {
+      statusEl.textContent = s.active
+        ? ("已加入房间 \"" + s.roomCode + "\" · 本机 ID " + s.selfPeerId.slice(0, 8) + " · 已连接 " + s.peers.length + " 个对端")
+        : "未连接";
+    }
+    if (listEl) {
+      // 默认全选所有对端；新出现的对端也默认勾选为发送目标，方便在多人房间里指定发给谁。
+      s.peers.forEach(function (id) {
+        if (!(id in peerSelectedTargets)) peerSelectedTargets[id] = true;
+      });
+      listEl.innerHTML = s.active && s.peers.length
+        ? '<div style="font-size:12px;color:var(--muted);padding:2px 0 4px">发送目标（勾选要发给谁，默认全部）：</div>' +
+          s.peers.map(function (id) {
+            var checked = peerSelectedTargets[id] !== false ? " checked" : "";
+            var nick = s.peerDisplayNames && s.peerDisplayNames[id];
+            var label = nick ? (nick + " (" + id.slice(0, 8) + ")") : ("对端 " + id.slice(0, 8));
+            return '<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);padding:2px 0">' +
+              '<input type="checkbox" data-peer-target="' + id + '"' + checked + '> ' + label +
+              '</label>';
+          }).join("")
+        : '<span style="color:var(--muted);font-size:12px">' + (s.active ? "等待对端加入房间..." : "") + '</span>';
+      var targetChecks = listEl.querySelectorAll("[data-peer-target]");
+      for (var t = 0; t < targetChecks.length; t++) {
+        targetChecks[t].addEventListener("change", function () {
+          peerSelectedTargets[this.getAttribute("data-peer-target")] = this.checked;
+        });
+      }
+    }
+  }
+
+  function renderPeerIncomingList() {
+    var el = document.getElementById("peerIncomingList");
+    if (!el) return;
+    if (!peerIncomingRecords.length) {
+      el.innerHTML = "暂无接收记录";
+      return;
+    }
+    el.innerHTML = peerIncomingRecords.map(function (rec, idx) {
+      var sizeKb = Math.round(rec.size / 1024);
+      if (rec.status === "pending") {
+        return '<div class="detail-panel" style="padding:8px;margin-bottom:6px">' +
+          '<div>' + rec.fileName + ' · ' + sizeKb + 'KB · 来自 ' + rec.fromPeerId.slice(0, 8) + '</div>' +
+          '<div class="actions-row" style="margin-top:4px"><button class="btn primary" data-peer-accept="' + rec.transferId + '">接收</button><button class="btn" data-peer-reject="' + rec.transferId + '">拒绝</button></div>' +
+          '</div>';
+      }
+      if (rec.status === "receiving") {
+        var pct = rec.size ? Math.round((rec.receivedSize / rec.size) * 100) : 0;
+        return '<div class="detail-panel" style="padding:8px;margin-bottom:6px">' + rec.fileName + ' · 接收中 ' + pct + '%</div>';
+      }
+      if (rec.status === "done") {
+        var isImage = rec.offer && rec.offer.kind === "image";
+        var isVideo = rec.offer && rec.offer.kind === "video";
+        var preview = isImage
+          ? '<img src="' + rec.url + '" style="max-width:100%;max-height:160px;display:block;margin-top:6px;border-radius:4px">'
+          : isVideo
+            ? '<video src="' + rec.url + '" controls style="max-width:100%;max-height:200px;display:block;margin-top:6px;border-radius:4px"></video>'
+            : "";
+        var saveInfo = rec.saveResult
+          ? (rec.saveResult.ok ? '<div style="color:var(--muted);font-size:12px;margin-top:4px">已保存: ' + rec.saveResult.filePath + '</div>' : '<div style="color:#e66;font-size:12px;margin-top:4px">保存失败: ' + rec.saveResult.detail + '</div>')
+          : "";
+        return '<div class="detail-panel" style="padding:8px;margin-bottom:6px">' +
+          '<div>' + rec.fileName + ' · ' + sizeKb + 'KB · 来自 ' + rec.fromPeerId.slice(0, 8) + '</div>' +
+          preview +
+          saveInfo +
+          '<div class="actions-row" style="margin-top:4px"><button class="btn" data-peer-save="' + idx + '">保存到本地</button><button class="btn" data-peer-close-preview="' + idx + '">关闭预览并释放内存</button></div>' +
+          '</div>';
+      }
+      return "";
+    }).join("");
+
+    var acceptBtns = el.querySelectorAll("[data-peer-accept]");
+    for (var i = 0; i < acceptBtns.length; i++) {
+      acceptBtns[i].addEventListener("click", function () {
+        var transferId = this.getAttribute("data-peer-accept");
+        var rec = peerIncomingRecords.find(function (r) { return r.transferId === transferId; });
+        if (rec) rec.status = "receiving";
+        window.PeerShareUI.acceptIncomingTransfer(transferId);
+        renderPeerIncomingList();
+      });
+    }
+    var rejectBtns = el.querySelectorAll("[data-peer-reject]");
+    for (var j = 0; j < rejectBtns.length; j++) {
+      rejectBtns[j].addEventListener("click", function () {
+        var transferId = this.getAttribute("data-peer-reject");
+        window.PeerShareUI.rejectIncomingTransfer(transferId);
+        peerIncomingRecords = peerIncomingRecords.filter(function (r) { return r.transferId !== transferId; });
+        renderPeerIncomingList();
+      });
+    }
+    var saveBtns = el.querySelectorAll("[data-peer-save]");
+    for (var m = 0; m < saveBtns.length; m++) {
+      saveBtns[m].addEventListener("click", async function () {
+        var idx3 = Number(this.getAttribute("data-peer-save"));
+        var rec3 = peerIncomingRecords[idx3];
+        if (!rec3) return;
+        this.textContent = "保存中...";
+        var r3 = await savePeerReceivedRecord(rec3);
+        rec3.saveResult = r3;
+        renderPeerIncomingList();
+      });
+    }
+    var closeBtns = el.querySelectorAll("[data-peer-close-preview]");
+    for (var k = 0; k < closeBtns.length; k++) {
+      closeBtns[k].addEventListener("click", function () {
+        var idx2 = Number(this.getAttribute("data-peer-close-preview"));
+        var rec = peerIncomingRecords[idx2];
+        if (rec && rec.url) { URL.revokeObjectURL(rec.url); }
+        peerIncomingRecords.splice(idx2, 1);
+        renderPeerIncomingList();
+      });
+    }
+  }
+
+  var peerCallbacksBound = false;
+  function ensurePeerShareCallbacksBound() {
+    if (peerCallbacksBound || !window.PeerShareUI) return;
+    peerCallbacksBound = true;
+    window.PeerShareUI.setCallbacks({
+      onStatusChange: function () { updatePeerRoomStatus(); },
+      onIncomingOffer: function (fromPeerId, offer) {
+        peerIncomingRecords.unshift({
+          transferId: offer.transferId,
+          fileName: offer.fileName,
+          size: offer.size,
+          offer: offer,
+          fromPeerId: fromPeerId,
+          receivedSize: 0,
+          status: currentConfig && currentConfig.peerShare && currentConfig.peerShare.autoAcceptFromRoom ? "receiving" : "pending"
+        });
+        if (currentConfig && currentConfig.peerShare && currentConfig.peerShare.autoAcceptFromRoom) {
+          window.PeerShareUI.acceptIncomingTransfer(offer.transferId);
+        }
+        renderPeerIncomingList();
+      },
+      onIncomingProgress: function (transferId, receivedSize) {
+        var rec = peerIncomingRecords.find(function (r) { return r.transferId === transferId; });
+        if (rec) { rec.receivedSize = receivedSize; renderPeerIncomingList(); }
+      },
+      onIncomingComplete: function (transferId, blob) {
+        var rec = peerIncomingRecords.find(function (r) { return r.transferId === transferId; });
+        if (rec) {
+          rec.status = "done";
+          rec.blob = blob;
+          rec.url = URL.createObjectURL(blob);
+          renderPeerIncomingList();
+          if (currentConfig && currentConfig.peerShare && currentConfig.peerShare.autoSaveReceived) {
+            savePeerReceivedRecord(rec).then(function (r2) {
+              rec.saveResult = r2;
+              renderPeerIncomingList();
+            });
+          }
+        }
+      }
+    });
+  }
+
+  function initPeerShareDetail() {
+    if (!window.PeerShareUI) return;
+    ensurePeerShareCallbacksBound();
+
+    updatePeerRoomStatus();
+    renderPeerIncomingList();
+    renderPeerSelfTestResult();
+
+    var joinBtn = document.getElementById("peerJoinRoomBtn");
+    var leaveBtn = document.getElementById("peerLeaveRoomBtn");
+    var genBtn = document.getElementById("peerGenerateRoomCodeBtn");
+    var pickBtn = document.getElementById("peerPickFileBtn");
+    var roomInput = document.getElementById("peerRoomCodeInput");
+    var sendStatusEl = document.getElementById("peerSendStatus");
+    var useLobbyToggle = document.getElementById("peerUseLobby");
+    var customRoomRow = document.getElementById("peerCustomRoomRow");
+    var selfTestBtn = document.getElementById("peerSelfTestBtn");
+    var selfTestResultEl = document.getElementById("peerSelfTestResult");
+
+    function syncCustomRoomRowVisibility() {
+      if (!customRoomRow) return;
+      var useLobby = useLobbyToggle ? useLobbyToggle.checked : true;
+      customRoomRow.style.opacity = useLobby ? "0.5" : "1";
+      if (roomInput) roomInput.disabled = useLobby;
+    }
+    syncCustomRoomRowVisibility();
+    if (useLobbyToggle) {
+      useLobbyToggle.addEventListener("change", syncCustomRoomRowVisibility);
+    }
+
+    if (selfTestBtn) {
+      selfTestBtn.onclick = async function () {
+        if (!window.peerShare || !window.peerShare.selfTest) return;
+        selfTestResultEl.textContent = "测试中...";
+        lastPeerSelfTestResult = await window.peerShare.selfTest();
+        renderPeerSelfTestResult();
+      };
+    }
+
+    if (joinBtn) {
+      joinBtn.onclick = async function () {
+        var useLobby = useLobbyToggle ? useLobbyToggle.checked : true;
+        var code = useLobby ? "" : (roomInput ? roomInput.value.trim() : "");
+        if (!useLobby && !code) { if (sendStatusEl) sendStatusEl.textContent = "请输入或生成房间码"; return; }
+        var result = await window.PeerShareUI.joinRoom(code);
+        if (!result || !result.ok) {
+          if (sendStatusEl) sendStatusEl.textContent = "加入房间失败";
+        } else if (sendStatusEl) {
+          sendStatusEl.textContent = result.isPublicLobby ? "已加入公共大厅" : ("已加入房间 " + result.roomCode);
+        }
+        updatePeerRoomStatus();
+      };
+    }
+    if (leaveBtn) {
+      leaveBtn.onclick = function () { leavePeerRoom(); };
+    }
+    if (genBtn) {
+      genBtn.onclick = function () {
+        if (roomInput) roomInput.value = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+      };
+    }
+    if (pickBtn) {
+      pickBtn.onclick = function () {
+        var input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*,video/*";
+        input.onchange = async function () {
+          var file = input.files && input.files[0];
+          if (!file) return;
+          var s = window.PeerShareUI.getState();
+          var targets = s.peers.filter(function (id) { return peerSelectedTargets[id] !== false; });
+          if (!s.active || !targets.length) {
+            if (sendStatusEl) sendStatusEl.textContent = s.active ? "请至少勾选一个发送目标" : "请先加入房间并等待对端连接";
+            return;
+          }
+          for (var i = 0; i < targets.length; i++) {
+            var res = await window.PeerShareUI.sendFile(targets[i], file);
+            if (sendStatusEl) sendStatusEl.textContent = res && res.ok ? ("已发送给 " + targets[i].slice(0, 8)) : ("发送失败: " + (res && res.errorKey));
+          }
+        };
+        input.click();
+      };
+    }
+
+    var chooseReceiveFolderBtn = document.getElementById("peerChooseReceiveFolderBtn");
+    var receiveFolderInput = document.getElementById("peerReceiveFolderInput");
+    if (chooseReceiveFolderBtn) {
+      chooseReceiveFolderBtn.onclick = async function () {
+        if (!window.peerShare || !window.peerShare.chooseReceiveFolder) return;
+        var r = await window.peerShare.chooseReceiveFolder();
+        if (r && r.ok && receiveFolderInput) {
+          receiveFolderInput.value = r.folder;
+          if (!currentConfig.peerShare) currentConfig.peerShare = {};
+          currentConfig.peerShare.receiveFolder = r.folder;
+        }
+      };
+    }
+  }
+
+  // 把已完成接收的记录保存到本地接收文件夹；blob 转为 ArrayBuffer 后经 IPC 传给主进程写盘。
+  async function savePeerReceivedRecord(rec) {
+    if (!rec || !rec.blob || !window.peerShare || !window.peerShare.saveReceivedFile) return null;
+    var buf = await rec.blob.arrayBuffer();
+    return window.peerShare.saveReceivedFile(rec.fileName, buf);
   }
 
   // ═════════════════════════════════════════════════
@@ -1767,6 +2126,21 @@
       else if (id === "processRulesStopOnBlacklist") currentConfig.processRules.stopOnBlacklist = val;
       else if (id === "processRulesStopOnWhitelistExit") currentConfig.processRules.stopOnWhitelistExit = val;
       else if (id === "processRulesCheckIntervalSeconds") currentConfig.processRules.checkIntervalSeconds = Number(val);
+      return;
+    }
+    // peer*
+    if (id.indexOf("peer") === 0) {
+      if (!currentConfig.peerShare) currentConfig.peerShare = {};
+      if (id === "peerShareEnabled") {
+        currentConfig.peerShare.enabled = val;
+        if (val) { void autoJoinPeerShareRoom(); } else { void leavePeerRoom(); }
+      }
+      else if (id === "peerDisplayName") currentConfig.peerShare.displayName = val;
+      else if (id === "peerMaxFileSizeMb") currentConfig.peerShare.maxFileSizeMb = Number(val);
+      else if (id === "peerMaxConcurrentTransfers") currentConfig.peerShare.maxConcurrentTransfers = Number(val);
+      else if (id === "peerAutoAcceptFromRoom") currentConfig.peerShare.autoAcceptFromRoom = val;
+      else if (id === "peerUseLobby") currentConfig.peerShare.useLobby = val;
+      else if (id === "peerAutoSaveReceived") currentConfig.peerShare.autoSaveReceived = val;
       return;
     }
     // ai.*
@@ -2438,6 +2812,12 @@
     // 获取初始状态
     var state = await mp.getState();
     if (state) updateState(state);
+
+    // 若配置里联机共享已经是开启状态（比如上次退出前开着），启动时自动测试联通性并加入房间，
+    // 不需要用户每次重新点开关。
+    if (currentConfig && currentConfig.peerShare && currentConfig.peerShare.enabled) {
+      void autoJoinPeerShareRoom();
+    }
 
     // 绑定控制按钮
     bindControlButtons();

@@ -86,6 +86,26 @@ const defaultOnlineMediaConfig = {
   sourceUrl: ''
 };
 
+const defaultPeerShareConfig = {
+  enabled: false,
+  displayName: '',
+  maxFileSizeMb: 200,
+  maxConcurrentTransfers: 2,
+  autoAcceptFromRoom: false,
+  // 是否在收到文件时自动保存到 receiveFolder；关闭时用户可手动点击"保存到本地"。
+  autoSaveReceived: false,
+  // 默认加入公共大厅房间，方便所有开启此功能的用户直接互相发现和交流；
+  // 关闭后需要自己填/生成一个房间码来创建独立小房间。
+  useLobby: true,
+  lastRoomCode: '',
+  // 接收到的图片/视频的默认保存目录；为空时首次保存会使用系统下载目录下的 Gooner-Received 子文件夹。
+  receiveFolder: '',
+  stunServers: [
+    'stun:stun.l.google.com:19302',
+    'stun:global.stun.twilio.com:3478'
+  ]
+};
+
 const defaultPollutionConfig = {
   enabled: false,
   clipboardEnabled: false,
@@ -228,6 +248,7 @@ const defaultConfig = {
   wallpaper: defaultWallpaperConfig,
   desktopCharacter: defaultDesktopCharacterConfig,
   onlineMedia: defaultOnlineMediaConfig,
+  peerShare: defaultPeerShareConfig,
   ai: defaultAiConfig,
   pollution: defaultPollutionConfig,
   hardcoreMode: false,
@@ -271,6 +292,10 @@ function cloneDefaultConfig() {
     wallpaper: { ...defaultWallpaperConfig },
     desktopCharacter: { ...defaultDesktopCharacterConfig },
     onlineMedia: { ...defaultOnlineMediaConfig },
+    peerShare: {
+      ...defaultPeerShareConfig,
+      stunServers: [...defaultPeerShareConfig.stunServers]
+    },
     pollution: { ...defaultPollutionConfig },
     visualIntervention: { ...defaultVisualInterventionConfig },
     websiteLibrary: { ...defaultWebsiteLibraryConfig },
@@ -737,6 +762,33 @@ function normalizeWebsiteLibrary(input) {
   };
 }
 
+function normalizeStunUrl(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+  const trimmed = value.trim();
+  return /^stuns?:[^\s]+$/i.test(trimmed) ? trimmed : '';
+}
+
+function normalizePeerShareConfig(input) {
+  const next = input && typeof input === 'object' ? input : {};
+  const rawStun = Array.isArray(next.stunServers) ? next.stunServers : defaultPeerShareConfig.stunServers;
+  const stunServers = [...new Set(rawStun.map(normalizeStunUrl).filter(Boolean))].slice(0, 10);
+
+  return {
+    enabled: Boolean(next.enabled),
+    displayName: normalizeSingleLineText(next.displayName, 40),
+    maxFileSizeMb: Math.round(clampNumber(next.maxFileSizeMb, 1, 2048, defaultPeerShareConfig.maxFileSizeMb)),
+    maxConcurrentTransfers: Math.round(clampNumber(next.maxConcurrentTransfers, 1, 10, defaultPeerShareConfig.maxConcurrentTransfers)),
+    autoAcceptFromRoom: Boolean(next.autoAcceptFromRoom),
+    autoSaveReceived: Boolean(next.autoSaveReceived),
+    useLobby: typeof next.useLobby === 'boolean' ? next.useLobby : defaultPeerShareConfig.useLobby,
+    lastRoomCode: normalizeSingleLineText(next.lastRoomCode, 64),
+    receiveFolder: normalizeSingleLineText(next.receiveFolder, 512),
+    stunServers: stunServers.length ? stunServers : [...defaultPeerShareConfig.stunServers]
+  };
+}
+
 function normalizeProcessRuleList(value) {
   const rawItems = Array.isArray(value)
     ? value
@@ -1040,6 +1092,7 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.wallpaper = normalizeWallpaperConfig(next.wallpaper);
   next.desktopCharacter = normalizeDesktopCharacterConfig(next.desktopCharacter);
   next.ai = normalizeAiConfig(next.ai, next);
+  next.peerShare = normalizePeerShareConfig(next.peerShare);
   next.windowBounds = normalizeWindowBounds(next.windowBounds);
 
   if (!hasImageBaseWidth && hasBaseWidth) {
@@ -1226,6 +1279,7 @@ module.exports = {
   loadConfigFile,
   normalizeAiConfig,
   normalizeConfig,
+  normalizePeerShareConfig,
   normalizeWebsiteLibrary,
   normalizeSingleLineText,
   normalizeText,
