@@ -2,6 +2,7 @@ const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { findBestMediaForDisplay } = require('./media-utils');
+const { mapWallpapersToDisplays } = require('../shared/wallpaper-monitor-mapping');
 
 let overlayWindows = [];
 let currentConfig = null;
@@ -207,7 +208,7 @@ async function sendConfigToOverlay() {
         overlayWindow.webContents.send('visual:update-config', {
           ghostEnabled: vc.ghostEnabled || false,
           ghostSyncWithWallpaper: vc.ghostSyncWithWallpaper || false,
-          synchronizedMedia: synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null,
+          synchronizedWallpaper: synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null,
           xrayEnabled: vc.xrayEnabled || false,
           waterfallEnabled: isWaterfall,
           ghostOpacity: vc.ghostOpacity || 5,
@@ -231,27 +232,19 @@ async function sendConfigToOverlay() {
 }
 
 function onWallpapersApplied(entries, monitors = []) {
-  const monitorIndexById = new Map(monitors.map((monitor, index) => [String(monitor.id), index]));
-  const assignedDisplays = new Set();
-  for (const [monitorId, imagePath] of entries) {
-    const displayIndex = monitorIndexById.get(String(monitorId));
-    if (displayIndex !== undefined) {
-      const monitor = monitors[displayIndex];
-      const matchingWindow = overlayWindows.find((overlayWindow) => {
-        if (!overlayWindow || assignedDisplays.has(overlayWindow.displayIndex)) return false;
-        const bounds = overlayWindow.monitorBounds;
-        return bounds.width === monitor.width && bounds.height === monitor.height;
-      });
-      const targetIndex = matchingWindow ? matchingWindow.displayIndex : displayIndex;
-      synchronizedWallpaperByDisplay.set(targetIndex, imagePath);
-      console.log(`[VisualOverlay] Synced display ${targetIndex} to wallpaper: ${imagePath}`);
-      assignedDisplays.add(targetIndex);
-    }
+  const displays = screen.getAllDisplays();
+  const toDipPoint = typeof screen.screenToDipPoint === 'function'
+    ? point => screen.screenToDipPoint(point)
+    : null;
+  const assignments = mapWallpapersToDisplays(entries, monitors, displays, toDipPoint);
+  for (const { displayIndex, sync } of assignments) {
+    synchronizedWallpaperByDisplay.set(displayIndex, sync);
+    console.log(`[VisualOverlay] Synced display ${displayIndex} to wallpaper: ${sync.media} (${sync.position})`);
   }
   for (const overlayWindow of overlayWindows) {
     if (!overlayWindow || overlayWindow.isDestroyed()) continue;
-    const media = synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null;
-    overlayWindow.webContents.send('visual:wallpaper-sync', media);
+    const sync = synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null;
+    overlayWindow.webContents.send('visual:wallpaper-sync', sync);
   }
 }
 

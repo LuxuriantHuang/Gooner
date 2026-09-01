@@ -15,6 +15,16 @@ using WpfDrawing = System.Windows.Media.DrawingContext;
 
 internal static class NativeMethods
 {
+    internal enum DESKTOP_WALLPAPER_POSITION
+    {
+        Center = 0,
+        Tile = 1,
+        Stretch = 2,
+        Fit = 3,
+        Fill = 4,
+        Span = 5
+    }
+
     internal delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
     internal delegate void WinEventDelegate(IntPtr hook, uint eventType, IntPtr hwnd, int objectId, int childId, uint threadId, uint time);
     internal delegate IntPtr MouseHookDelegate(int code, IntPtr wParam, IntPtr lParam);
@@ -27,6 +37,10 @@ internal static class NativeMethods
         [return: MarshalAs(UnmanagedType.LPWStr)] string GetMonitorDevicePathAt(uint monitorIndex);
         [return: MarshalAs(UnmanagedType.U4)] uint GetMonitorDevicePathCount();
         void GetMonitorRECT([MarshalAs(UnmanagedType.LPWStr)] string monitorId, out RECT displayRect);
+        void SetBackgroundColor(uint color);
+        [return: MarshalAs(UnmanagedType.U4)] uint GetBackgroundColor();
+        void SetPosition(DESKTOP_WALLPAPER_POSITION position);
+        DESKTOP_WALLPAPER_POSITION GetPosition();
     }
 
     [ComImport, Guid("C2CF3110-460E-4FC1-B9D0-8A1C0C9CC4BD")]
@@ -632,12 +646,19 @@ internal sealed class DesktopHostContext : ApplicationContext
         {
             NativeMethods.IDesktopWallpaper wallpaper = GetDesktopWallpaper();
             uint count = wallpaper.GetMonitorDevicePathCount();
+            NativeMethods.DESKTOP_WALLPAPER_POSITION position = wallpaper.GetPosition();
             for (uint i = 0; i < count; i++)
             {
                 string monitorId = wallpaper.GetMonitorDevicePathAt(i);
                 NativeMethods.RECT rect;
                 wallpaper.GetMonitorRECT(monitorId, out rect);
-                Console.WriteLine("MONITOR\t" + monitorId + "\t" + (rect.Right - rect.Left) + "\t" + (rect.Bottom - rect.Top));
+                Console.WriteLine(
+                    "MONITOR\t" + monitorId
+                    + "\t" + rect.Left
+                    + "\t" + rect.Top
+                    + "\t" + (rect.Right - rect.Left)
+                    + "\t" + (rect.Bottom - rect.Top)
+                    + "\t" + position.ToString().ToLowerInvariant());
             }
             Console.WriteLine("MONITORS_END\t" + count);
         }

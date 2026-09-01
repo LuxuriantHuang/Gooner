@@ -5,7 +5,7 @@
   "main": "src/main/main.js",
   "scripts": {
     "build:native": "node scripts/build-desktop-host.js",
-    "test:wallpaper-focus": "node --test test/wallpaper-focus-state.test.js",
+    "test:wallpaper-focus": "node --test test/wallpaper-*.test.js",
     "test:peer-share": "node --test test/peer-share-protocol.test.js",
     "predev": "npm run build:native",
     "dev": "electron .",

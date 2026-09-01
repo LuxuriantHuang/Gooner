@@ -14,6 +14,7 @@ using System;
 using System.Runtime.InteropServices;
 namespace DCW {
     public class W {
+        public enum DESKTOP_WALLPAPER_POSITION { Center = 0, Tile = 1, Stretch = 2, Fit = 3, Fill = 4, Span = 5 }
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
         [ComImport, Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -23,16 +24,21 @@ namespace DCW {
             [return: MarshalAs(UnmanagedType.LPWStr)] string GetMonitorDevicePathAt(uint monitorIndex);
             [return: MarshalAs(UnmanagedType.U4)] uint GetMonitorDevicePathCount();
             void GetMonitorRECT([MarshalAs(UnmanagedType.LPWStr)] string monitorID, out RECT displayRect);
+            void SetBackgroundColor(uint color);
+            [return: MarshalAs(UnmanagedType.U4)] uint GetBackgroundColor();
+            void SetPosition(DESKTOP_WALLPAPER_POSITION position);
+            DESKTOP_WALLPAPER_POSITION GetPosition();
         }
         [ComImport, Guid("C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD")] public class DesktopWallpaperClass { }
         public static string[] List() {
             var w = (IDesktopWallpaper)new DesktopWallpaperClass();
             uint c = w.GetMonitorDevicePathCount();
+            DESKTOP_WALLPAPER_POSITION position = w.GetPosition();
             string[] result = new string[c];
             for (uint i = 0; i < c; i++) {
                 string p = w.GetMonitorDevicePathAt(i);
                 RECT r; w.GetMonitorRECT(p, out r);
-                result[i] = p + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top);
+                result[i] = p + "|" + r.Left + "|" + r.Top + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top) + "|" + position.ToString().ToLowerInvariant();
             }
             return result;
         }
@@ -449,10 +455,20 @@ class DesktopCharacterService {
       } else if (event === 'MONITOR') {
         if (this._pendingMonitors) {
           const parts = line.split('\t');
-          const w = parseInt(parts[2], 10);
-          const h = parseInt(parts[3], 10);
+          const extended = parts.length >= 7;
+          const x = extended ? parseInt(parts[2], 10) : 0;
+          const y = extended ? parseInt(parts[3], 10) : 0;
+          const w = parseInt(parts[extended ? 4 : 2], 10);
+          const h = parseInt(parts[extended ? 5 : 3], 10);
           if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
-            this._pendingMonitors.monitors.push({ id: parts[1], width: w, height: h });
+            this._pendingMonitors.monitors.push({
+              id: parts[1],
+              x,
+              y,
+              width: w,
+              height: h,
+              position: extended ? parts[6] : 'fill'
+            });
           }
         }
       } else if (event === 'MONITORS_END') {
@@ -509,11 +525,14 @@ class DesktopCharacterService {
         .map(line => line.trim())
         .filter(Boolean)
         .map(line => {
-          const [id, w, h] = line.split('|');
+          const [id, x, y, w, h, position] = line.split('|');
           return {
             id,
+            x: parseInt(x, 10),
+            y: parseInt(y, 10),
             width: Math.abs(parseInt(w, 10)),
-            height: Math.abs(parseInt(h, 10))
+            height: Math.abs(parseInt(h, 10)),
+            position: position || 'fill'
           };
         })
         .filter(m => Number.isFinite(m.width) && Number.isFinite(m.height) && m.width > 0 && m.height > 0);

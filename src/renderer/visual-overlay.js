@@ -1,4 +1,5 @@
 const { ipcRenderer } = require('electron');
+const { calculateWallpaperStyle, normalizeWallpaperPosition } = require('../shared/wallpaper-layout');
 
 const ambientLayer = document.getElementById('ambient-layer');
 const xrayLayer = document.getElementById('xray-layer');
@@ -10,6 +11,7 @@ let waterfallAnimationFrame = null;
 let waterfallItems = [];
 let ambientInterval = null;
 let xrayInterval = null;
+let synchronizedGhostUpdate = 0;
 
 // Handle mouse movement for X-ray
 window.addEventListener('mousemove', (e) => {
@@ -51,14 +53,16 @@ function updateGhost() {
 
   ambientLayer.style.display = 'block';
   ambientLayer.style.opacity = (currentConfig.ghostOpacity || 5) / 100;
-  ambientLayer.style.backgroundPosition = currentConfig.ghostSyncWithWallpaper
-    ? 'center bottom'
-    : 'center center';
-  const media = currentConfig.ghostSyncWithWallpaper
-    ? currentConfig.synchronizedMedia
-    : getRandomMedia();
-  if (media) ambientLayer.style.backgroundImage = `url('file://${media.replace(/\\/g, '/')}')`;
-  else ambientLayer.style.backgroundImage = 'none';
+  if (currentConfig.ghostSyncWithWallpaper) {
+    updateSynchronizedGhost(currentConfig.synchronizedWallpaper).catch(error => {
+      console.error('[VisualOverlayRenderer] Failed to apply synchronized wallpaper:', error);
+    });
+  } else {
+    resetGhostLayout();
+    const media = getRandomMedia();
+    if (media) ambientLayer.style.backgroundImage = toBackgroundImage(media);
+    else ambientLayer.style.backgroundImage = 'none';
+  }
   
   // Change ghost image based on interval
   const updateGhostInterval = () => {
@@ -79,13 +83,51 @@ function updateGhost() {
   }
 }
 
-function updateSynchronizedGhost(media) {
+async function updateSynchronizedGhost(sync) {
   if (!currentConfig || !currentConfig.ghostEnabled || !currentConfig.ghostSyncWithWallpaper) return;
-  if (media) {
-    console.info('[VisualOverlayRenderer] Applying synchronized ghost media:', media);
-    ambientLayer.style.backgroundPosition = 'center bottom';
-    ambientLayer.style.backgroundImage = `url('file://${media.replace(/\\/g, '/')}')`;
+  const updateId = ++synchronizedGhostUpdate;
+  if (!sync || !sync.media) {
+    ambientLayer.style.backgroundImage = 'none';
+    return;
   }
+
+  console.info('[VisualOverlayRenderer] Applying synchronized ghost media:', sync.media, sync.position);
+  const position = normalizeWallpaperPosition(sync.position);
+  let imageSize = null;
+  if (position === 'center' || position === 'tile' || position === 'span') {
+    imageSize = await loadImageSize(sync.media);
+    if (updateId !== synchronizedGhostUpdate) return;
+  }
+  const style = calculateWallpaperStyle({
+    position,
+    imageWidth: imageSize?.width,
+    imageHeight: imageSize?.height,
+    monitorBounds: sync.monitorBounds,
+    virtualBounds: sync.virtualBounds,
+    scaleFactor: sync.scaleFactor || window.devicePixelRatio
+  });
+  Object.assign(ambientLayer.style, style);
+  ambientLayer.style.backgroundImage = toBackgroundImage(sync.media);
+}
+
+function resetGhostLayout() {
+  synchronizedGhostUpdate += 1;
+  ambientLayer.style.backgroundPosition = 'center center';
+  ambientLayer.style.backgroundRepeat = 'no-repeat';
+  ambientLayer.style.backgroundSize = 'cover';
+}
+
+function toBackgroundImage(media) {
+  return `url('file://${media.replace(/\\/g, '/')}')`;
+}
+
+function loadImageSize(media) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => reject(new Error(`Unable to load synchronized wallpaper: ${media}`));
+    image.src = `file://${media.replace(/\\/g, '/')}`;
+  });
 }
 
 function updateXray() {
@@ -215,9 +257,11 @@ ipcRenderer.on('visual:update-config', (event, config) => {
   updateWaterfall();
 });
 
-ipcRenderer.on('visual:wallpaper-sync', (event, media) => {
-  if (currentConfig) currentConfig.synchronizedMedia = media;
-  updateSynchronizedGhost(media);
+ipcRenderer.on('visual:wallpaper-sync', (event, sync) => {
+  if (currentConfig) currentConfig.synchronizedWallpaper = sync;
+  updateSynchronizedGhost(sync).catch(error => {
+    console.error('[VisualOverlayRenderer] Failed to apply synchronized wallpaper:', error);
+  });
 });
 
 ipcRenderer.on('visual:trigger-flash', (event, explicitlyProvidedMedia) => {
