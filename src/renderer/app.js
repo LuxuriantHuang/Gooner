@@ -816,6 +816,15 @@
     return '<section class="detail-panel' + (cls ? " " + cls : "") + '"><h3>' + title + '</h3>' + body + '</section>';
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   function switchRow(label, id, checked) {
     return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="' + id + '"' + (checked ? " checked" : "") + '><i></i></label>';
   }
@@ -957,6 +966,14 @@
   // === 媒体弹窗 ===
   function renderPopupDetail() {
     var html = "";
+    var displays = currentState && Array.isArray(currentState.displays) ? currentState.displays : [];
+    var selectedDisplayIds = Array.isArray(currentConfig && currentConfig.popupDisplayIds) ? currentConfig.popupDisplayIds.map(String) : [];
+    var displayOptions = displays.length ? displays.map(function (display) {
+      var displayId = String(display.id);
+      var label = "显示器 " + (Number(display.index) + 1) + (display.isPrimary ? "（主显示器）" : "");
+      return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="popupDisplay_' + escapeHtml(displayId) + '" data-display-id="' + escapeHtml(displayId) + '"' + (selectedDisplayIds.indexOf(displayId) !== -1 ? ' checked' : '') + '><i></i></label>';
+    }).join("") : '<p class="desc-text">暂未检测到显示器信息。</p>';
+    html += panel("显示器范围", '<p class="desc-text">勾选后，媒体弹窗和 AI 文本弹窗只会出现在选中的显示器。一个都不勾选时使用全部显示器。</p><div class="field-row cols-2">' + displayOptions + '</div>');
     html += panel("调度参数",
       '<p class="desc-text">控制弹窗的触发频率、数量限制和播放行为。</p>' +
       '<div class="field-row cols-2">' +
@@ -987,6 +1004,10 @@
       switchRow("置顶显示", "alwaysOnTop", cfg("alwaysOnTop")) +
       switchRow("全屏覆盖", "fullscreen", cfg("fullscreen")) +
       switchRow("视频静音", "muted", cfg("muted")) +
+      switchRow("统一视频音量", "videoVolumeNormalizationEnabled", cfg("videoVolumeNormalizationEnabled")) +
+      '<div id="videoVolumeNormalizationPanel"' + (cfg("videoVolumeNormalizationEnabled") ? '' : ' hidden') + '>' +
+      numField("目标音量 (0.1-1.0)", "videoVolumeNormalizationTarget", cfg("videoVolumeNormalizationTarget", 0.7), 0.1, 1, 0.01) +
+      '</div>' +
       switchRow("视频完成关闭", "closeVideoOnEnded", cfg("closeVideoOnEnded")) +
       switchRow("混乱视频", "chaosVideo", cfg("chaosVideo")) +
       switchRow("点击关闭", "clickToClose", cfg("clickToClose")) +
@@ -1055,13 +1076,134 @@
       ]) +
       switchRow("失焦自动换回", "wallpaperFocusRestoreEnabled", cfg("wallpaper.focusRestoreEnabled")) +
       '</div>' +
-      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：切换到其他窗口时记录壁纸，返回桌面时恢复并换新。普通壁纸与角色壁纸均适用。</p>' +
+      '<p class="desc-text" style="margin-top:4px;color:#6b7385">失焦换回：切换到其他窗口时恢复原壁纸，返回桌面时重新应用上次壁纸；下一次定时到点后再轮换。普通壁纸与角色壁纸均适用。</p>' +
       '<div class="actions-row"><button id="testWallpaperButton" class="btn">测试普通壁纸</button><button id="refreshDesktopCharacterButton" class="btn">刷新角色壁纸</button></div>'
     );
   }
   
   // === 智能角色（已合并到壁纸面板，此处作为快捷入口） ===
   // === AI 文本弹窗 ===
+  function getAiCards() {
+    if (!currentConfig) return [];
+    if (!currentConfig.ai) currentConfig.ai = {};
+    if (!Array.isArray(currentConfig.ai.cards)) currentConfig.ai.cards = [];
+    return currentConfig.ai.cards;
+  }
+
+  function getActiveAiCard() {
+    var cards = getAiCards();
+    if (!cards.length) {
+      var card = { id: "default", name: "默认角色", avatar: "", systemPrompt: "", knowledgeBase: "", contextMemory: "", oneTimeReplyGuidance: "", profile: { age: "", name: "", companionName: "", companionRole: "", appearance: "", dailyPersona: "", sceneLibrary: "" } };
+      cards.push(card);
+      currentConfig.ai.popupCardId = card.id;
+      currentConfig.ai.interactionCardId = card.id;
+      currentConfig.ai.pollutionCardId = card.id;
+    }
+    var activeId = aiActiveEditCardId || currentConfig.ai.popupCardId;
+    var active = cards.find(function (card) { return card.id === activeId; });
+    return active || cards[0];
+  }
+
+  function renderAiCardEditor() {
+    var ai = currentConfig.ai || {};
+    var cards = getAiCards();
+    var active = getActiveAiCard();
+    aiActiveEditCardId = active.id;
+    var options = cards.map(function (card) {
+      return '<option value="' + escapeHtml(card.id) + '"' + (card.id === active.id ? ' selected' : '') + '>' + escapeHtml(card.name || "默认角色") + '</option>';
+    }).join("");
+    var roleOptions = function (selectedId) { return cards.map(function (card) {
+      return '<option value="' + escapeHtml(card.id) + '"' + (card.id === selectedId ? ' selected' : '') + '>' + escapeHtml(card.name || "默认角色") + '</option>';
+    }).join(""); };
+    var profile = active.profile || {};
+    return panel("角色卡与提示词", '<div class="field-row cols-2">' +
+      '<label class="field"><span>编辑角色卡</span><select id="aiCardSelect">' + options + '</select></label>' +
+      '<div class="actions-row" style="align-self:end"><button id="aiNewCardButton" class="btn">新建</button><button id="aiCloneCardButton" class="btn">克隆</button><button id="aiDeleteCardButton" class="btn">删除</button></div>' +
+      '</div>' +
+      '<div class="field-row cols-2">' +
+      '<label class="field"><span>角色名字</span><input id="aiCardName" value="' + escapeHtml(active.name) + '"></label>' +
+      '<label class="field"><span>角色头像路径</span><div style="display:flex;gap:6px"><input id="aiCardAvatar" value="' + escapeHtml(active.avatar) + '" placeholder="本地图片路径"><button id="aiChooseAvatarButton" class="btn">浏览</button></div></label>' +
+      '</div>' +
+      '<label class="field"><span>系统提示词</span><textarea id="aiCardSystemPrompt" rows="5" placeholder="定义角色的身份、语气和输出规则">' + escapeHtml(active.systemPrompt) + '</textarea></label>' +
+      '<div class="field-row cols-2"><label class="field"><span>知识库</span><textarea id="aiCardKnowledgeBase" rows="6" placeholder="角色背景、设定和参考资料">' + escapeHtml(active.knowledgeBase) + '</textarea></label>' +
+      '<label class="field"><span>上下文记忆</span><textarea id="aiCardContextMemory" rows="6" placeholder="持续提供给 AI 的简短上下文">' + escapeHtml(active.contextMemory) + '</textarea></label></div>' +
+      '<label class="field"><span>一次性回复指导</span><textarea id="aiCardOneTimeReplyGuidance" rows="3" placeholder="仅用于下一次生成，发送后会自动清空">' + escapeHtml(active.oneTimeReplyGuidance) + '</textarea></label>' +
+      '<div class="field-row cols-3">' +
+      '<label class="field"><span>年龄</span><input id="aiCardProfileAge" type="number" min="18" max="99" value="' + escapeHtml(profile.age) + '"></label>' +
+      '<label class="field"><span>用户名字</span><input id="aiCardProfileName" value="' + escapeHtml(profile.name) + '"></label>' +
+      '<label class="field"><span>陪伴者名字</span><input id="aiCardProfileCompanionName" value="' + escapeHtml(profile.companionName) + '"></label>' +
+      '<div class="field-row cols-3">' +
+      '<label class="field"><span>文本弹窗使用</span><select id="aiPopupCardId">' + roleOptions(ai.popupCardId || active.id) + '</select></label>' +
+      '<label class="field"><span>主动互动使用</span><select id="aiInteractionCardId">' + roleOptions(ai.interactionCardId || active.id) + '</select></label>' +
+      '<label class="field"><span>输入干预使用</span><select id="aiPollutionCardId">' + roleOptions(ai.pollutionCardId || active.id) + '</select></label>' +
+      '</div>' +
+      '<label class="field"><span>陪伴者身份</span><input id="aiCardProfileCompanionRole" value="' + escapeHtml(profile.companionRole) + '"></label>' +
+      '</div>' +
+      '<div class="field-row cols-2"><label class="field"><span>外貌描述</span><textarea id="aiCardProfileAppearance" rows="3">' + escapeHtml(profile.appearance) + '</textarea></label>' +
+      '<label class="field"><span>日常人格</span><textarea id="aiCardProfileDailyPersona" rows="3">' + escapeHtml(profile.dailyPersona) + '</textarea></label></div>' +
+      '<label class="field"><span>场景库</span><textarea id="aiCardProfileSceneLibrary" rows="4" placeholder="每行一个场景">' + escapeHtml(profile.sceneLibrary) + '</textarea></label>'
+    );
+  }
+
+  function updateAiCardField(id, value) {
+    var card = getActiveAiCard();
+    if (!card) return false;
+    if (!card.profile) card.profile = {};
+    var fields = {
+      aiCardName: [card, "name"],
+      aiCardAvatar: [card, "avatar"],
+      aiCardSystemPrompt: [card, "systemPrompt"],
+      aiCardKnowledgeBase: [card, "knowledgeBase"],
+      aiCardContextMemory: [card, "contextMemory"],
+      aiCardOneTimeReplyGuidance: [card, "oneTimeReplyGuidance"],
+      aiCardProfileAge: [card.profile, "age"],
+      aiCardProfileName: [card.profile, "name"],
+      aiCardProfileCompanionName: [card.profile, "companionName"],
+      aiCardProfileCompanionRole: [card.profile, "companionRole"],
+      aiCardProfileAppearance: [card.profile, "appearance"],
+      aiCardProfileDailyPersona: [card.profile, "dailyPersona"],
+      aiCardProfileSceneLibrary: [card.profile, "sceneLibrary"]
+    };
+    if (!fields[id]) return false;
+    fields[id][0][fields[id][1]] = value;
+    return true;
+  }
+
+  function createAiCard(copy) {
+    var cards = getAiCards();
+    var source = copy || getActiveAiCard();
+    var card = JSON.parse(JSON.stringify(source || {}));
+    card.id = "card_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    card.name = copy ? ((source.name || "默认角色") + " 副本") : "新角色";
+    if (!copy) {
+      card.avatar = "";
+      card.systemPrompt = "";
+      card.knowledgeBase = "";
+      card.contextMemory = "";
+      card.oneTimeReplyGuidance = "";
+      card.profile = { age: "", name: "", companionName: "", companionRole: "", appearance: "", dailyPersona: "", sceneLibrary: "" };
+    }
+    cards.push(card);
+    aiActiveEditCardId = card.id;
+    showDetail("ai-popup");
+    scheduleAutoSave({ immediate: true });
+  }
+
+  function deleteActiveAiCard() {
+    var cards = getAiCards();
+    if (cards.length <= 1) return;
+    var active = getActiveAiCard();
+    var index = cards.indexOf(active);
+    if (index !== -1) cards.splice(index, 1);
+    var next = cards[Math.max(0, index - 1)] || cards[0];
+    aiActiveEditCardId = next.id;
+    if (currentConfig.ai.popupCardId === active.id) currentConfig.ai.popupCardId = next.id;
+    if (currentConfig.ai.interactionCardId === active.id) currentConfig.ai.interactionCardId = next.id;
+    if (currentConfig.ai.pollutionCardId === active.id) currentConfig.ai.pollutionCardId = next.id;
+    showDetail("ai-popup");
+    scheduleAutoSave({ immediate: true });
+  }
+
   function renderAiPopupDetail() {
     var ai = (currentConfig && currentConfig.ai) ? currentConfig.ai : {};
     var pa = ai.popupAppearance || {};
@@ -1077,7 +1219,7 @@
         '</div>' +
         '<label class="field"><span>API Key</span><input id="aiApiKey" type="password" value="' + (ai.apiKey || "") + '"></label>' +
         '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">测试 AI 弹窗</button><button id="aiTestInteractionButton" class="btn">测试主动互动</button></div>'
-      ) +
+      ) + renderAiCardEditor() +
       panel("弹窗外观 · 窗口", '<div class="field-row cols-3">' +
         numField("窗口宽度", "aiPopupWidth", nn(pa.popupWidth, 420), 200, 2000) +
         numField("窗口高度", "aiPopupHeight", nn(pa.popupHeight, 320), 150, 2000) +
@@ -2019,12 +2161,10 @@
     // 直接映射常见 key
     var directKeys = [
       "popupsEnabled", "recursive", "gradual", "alwaysOnTop", "fullscreen",
-      "popupOpacity", "muted", "closeVideoOnEnded", "chaosVideo", "clickToClose",
+      "popupOpacity", "muted", "videoVolumeNormalizationEnabled", "videoVolumeNormalizationTarget", "closeVideoOnEnded", "chaosVideo", "clickToClose",
       "randomCloseButton", "disableManualClose", "developerMode",
       "unlimitedWindows", "order", "autoStartOnBoot", "autoRunScheduler", "silentMode",
       "language", "uiTheme", "hardcoreMode", "hardcoreModeToggle",
-      "aiProvider", "aiModel", "aiApiKey", "aiPopupScheduleEnabled",
-      "aiSinglePopupMode", "aiImmediateReplyEnabled",
       "burstCount", "minWindows", "maxWindows", "maxVideoWindows",
       "imageBaseWidth", "imageBaseHeight", "imageSizeJitter",
       "videoBaseWidth", "videoBaseHeight", "videoSizeJitter",
@@ -2033,6 +2173,14 @@
       "closeButtonOffsetX", "closeButtonOffsetY"
     ];
     if (id === "hardcoreModeToggle") { id = "hardcoreMode"; }
+    if (id.indexOf("popupDisplay_") === 0) {
+      var displayId = id.slice("popupDisplay_".length);
+      var displayIds = Array.isArray(currentConfig.popupDisplayIds) ? currentConfig.popupDisplayIds.map(String) : [];
+      if (val && displayIds.indexOf(displayId) === -1) displayIds.push(displayId);
+      if (!val) displayIds = displayIds.filter(function (item) { return item !== displayId; });
+      currentConfig.popupDisplayIds = displayIds;
+      return;
+    }
     // 语言全局存储，不写入配置文件
     if (id === "language") { setGlobalLanguage(val); return; }
     if (directKeys.indexOf(id) !== -1) {
@@ -2042,7 +2190,9 @@
     // 嵌套对象先处理（必须在时钟检查之前，避免 Hours/Minutes/Seconds 贪婪捕获）
     if (id.indexOf("visual") === 0 || id.indexOf("wallpaper") === 0 ||
         id.indexOf("desktopCharacter") === 0 || id.indexOf("onlineMedia") === 0 ||
-        id.indexOf("processRules") === 0 || (id.indexOf("ai") === 0 && directKeys.indexOf(id) === -1) ||
+        id.indexOf("processRules") === 0 ||
+        (id.indexOf("ai") === 0 && (id.indexOf("aiPopup") !== 0 ||
+          id === "aiPopupScheduleEnabled")) ||
         id.indexOf("pollution") === 0 || id.indexOf("websiteLibrary") === 0) {
       setNestedConfig(id, val);
       return;
@@ -2058,6 +2208,12 @@
 
   function setNestedConfig(id, val) {
     if (!currentConfig) return;
+    if (id === "aiCardSelect") {
+      aiActiveEditCardId = String(val || "");
+      showDetail("ai-popup");
+      return;
+    }
+    if (updateAiCardField(id, val)) return;
     // visual.* (config key is actually visualIntervention)
     if (id.indexOf("visual") === 0) {
       if (!currentConfig.visualIntervention) currentConfig.visualIntervention = {};
@@ -2100,11 +2256,11 @@
     if (id.indexOf("desktopCharacter") === 0) {
       if (!currentConfig.wallpaper) currentConfig.wallpaper = {};
       var dk = id.replace("desktopCharacter", "").replace(/^[A-Z]/, function (c) { return c.toLowerCase(); });
-      if (dk === "Enabled") dk = "characterEnabled";
-      if (dk === "Folderpath") dk = "characterFolderPath";
-      if (dk === "Intervalminutes") dk = "intervalMinutes";
-      if (dk === "Mode") dk = "characterMode";
-      if (dk === "Layermode") dk = "characterLayerMode";
+      if (dk === "enabled") dk = "characterEnabled";
+      if (dk === "folderPath") dk = "characterFolderPath";
+      if (dk === "intervalMinutes") dk = "intervalMinutes";
+      if (dk === "mode") dk = "characterMode";
+      if (dk === "layerMode") dk = "characterLayerMode";
       currentConfig.wallpaper[dk] = val;
       // 同时保持向后兼容
       if (!currentConfig.desktopCharacter) currentConfig.desktopCharacter = {};
@@ -2144,7 +2300,7 @@
       return;
     }
     // ai.*
-    if (id.indexOf("ai") === 0 && id !== "aiPopupScheduleEnabled" && id !== "aiSinglePopupMode" && id !== "aiImmediateReplyEnabled") {
+    if (id.indexOf("ai") === 0 && (id.indexOf("aiPopup") !== 0 || id === "aiPopupScheduleEnabled")) {
       if (!currentConfig.ai) currentConfig.ai = {};
       if (id === "aiInteractionEnabled") currentConfig.ai.interactionEnabled = val;
       else if (id === "aiInteractionTone") currentConfig.ai.interactionTone = val;
@@ -2155,7 +2311,12 @@
       else if (id === "aiProvider") currentConfig.ai.provider = val;
       else if (id === "aiModel") currentConfig.ai.model = val;
       else if (id === "aiApiKey") currentConfig.ai.apiKey = val;
+      else if (id === "aiPopupCardId") currentConfig.ai.popupCardId = val;
+      else if (id === "aiInteractionCardId") currentConfig.ai.interactionCardId = val;
+      else if (id === "aiPollutionCardId") currentConfig.ai.pollutionCardId = val;
       else if (id === "aiPopupScheduleEnabled") currentConfig.ai.popupScheduleEnabled = val;
+      else if (id === "aiSinglePopupMode") currentConfig.ai.singlePopupMode = val;
+      else if (id === "aiImmediateReplyEnabled") currentConfig.ai.immediateReplyEnabled = val;
       return;
     }
     // pollution.*
@@ -2594,9 +2755,9 @@
       return (h ? h + "时" : "") + (m ? m + "分" : "") + s + "秒";
     };
     var setVal = function (id, v) { var els = document.querySelectorAll("#" + id); for (var i = 0; i < els.length; i++) els[i].textContent = v; };
-    setVal("statPlayTime", fmt(stats.totalPlayTime));
-    setVal("statUptime", fmt(stats.totalUptime));
-    setVal("statLongestSession", fmt(stats.longestSession));
+    setVal("statPlayTime", fmt(stats.totalPlayTimeSeconds));
+    setVal("statUptime", fmt(stats.totalUptimeSeconds));
+    setVal("statLongestSession", fmt(stats.longestPlaySessionSeconds));
     setVal("statDailyAverage", fmt(stats.dailyAverage));
 
     // 弹窗记录
@@ -2695,19 +2856,43 @@
         }
       }
       if (t.id === "refreshDesktopCharacterButton") { await saveConfig(); mp.refreshDesktopCharacter(); }
+      if (t.id === "aiNewCardButton") createAiCard();
+      if (t.id === "aiCloneCardButton") createAiCard(getActiveAiCard());
+      if (t.id === "aiDeleteCardButton") deleteActiveAiCard();
+      if (t.id === "aiChooseAvatarButton") {
+        var avatarPath = await mp.chooseImage();
+        if (avatarPath && currentConfig) {
+          updateAiCardField("aiCardAvatar", avatarPath);
+          var avatarInput = document.getElementById("aiCardAvatar");
+          if (avatarInput) avatarInput.value = avatarPath;
+          await scheduleAutoSave({ immediate: true });
+        }
+      }
       if (t.id === "aiShowPopupButton") {
         await saveConfig();
         var aiConf = currentConfig.ai || {};
         var genResult = await mp.generatePopupText({ aiConfig: aiConf, locale: currentLocale });
         if (genResult && genResult.text) {
-          await mp.showAiTextPopup({ text: genResult.text, locale: currentLocale });
+          await mp.showAiTextPopup({ text: genResult.text, locale: currentLocale, cardId: genResult.cardId || "" });
+        } else if (genResult && genResult.errorKey) {
+          log(translate(currentLocale, genResult.errorKey) || genResult.errorKey);
         }
       }
-      if (t.id === "aiTestInteractionButton") { await saveConfig(); mp.testAiInteraction(); }
+      if (t.id === "aiTestInteractionButton") {
+        await saveConfig();
+        var interactionResult = await mp.testAiInteraction();
+        if (!interactionResult || !interactionResult.ok) {
+          log(translate(currentLocale, interactionResult && interactionResult.errorKey ? interactionResult.errorKey : "ai.interaction.error.disabled"));
+        } else {
+          var resultKey = interactionResult.action === "text_and_media" ? "ai.interaction.result.textAndMedia" :
+            interactionResult.action === "media_only" ? (interactionResult.mediaPopupShown ? "ai.interaction.result.mediaOnly" : "ai.interaction.result.mediaOnlyNoMedia") :
+            interactionResult.action === "skip" ? "ai.interaction.result.skip" : "ai.interaction.result.textOnly";
+          log(translate(currentLocale, resultKey) + (interactionResult.message ? " " + interactionResult.message : ""));
+        }
+      }
       if (t.id === "pollutionChooseCorpusBtn") {
-        var folders = await mp.chooseFolders();
-        if (folders && folders.folders && folders.folders.length) {
-          var fpath = folders.folders[0].path || folders.folders[0];
+        var fpath = await mp.chooseDirectory();
+        if (fpath) {
           if (currentConfig && currentConfig.pollution) currentConfig.pollution.corpusPath = fpath;
           var cf = document.getElementById("pollutionCorpusPath");
           if (cf) cf.value = fpath;
@@ -2846,6 +3031,10 @@
           shared.hidden = e.target.checked;
           separate.hidden = !e.target.checked;
         }
+      }
+      if (e.target && e.target.id === "videoVolumeNormalizationEnabled") {
+        var normalizationPanel = document.getElementById("videoVolumeNormalizationPanel");
+        if (normalizationPanel) normalizationPanel.hidden = !e.target.checked;
       }
     });
 

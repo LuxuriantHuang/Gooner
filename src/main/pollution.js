@@ -10,6 +10,7 @@ let clipboardTimer = null;
 let inputTimer = null;
 let lastClipboardText = '';
 let lastPollutedText = '';
+let schedulerActive = false;
 
 function readTextFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -148,7 +149,12 @@ function scheduleNextInput() {
 
 function onConfigChange(newConfig) {
   config = newConfig;
-  
+  stopTimers();
+  if (!schedulerActive) return;
+  startTimers();
+}
+
+function stopTimers() {
   if (clipboardTimer) {
     clearInterval(clipboardTimer);
     clipboardTimer = null;
@@ -158,7 +164,9 @@ function onConfigChange(newConfig) {
     clearTimeout(inputTimer);
     inputTimer = null;
   }
+}
 
+function startTimers() {
   if (config?.pollution?.enabled || config?.hardcoreMode) {
     if (config?.pollution?.clipboardEnabled || config?.hardcoreMode) {
       lastClipboardText = clipboard.readText();
@@ -170,6 +178,13 @@ function onConfigChange(newConfig) {
   }
 }
 
+function setSchedulerActive(active) {
+  schedulerActive = Boolean(active);
+  if (schedulerActive) startTimers();
+  else stopTimers();
+}
+
 module.exports = {
-  onConfigChange
+  onConfigChange,
+  setSchedulerActive
 };

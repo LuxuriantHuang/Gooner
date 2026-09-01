@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('mediaPopup', {
   showWebsitePopup: (payload) => ipcRenderer.invoke('website:showPopup', payload),
   listProcesses: () => ipcRenderer.invoke('process:list'),
   chooseFolders: () => ipcRenderer.invoke('folders:choose'),
+  chooseDirectory: () => ipcRenderer.invoke('dialog:chooseDirectory'),
   chooseDesktopCharacterFolder: () => ipcRenderer.invoke('desktop-character:chooseFolder'),
   chooseImage: () => ipcRenderer.invoke('dialog:chooseImage'),
   saveAvatar: (base64Data, cardId) => ipcRenderer.invoke('file:saveAvatar', base64Data, cardId),

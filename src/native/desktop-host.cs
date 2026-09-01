@@ -18,6 +18,7 @@ internal static class NativeMethods
     internal delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
     internal delegate void WinEventDelegate(IntPtr hook, uint eventType, IntPtr hwnd, int objectId, int childId, uint threadId, uint time);
     internal delegate IntPtr MouseHookDelegate(int code, IntPtr wParam, IntPtr lParam);
+    internal delegate IntPtr KeyboardHookDelegate(int code, IntPtr wParam, IntPtr lParam);
     [ComImport, Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IDesktopWallpaper
     {
@@ -45,9 +46,13 @@ internal static class NativeMethods
     internal const uint EVENT_SYSTEM_MINIMIZEEND = 0x0017;
     internal const uint WINEVENT_OUTOFCONTEXT = 0;
     internal const int WH_MOUSE_LL = 14;
+    internal const int WH_KEYBOARD_LL = 13;
     internal const int WM_LBUTTONDOWN = 0x0201;
     internal const int WM_RBUTTONDOWN = 0x0204;
     internal const int WM_MBUTTONDOWN = 0x0207;
+    internal const int WM_KEYDOWN = 0x0100;
+    internal const int VK_TAB = 0x09;
+    internal const uint LLKHF_ALTDOWN = 0x20;
     internal const uint GA_ROOT = 2;
     internal const int GWL_STYLE = -16;
     internal const long WS_CHILD = 0x40000000L;
@@ -99,6 +104,7 @@ internal static class NativeMethods
     [DllImport("user32.dll")] internal static extern IntPtr SetWinEventHook(uint min, uint max, IntPtr module, WinEventDelegate callback, uint processId, uint threadId, uint flags);
     [DllImport("user32.dll")] internal static extern bool UnhookWinEvent(IntPtr hook);
     [DllImport("user32.dll")] internal static extern IntPtr SetWindowsHookEx(int hookId, MouseHookDelegate callback, IntPtr module, uint threadId);
+    [DllImport("user32.dll", EntryPoint = "SetWindowsHookEx")] internal static extern IntPtr SetWindowsHookExKeyboard(int hookId, KeyboardHookDelegate callback, IntPtr module, uint threadId);
     [DllImport("user32.dll")] internal static extern bool UnhookWindowsHookEx(IntPtr hook);
     [DllImport("user32.dll")] internal static extern IntPtr CallNextHookEx(IntPtr hook, int code, IntPtr wParam, IntPtr lParam);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern bool SystemParametersInfo(uint action, uint param, string value, uint winIni);
@@ -119,6 +125,15 @@ internal static class NativeMethods
     {
         internal POINT point;
         internal uint mouseData;
+        internal uint flags;
+        internal uint time;
+        internal UIntPtr extraInfo;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct KBDLLHOOKSTRUCT
+    {
+        internal uint vkCode;
+        internal uint scanCode;
         internal uint flags;
         internal uint time;
         internal UIntPtr extraInfo;
@@ -290,15 +305,18 @@ internal sealed class DesktopHostContext : ApplicationContext
     private readonly NativeMethods.WinEventDelegate foregroundCallback;
     private readonly NativeMethods.WinEventDelegate minimizeCallback;
     private readonly NativeMethods.MouseHookDelegate mouseCallback;
+    private readonly NativeMethods.KeyboardHookDelegate keyboardCallback;
     private readonly Control dispatcher;
     private readonly System.Windows.Forms.Timer focusRefreshTimer;
     private IntPtr foregroundHook;
     private IntPtr minimizeHook;
     private IntPtr mouseHook;
+    private IntPtr keyboardHook;
     private bool desktopFocused;
     private bool foregroundChanged;
     private bool minimizeStateChanged;
     private bool ignoreMinimizeForeground;
+    private bool altTabRequested;
     private NativeMethods.IDesktopWallpaper desktopWallpaper;
     private readonly StaWorker composeWorker = new StaWorker();
 
@@ -320,9 +338,11 @@ internal sealed class DesktopHostContext : ApplicationContext
         foregroundCallback = OnWindowEvent;
         minimizeCallback = OnWindowEvent;
         mouseCallback = OnMouseEvent;
+        keyboardCallback = OnKeyboardEvent;
         foregroundHook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_FOREGROUND, NativeMethods.EVENT_SYSTEM_FOREGROUND, IntPtr.Zero, foregroundCallback, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
         minimizeHook = NativeMethods.SetWinEventHook(NativeMethods.EVENT_SYSTEM_MINIMIZESTART, NativeMethods.EVENT_SYSTEM_MINIMIZEEND, IntPtr.Zero, minimizeCallback, 0, 0, NativeMethods.WINEVENT_OUTOFCONTEXT);
         mouseHook = NativeMethods.SetWindowsHookEx(NativeMethods.WH_MOUSE_LL, mouseCallback, IntPtr.Zero, 0);
+        keyboardHook = NativeMethods.SetWindowsHookExKeyboard(NativeMethods.WH_KEYBOARD_LL, keyboardCallback, IntPtr.Zero, 0);
         desktopFocused = IsDesktopForeground(NativeMethods.GetForegroundWindow());
         Console.WriteLine("FOCUS\t" + (desktopFocused ? "1" : "0") + "\t0");
         Console.Out.Flush();
@@ -350,6 +370,7 @@ internal sealed class DesktopHostContext : ApplicationContext
         if (parts[0] == "FOCUSSTAT")
         {
             // 返回当前桌面焦点状态（供 wallpaper-service 查询，复用同一套 WinEvent 检测）
+            RefreshDesktopFocus();
             Console.WriteLine("FOCUSSTAT\t" + (desktopFocused ? "1" : "0"));
             Console.Out.Flush();
             return;
@@ -987,12 +1008,29 @@ internal sealed class DesktopHostContext : ApplicationContext
         return NativeMethods.CallNextHookEx(mouseHook, code, wParam, lParam);
     }
 
+    private IntPtr OnKeyboardEvent(int code, IntPtr wParam, IntPtr lParam)
+    {
+        if (code >= 0 && wParam.ToInt32() == NativeMethods.WM_KEYDOWN)
+        {
+            NativeMethods.KBDLLHOOKSTRUCT keyboard = (NativeMethods.KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(NativeMethods.KBDLLHOOKSTRUCT));
+            if (keyboard.vkCode == NativeMethods.VK_TAB && (keyboard.flags & NativeMethods.LLKHF_ALTDOWN) != 0)
+            {
+                dispatcher.BeginInvoke(new Action(delegate
+                {
+                    if (minimizedWallpaperHolds.Count > 0) altTabRequested = true;
+                }));
+            }
+        }
+        return NativeMethods.CallNextHookEx(keyboardHook, code, wParam, lParam);
+    }
+
     private void EndMinimizeHoldForClick(IntPtr clickedWindow)
     {
         if (minimizedWallpaperHolds.Count == 0 || clickedWindow == IntPtr.Zero) return;
         if (IsDesktopWindow(clickedWindow) || IsTaskbarWindow(clickedWindow)) return;
         minimizedWallpaperHolds.Clear();
         ignoreMinimizeForeground = false;
+        altTabRequested = false;
         Console.WriteLine("MINIMIZE_HOLD_END\tclick");
         Console.Out.Flush();
     }
@@ -1004,6 +1042,7 @@ internal sealed class DesktopHostContext : ApplicationContext
             if (hwnd != IntPtr.Zero) minimizedWallpaperHolds.Add(hwnd);
             minimizeStateChanged = true;
             ignoreMinimizeForeground = true;
+            altTabRequested = false;
         }
         else if (eventType == NativeMethods.EVENT_SYSTEM_MINIMIZEEND)
         {
@@ -1035,16 +1074,25 @@ internal sealed class DesktopHostContext : ApplicationContext
             if (changedForeground && ignoreMinimizeForeground)
             {
                 ignoreMinimizeForeground = false;
+                if (altTabRequested && !visible)
+                {
+                    minimizedWallpaperHolds.Clear();
+                    altTabRequested = false;
+                    Console.WriteLine("MINIMIZE_HOLD_END\talt-tab");
+                    Console.Out.Flush();
+                }
             }
             else if (changedForeground && !visible)
             {
                 minimizedWallpaperHolds.Clear();
+                altTabRequested = false;
                 Console.WriteLine("MINIMIZE_HOLD_END");
                 Console.Out.Flush();
             }
         }
         else if (!visible && minimizationChanged)
         {
+            altTabRequested = false;
             Console.WriteLine("MINIMIZE_HOLD_END");
             Console.Out.Flush();
         }
@@ -1086,6 +1134,7 @@ internal sealed class DesktopHostContext : ApplicationContext
             minimizedWallpaperHolds.Clear();
             if (desktopWallpaper != null) Marshal.FinalReleaseComObject(desktopWallpaper);
             desktopWallpaper = null;
+        if (keyboardHook != IntPtr.Zero) NativeMethods.UnhookWindowsHookEx(keyboardHook);
         composeWorker.Dispose();
         dispatcher.Dispose();
         base.ExitThreadCore();

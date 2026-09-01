@@ -271,6 +271,8 @@ class WindowManager {
       ...media,
       language: this.getActiveLanguage(),
       muted: config.muted,
+      videoVolumeNormalizationEnabled: config.videoVolumeNormalizationEnabled,
+      videoVolumeNormalizationTarget: config.videoVolumeNormalizationTarget,
       closeVideoOnEnded: config.closeVideoOnEnded,
       chaosVideo: config.chaosVideo,
       clickToClose: config.clickToClose,
@@ -402,6 +404,7 @@ class WindowManager {
       text,
       locale,
       title: normalizeSingleLineText(payload.title, 80) || translate(locale, 'ai.popup.title'),
+      cardId: typeof payload.cardId === 'string' ? payload.cardId.trim() : '',
       targetKey: typeof payload.targetKey === 'string' ? payload.targetKey.trim() : '',
       targetLabel: normalizeSingleLineText(payload.targetLabel, 80),
       appearance: { ...(config?.ai?.popupAppearance || {}) }

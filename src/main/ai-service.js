@@ -125,7 +125,9 @@ function buildContextInteractionMessages(aiConfig, cardConfig, locale, runtimeCo
     teasing: 'Tone: lightly teasing, playful, and concise.',
     gentle: 'Tone: gentle, soft, and concise.',
     direct: 'Tone: blunt, restrained, and concise.',
-    neutral: 'Tone: neutral, observational, and concise.'
+    neutral: 'Tone: neutral, observational, and concise.',
+    strict: 'Tone: strict, demanding, and concise.',
+    playful: 'Tone: playful, energetic, and concise.'
   };
 
   const systemPrompt = [

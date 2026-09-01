@@ -212,6 +212,8 @@ const defaultConfig = {
   fullscreen: false,
   popupOpacity: 100,
   muted: true,
+  videoVolumeNormalizationEnabled: false,
+  videoVolumeNormalizationTarget: 0.7,
   closeVideoOnEnded: false,
   chaosVideo: false,
   clickToClose: true,
@@ -570,7 +572,9 @@ function normalizeAiTextAlign(value) {
 }
 
 function normalizeAiInteractionTone(value) {
-  return value === 'gentle' || value === 'direct' || value === 'neutral' ? value : defaultAiConfig.interactionTone;
+  return value === 'gentle' || value === 'direct' || value === 'neutral' || value === 'strict' || value === 'playful'
+    ? value
+    : defaultAiConfig.interactionTone;
 }
 
 function normalizeAiPopupAppearance(input, root = {}) {
@@ -997,6 +1001,8 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.fullscreen = Boolean(next.fullscreen);
   next.popupOpacity = Math.round(clampNumber(next.popupOpacity, 10, 100, defaultConfig.popupOpacity));
   next.muted = Boolean(next.muted);
+  next.videoVolumeNormalizationEnabled = Boolean(next.videoVolumeNormalizationEnabled);
+  next.videoVolumeNormalizationTarget = Number(clampNumber(next.videoVolumeNormalizationTarget, 0.1, 1, defaultConfig.videoVolumeNormalizationTarget));
   next.closeVideoOnEnded = Boolean(next.closeVideoOnEnded);
   next.chaosVideo = Boolean(next.chaosVideo);
   next.clickToClose = Boolean(next.clickToClose);
@@ -1089,8 +1095,18 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   next.websiteLibrary = normalizeWebsiteLibrary(next.websiteLibrary);
   next.processRules = normalizeProcessRules(next.processRules);
   next.uiLayout = normalizeUiLayout(next.uiLayout);
-  next.wallpaper = normalizeWallpaperConfig(next.wallpaper);
-  next.desktopCharacter = normalizeDesktopCharacterConfig(next.desktopCharacter);
+  const legacyDesktopCharacter = normalizeDesktopCharacterConfig(next.desktopCharacter);
+  const normalizedWallpaper = normalizeWallpaperConfig(next.wallpaper);
+  if (legacyDesktopCharacter.enabled && !normalizedWallpaper.characterEnabled) {
+    normalizedWallpaper.characterEnabled = true;
+    if (!normalizedWallpaper.characterFolderPath) {
+      normalizedWallpaper.characterFolderPath = legacyDesktopCharacter.folderPath;
+    }
+    normalizedWallpaper.characterMode = legacyDesktopCharacter.mode;
+    normalizedWallpaper.characterLayerMode = legacyDesktopCharacter.layerMode;
+  }
+  next.wallpaper = normalizedWallpaper;
+  next.desktopCharacter = legacyDesktopCharacter;
   next.ai = normalizeAiConfig(next.ai, next);
   next.peerShare = normalizePeerShareConfig(next.peerShare);
   next.windowBounds = normalizeWindowBounds(next.windowBounds);

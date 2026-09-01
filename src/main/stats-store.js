@@ -123,7 +123,12 @@ function saveStatsNowSync(app) {
 }
 
 function getStats() {
-  return currentStats || cloneDefaultStats();
+  const stats = currentStats || cloneDefaultStats();
+  const activeDays = Object.values(stats.dailyUsage).filter((day) => Number(day?.playTimeSeconds) > 0).length;
+  return {
+    ...stats,
+    dailyAverage: activeDays > 0 ? stats.totalPlayTimeSeconds / activeDays : 0
+  };
 }
 
 function getTodayKey() {

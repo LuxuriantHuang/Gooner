@@ -8,6 +8,89 @@ let currentMediaElement = null;
 let currentLocale = (window.appI18n && window.appI18n.resolveLanguage('system', navigator.language)) || 'zh-CN';
 let detachCloseButtonListener = null;
 let isClosing = false;
+let audioNormalizer = null;
+
+function clampAudioValue(value, min, max, fallback) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(min, Math.min(max, number)) : fallback;
+}
+
+function stopAudioNormalization() {
+  if (!audioNormalizer) {
+    return;
+  }
+
+  if (audioNormalizer.timer) {
+    window.clearInterval(audioNormalizer.timer);
+  }
+  try {
+    audioNormalizer.source.disconnect();
+    audioNormalizer.analyser.disconnect();
+    audioNormalizer.gain.disconnect();
+    audioNormalizer.context.close();
+  } catch (_error) {
+    // Audio resources may already be released while the window is closing.
+  }
+  audioNormalizer = null;
+}
+
+function startAudioNormalization(video, config) {
+  stopAudioNormalization();
+  if (!video || video.muted || !config.videoVolumeNormalizationEnabled) {
+    return;
+  }
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    return;
+  }
+
+  try {
+    const context = new AudioContextClass();
+    const source = context.createMediaElementSource(video);
+    const analyser = context.createAnalyser();
+    const gain = context.createGain();
+    const data = new Float32Array(analyser.fftSize);
+    const targetVolume = clampAudioValue(config.videoVolumeNormalizationTarget, 0.1, 1, 0.7);
+
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.65;
+    source.connect(analyser);
+    analyser.connect(gain);
+    gain.connect(context.destination);
+    gain.gain.value = 1;
+
+    audioNormalizer = { context, source, analyser, gain, data, targetVolume, userVolume: video.volume, timer: null };
+    audioNormalizer.timer = window.setInterval(() => {
+      if (!audioNormalizer || video.paused || video.readyState < 2) {
+        return;
+      }
+
+      analyser.getFloatTimeDomainData(data);
+      let sumSquares = 0;
+      for (let index = 0; index < data.length; index += 1) {
+        sumSquares += data[index] * data[index];
+      }
+      const rms = Math.sqrt(sumSquares / data.length);
+      if (rms < 0.008) {
+        gain.gain.setTargetAtTime(1, context.currentTime, 0.2);
+        return;
+      }
+
+      const referenceRms = 0.12 * (targetVolume / 0.7) * audioNormalizer.userVolume;
+      const desiredGain = clampAudioValue(referenceRms / rms, 0.35, 3, 1);
+      gain.gain.setTargetAtTime(desiredGain, context.currentTime, 0.18);
+    }, 120);
+
+    video.addEventListener('play', () => {
+      if (audioNormalizer && context.state === 'suspended') {
+        context.resume().catch(() => {});
+      }
+    });
+  } catch (_error) {
+    stopAudioNormalization();
+  }
+}
 
 const { resolveLanguage, translate } = window.appI18n || {
   resolveLanguage: (value, fallback) => value || fallback || 'zh-CN',
@@ -48,6 +131,7 @@ function randomizeCloseButton() {
 }
 
 function showMessage(text) {
+  stopAudioNormalization();
   stage.replaceChildren(message);
   message.textContent = text;
   currentMediaElement = null;
@@ -129,6 +213,8 @@ function renderMedia(media) {
       await fitWindowToMedia(element.videoWidth, element.videoHeight);
       refreshCurrentMediaFit();
 
+      startAudioNormalization(element, media);
+
       if (window.viewerPopup && window.viewerPopup.mediaLoaded) {
         window.viewerPopup.mediaLoaded();
       }
@@ -208,7 +294,11 @@ let detachOpacityListener = null;
 if (window.viewerPopup?.onOpacityUpdate) {
   detachOpacityListener = window.viewerPopup.onOpacityUpdate((opacity) => {
     if (currentMediaElement && currentMediaElement.tagName === 'VIDEO' && !mediaConfig.muted) {
-      currentMediaElement.volume = Math.max(0, Math.min(1, opacity));
+      const userVolume = Math.max(0, Math.min(1, opacity));
+      currentMediaElement.volume = userVolume;
+      if (audioNormalizer) {
+        audioNormalizer.userVolume = userVolume;
+      }
     }
   });
 }
@@ -251,6 +341,7 @@ function applyCloseButtonAppearance() {
 }
 
 window.addEventListener('beforeunload', () => {
+  stopAudioNormalization();
   if (typeof detachCloseButtonListener === 'function') {
     detachCloseButtonListener();
   }

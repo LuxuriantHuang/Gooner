@@ -33,7 +33,6 @@ const visualOverlay = require('./visual-overlay');
 const {
   initStats,
   getStats,
-  _seedMay2026,
   incrementUptime,
   incrementPlayTime,
   resetPlaySession,
@@ -240,10 +239,12 @@ async function saveAiPopupReply(popupId, replyText) {
     };
   }
 
-  const nextAi = normalizeAiConfig({
-    ...config.ai,
-    oneTimeReplyGuidance: reply
-  });
+  const popupPayload = windowManager.getAiTextPayload(popupId);
+  const nextAi = normalizeAiConfig(config.ai);
+  const cardId = popupPayload?.cardId || nextAi.popupCardId;
+  const card = getResolvedAiCard(nextAi, cardId);
+  if (!card) return { ok: false, errorKey: 'ai.reply.error.failed' };
+  card.oneTimeReplyGuidance = reply;
   const saved = await saveConfig({
     ...config,
     ai: nextAi
@@ -251,7 +252,8 @@ async function saveAiPopupReply(popupId, replyText) {
 
   return {
     ok: true,
-    config: saved
+    config: saved,
+    cardId: card.id
   };
 }
 
@@ -273,13 +275,14 @@ async function generateImmediateAiReply(popupId, replyText) {
   const locale = getAiLocale(config.language);
 
   try {
-    const cardConfig = getResolvedAiCard(aiConfig, aiConfig.popupCardId);
+    const cardConfig = getResolvedAiCard(aiConfig, savedReply.cardId || aiConfig.popupCardId);
     const result = await requestDeepSeekPopupText({ aiConfig, cardConfig, locale });
     await consumeOneTimeReplyGuidance(cardConfig?.id);
 
     const popupResult = windowManager.createAiTextPopup({
       text: result.text,
       locale,
+      cardId: cardConfig?.id || '',
       title: translate(locale, 'ai.interaction.popupTitle')
     }, config, { ignoreLimits: true });
 
@@ -841,6 +844,7 @@ async function executeContextInteraction(options = {}) {
       const popupResult = windowManager.createAiTextPopup({
         text: result.message,
         locale,
+        cardId: cardConfig?.id || '',
         title: translate(locale, 'ai.interaction.popupTitle')
       }, config);
       textPopupShown = Boolean(popupResult?.ok);
@@ -1302,6 +1306,7 @@ async function createPopup(item) {
       return windowManager.createAiTextPopup({
         text: result.text,
         locale: item.locale || getAiLocale(config.language),
+        cardId: cardConfig?.id || '',
         title: translate(getAiLocale(config.language), 'ai.popup.title')
       }, config).ok;
     } catch (_error) {
@@ -1320,6 +1325,7 @@ async function startScheduler() {
   await applyProcessRulesNow();
   resetPlaySession();
   const state = await scheduler.start();
+  pollution.setSchedulerActive(true);
   refreshInteractionTimer();
   visualOverlay.onSchedulerStateChange(true);
   return state;
@@ -1327,12 +1333,14 @@ async function startScheduler() {
 
 function pauseScheduler() {
   stopInteractionTimer();
+  pollution.setSchedulerActive(false);
   visualOverlay.onSchedulerStateChange(false);
   return scheduler.pause();
 }
 
 function stopScheduler() {
   stopInteractionTimer();
+  pollution.setSchedulerActive(false);
   visualOverlay.onSchedulerStateChange(false);
   return scheduler?.stop() || getPublicState();
 }
@@ -1373,7 +1381,6 @@ async function createMainWindow() {
     await loadConfig();
   }
   initStats(app);
-  _seedMay2026(app);
   pollution.onConfigChange(config);
   visualOverlay.onConfigChange(config);
 
@@ -1593,6 +1600,7 @@ ipcMain.handle('ai:generatePopupText', async (_event, payload = {}) => {
     return {
       ok: true,
       text: result.text,
+      cardId: cardConfig?.id || '',
       usage: result.usage
     };
   } catch (error) {
@@ -1708,6 +1716,14 @@ ipcMain.handle('folders:choose', async () => {
   const folders = [...config.folders, ...newFolders];
   await saveConfig({ ...config, folders });
   return folders;
+});
+
+ipcMain.handle('dialog:chooseDirectory', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: '选择目录',
+    properties: ['openDirectory']
+  });
+  return result.canceled || result.filePaths.length === 0 ? null : result.filePaths[0];
 });
 
 ipcMain.handle('desktop-character:chooseFolder', async () => {

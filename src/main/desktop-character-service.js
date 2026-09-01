@@ -345,12 +345,9 @@ class DesktopCharacterService {
         const image = nativeImage.createFromPath(candidate);
         if (image.isEmpty()) continue;
         const size = image.getSize();
-        const scale = Math.min(1, 512 / Math.max(size.width, size.height));
-        const analysisImage = scale < 1
-          ? image.resize({ width: Math.max(1, Math.round(size.width * scale)), quality: 'good' })
-          : image;
-        const analysisSize = analysisImage.getSize();
-        analysis = analyzeCharacterBitmap(analysisImage.toBitmap(), analysisSize);
+        // Bounds are passed to the wallpaper compositor, which draws the original image.
+        // Keep them in the source pixel coordinate space even for large PNGs.
+        analysis = analyzeCharacterBitmap(image.toBitmap(), size);
         if (analysis) this._cachedAnalyses.set(candidate, analysis);
       }
       if (analysis) {

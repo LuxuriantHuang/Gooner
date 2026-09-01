@@ -86,6 +86,7 @@ class WallpaperService {
     this._focusSyncRequested = false;
     this._focusSyncScheduled = false;
     this._wallpaperTransition = Promise.resolve();
+    this.pendingWallpapers = new Map();
   }
 
   async initScript() {
@@ -160,7 +161,7 @@ if ($args[0] -eq "list") {
           const focused = value === '1';
           this._lastNativeFocus = focused;
           if (event === 'FOCUS') {
-            this._requestFocusSync();
+            this._handleNativeFocusEvent(focused);
           }
           if (event === 'FOCUSSTAT' && this._pendingFocusStatResolve) {
             const resolve = this._pendingFocusStatResolve;
@@ -340,6 +341,18 @@ if ($args[0] -eq "list") {
     return true;
   }
 
+  async _applyPendingWallpapers() {
+    if (this.pendingWallpapers.size === 0) return false;
+    const entries = [...this.pendingWallpapers];
+    if (!await this.setWallpapers(entries)) return false;
+    this.pendingWallpapers.clear();
+    for (const [monitorId, imagePath] of entries) {
+      this.lastAppliedWallpapers.set(monitorId, imagePath);
+      console.log(`[WallpaperService] Applied scheduled wallpaper for ${monitorId}`);
+    }
+    return true;
+  }
+
   /**
    * 判断本次 tick 使用哪种模式: 'normal' | 'character'
    * 两者都开时随机选择。
@@ -370,7 +383,7 @@ if ($args[0] -eq "list") {
   /**
    * 普通模式：从媒体库选图片设壁纸
    */
-  async _tickNormal(monitors) {
+  async _tickNormal(monitors, { apply = true } = {}) {
     const mediaLibrary = this.getMediaLibrary();
     const images = mediaLibrary.filter(m => m.type === 'image');
     if (images.length === 0) {
@@ -395,21 +408,22 @@ if ($args[0] -eq "list") {
         errors.push(`显示器 ${monitor.id} (${monitor.width}x${monitor.height}) 未找到合适图片，原因：${lastRejection}`);
       }
     }
-    if (entries.length === 0) return { changedCount: 0, errors };
+    if (entries.length === 0) return { changedCount: 0, errors, entries };
+    if (!apply) return { changedCount: entries.length, errors, entries };
     if (!await this.setWallpapers(entries)) {
       errors.push('无法应用本轮壁纸');
-      return { changedCount: 0, errors };
+      return { changedCount: 0, errors, entries: [] };
     }
     for (const [monitorId, imagePath] of entries) {
       this.lastAppliedWallpapers.set(monitorId, imagePath);
     }
-    return { changedCount: entries.length, errors };
+    return { changedCount: entries.length, errors, entries };
   }
 
   /**
    * 角色模式：委托 DesktopCharacterService 合成角色壁纸
    */
-  async _tickCharacter(monitors) {
+  async _tickCharacter(monitors, { apply = true } = {}) {
     const charService = this.getDesktopCharacterService();
     if (!charService) {
       return { changedCount: 0, errors: ['角色服务未就绪'] };
@@ -453,15 +467,16 @@ if ($args[0] -eq "list") {
         errors.push(`显示器 ${monitor.id} 合成角色壁纸失败`);
       }
     }
-    if (entries.length === 0) return { changedCount: 0, errors };
+    if (entries.length === 0) return { changedCount: 0, errors, entries };
+    if (!apply) return { changedCount: entries.length, errors, entries };
     if (!await this.setWallpapers(entries)) {
       errors.push('无法应用本轮角色壁纸');
-      return { changedCount: 0, errors };
+      return { changedCount: 0, errors, entries: [] };
     }
     for (const [monitorId, imagePath] of entries) {
       this.lastAppliedWallpapers.set(monitorId, imagePath);
     }
-    return { changedCount: entries.length, errors };
+    return { changedCount: entries.length, errors, entries };
   }
 
   async tick(force = false, { ignoreFocus = false } = {}) {
@@ -481,13 +496,12 @@ if ($args[0] -eq "list") {
       return '未开启任何壁纸模式';
     }
 
-    // 失焦自动换回：桌面不在前台时跳过更换，并恢复原始壁纸
+    let deferApply = false;
     if (!force && !ignoreFocus && wpCfg.focusRestoreEnabled) {
       const isFocusedNow = await this._isDesktopFocused();
       this.focusState.desktopFocused = isFocusedNow;
       if (!isFocusedNow) {
-        console.log('[WallpaperService] Desktop not focused, skipping wallpaper change.');
-        return '桌面失焦中，跳过本次更换';
+        deferApply = true;
       }
     }
 
@@ -516,12 +530,17 @@ if ($args[0] -eq "list") {
 
     let result;
     if (mode === 'character') {
-      result = await this._tickCharacter(monitors);
+      result = await this._tickCharacter(monitors, { apply: !deferApply });
     } else {
-      result = await this._tickNormal(monitors);
+      result = await this._tickNormal(monitors, { apply: !deferApply });
     }
 
-    const { changedCount, errors } = result;
+    const { changedCount, errors, entries = [] } = result;
+    if (deferApply && entries.length > 0) {
+      this.pendingWallpapers = new Map(entries);
+      console.log(`[WallpaperService] Desktop not focused, prepared ${entries.length} scheduled wallpaper(s).`);
+      return `[${mode === 'character' ? '角色' : '普通'}] 已按设定时间准备 ${entries.length} 个显示器的下一张壁纸，将在返回桌面时应用。`;
+    }
     if (changedCount > 0) {
       const modeLabel = mode === 'character' ? '角色' : '普通';
       return `[${modeLabel}] 成功为 ${changedCount} 个显示器更换了壁纸！` + (errors.length > 0 ? ` (${errors.join(', ')})` : '');
@@ -580,6 +599,14 @@ if ($args[0] -eq "list") {
     });
   }
 
+  _handleNativeFocusEvent(isFocused) {
+    const wpCfg = this.getConfig().wallpaper;
+    if (!wpCfg || !wpCfg.focusRestoreEnabled) return;
+    this.focusState.setManagedWallpaperAvailable(this.lastAppliedWallpapers.size > 0);
+    this._runFocusAction(this.focusState.handle('FOCUS', isFocused), 'Desktop focus changed')
+      .catch(error => console.error('[WallpaperService] Native focus action error:', error));
+  }
+
   async _runFocusAction(action, reason) {
     if (action === ACTION_RESTORE_ORIGINAL) {
       console.log(`[WallpaperService] ${reason}, restoring original wallpapers...`);
@@ -589,13 +616,21 @@ if ($args[0] -eq "list") {
 
     if (action === ACTION_APPLY_MANAGED) {
       console.log(`[WallpaperService] ${reason}, reapplying last managed wallpapers...`);
-      await this._queueWallpaperTransition(() => this._reapplyLastAppliedWallpapers());
+      await this._queueWallpaperTransition(async () => {
+        if (!await this._applyPendingWallpapers()) {
+          await this._reapplyLastAppliedWallpapers();
+        }
+      });
       return;
     }
 
     if (action === ACTION_INITIALIZE_MANAGED) {
       console.log(`[WallpaperService] ${reason}, initializing managed wallpapers...`);
-      this.tick().finally(() => this.scheduleNextTick());
+      if (this.pendingWallpapers.size > 0) {
+        this._queueWallpaperTransition(() => this._applyPendingWallpapers());
+      } else {
+        this.tick().finally(() => this.scheduleNextTick());
+      }
     }
   }
 
@@ -717,6 +752,7 @@ if ($args[0] -eq "list") {
     }
     this.originalWallpapers.clear();
     this.lastAppliedWallpapers.clear();
+    this.pendingWallpapers.clear();
     this.focusState.resetNativeHostState();
     this.cachedMonitors = null;
     this.cachedMonitorsTime = 0;
@@ -731,8 +767,7 @@ if ($args[0] -eq "list") {
     const isAnyActive = newWp.enabled || (newWp.characterEnabled && newCharFolder);
 
     if (isAnyActive && !wasAnyActive) {
-      // 重新启用时，如果还没有保存原始壁纸，先保存
-      if (this.originalWallpapers.size === 0 && newWp.focusRestoreEnabled) {
+      if (this.originalWallpapers.size === 0) {
         this.initScript().then(async () => {
           const monitors = await this.getMonitors();
           if (monitors.length > 0) {
@@ -761,25 +796,6 @@ if ($args[0] -eq "list") {
 
     if (newWp.focusRestoreEnabled !== oldWp.focusRestoreEnabled) {
       if (newWp.focusRestoreEnabled) {
-        // 启用失焦恢复时，如果还没有保存原始壁纸，先保存
-        if (this.originalWallpapers.size === 0) {
-          this.initScript().then(async () => {
-            const monitors = await this._getCachedMonitors();
-            if (monitors && monitors.length > 0) {
-              const results = await Promise.allSettled(
-                monitors.map(async (m) => {
-                  const current = await this.getCurrentWallpaper(m.id);
-                  return { id: m.id, path: current };
-                })
-              );
-              for (const r of results) {
-                if (r.status === 'fulfilled' && r.value.path) {
-                  this.originalWallpapers.set(r.value.id, r.value.path);
-                }
-              }
-            }
-          });
-        }
         this._startFocusPolling();
         this._isDesktopFocused().then(f => { this.focusState.desktopFocused = f; });
       } else {
