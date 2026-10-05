@@ -1,5 +1,6 @@
 const { ipcRenderer } = require('electron');
 const { calculateWallpaperStyle, normalizeWallpaperPosition } = require('../shared/wallpaper-layout');
+const { toMediaUrl, isVideoMedia } = require('../shared/visual-media-url');
 
 const ambientLayer = document.getElementById('ambient-layer');
 const xrayLayer = document.getElementById('xray-layer');
@@ -74,7 +75,7 @@ function updateGhost() {
     
     ambientInterval = setInterval(() => {
       const newMedia = getRandomMedia();
-      if (newMedia) ambientLayer.style.backgroundImage = `url('file://${newMedia.replace(/\\/g, '/')}')`;
+      if (newMedia) ambientLayer.style.backgroundImage = toBackgroundImage(newMedia);
     }, ms);
   };
   
@@ -118,7 +119,7 @@ function resetGhostLayout() {
 }
 
 function toBackgroundImage(media) {
-  return `url('file://${media.replace(/\\/g, '/')}')`;
+  return `url('${toMediaUrl(media)}')`;
 }
 
 function loadImageSize(media) {
@@ -126,7 +127,7 @@ function loadImageSize(media) {
     const image = new Image();
     image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
     image.onerror = () => reject(new Error(`Unable to load synchronized wallpaper: ${media}`));
-    image.src = `file://${media.replace(/\\/g, '/')}`;
+    image.src = toMediaUrl(media);
   });
 }
 
@@ -149,11 +150,11 @@ function updateXray() {
   xrayLayer.style.maskImage = gradient;
   
   const media = getRandomMedia();
-  if (media) xrayLayer.style.backgroundImage = `url('file://${media.replace(/\\/g, '/')}')`;
+  if (media) xrayLayer.style.backgroundImage = toBackgroundImage(media);
   
   xrayInterval = setInterval(() => {
     const newMedia = getRandomMedia();
-    if (newMedia) xrayLayer.style.backgroundImage = `url('file://${newMedia.replace(/\\/g, '/')}')`;
+    if (newMedia) xrayLayer.style.backgroundImage = toBackgroundImage(newMedia);
   }, 5 * 60 * 1000);
 }
 
@@ -205,7 +206,7 @@ function spawnWaterfallItem(initial = false) {
   const media = getRandomUnfilteredMedia();
   if (!media) return;
   
-  const isVideo = media.toLowerCase().endsWith('.mp4') || media.toLowerCase().endsWith('.webm');
+  const isVideo = isVideoMedia(media);
   
   const el = document.createElement(isVideo ? 'video' : 'img');
   el.className = 'waterfall-item';
@@ -216,14 +217,14 @@ function spawnWaterfallItem(initial = false) {
   el.style.height = 'auto';
   
   if (isVideo) {
-    el.src = `file://${media.replace(/\\/g, '/')}`;
+    el.src = toMediaUrl(media);
     el.autoplay = true;
     el.loop = true;
     el.muted = true;
     // Hide controls
     el.controls = false;
   } else {
-    el.src = `file://${media.replace(/\\/g, '/')}`;
+    el.src = toMediaUrl(media);
   }
   
   const baseOpacity = currentConfig.waterfallOpacity !== undefined ? currentConfig.waterfallOpacity / 100 : 0.6;
@@ -270,7 +271,7 @@ ipcRenderer.on('visual:trigger-flash', (event, explicitlyProvidedMedia) => {
   const media = explicitlyProvidedMedia || getRandomMedia();
   if (!media) return;
   
-  const isVideo = media.toLowerCase().endsWith('.mp4') || media.toLowerCase().endsWith('.webm');
+  const isVideo = isVideoMedia(media);
   const el = document.createElement(isVideo ? 'video' : 'img');
   
   el.style.width = '100%';
@@ -294,13 +295,13 @@ ipcRenderer.on('visual:trigger-flash', (event, explicitlyProvidedMedia) => {
   };
   
   if (isVideo) {
-    el.src = `file://${media.replace(/\\/g, '/')}`;
+    el.src = toMediaUrl(media);
     el.muted = true;
     el.controls = false;
     el.addEventListener('loadeddata', showFlash);
     el.addEventListener('error', () => { /* ignore */ });
   } else {
-    el.src = `file://${media.replace(/\\/g, '/')}`;
+    el.src = toMediaUrl(media);
     el.addEventListener('load', showFlash);
     el.addEventListener('error', () => { /* ignore */ });
   }
