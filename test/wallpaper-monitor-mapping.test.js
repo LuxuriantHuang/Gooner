@@ -4,7 +4,8 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
   getVirtualBounds,
-  mapWallpapersToDisplays
+  mapWallpapersToDisplays,
+  filterMonitorsByDisplayIds
 } = require('../src/shared/wallpaper-monitor-mapping');
 
 test('calculates virtual bounds for monitors with negative coordinates', () => {
@@ -75,4 +76,18 @@ test('maps physical monitor coordinates through Electron DIP conversion', () => 
     width: 5760,
     height: 2160
   });
+});
+
+test('filters native wallpaper monitors using selected Electron display IDs', () => {
+  const monitors = [
+    { id: 'native-left', x: -1920, y: 0, width: 1920, height: 1080 },
+    { id: 'native-right', x: 0, y: 0, width: 2560, height: 1440 }
+  ];
+  const displays = [
+    { id: 11, bounds: { x: -1920, y: 0, width: 1920, height: 1080 }, scaleFactor: 1 },
+    { id: 22, bounds: { x: 0, y: 0, width: 1280, height: 720 }, scaleFactor: 2 }
+  ];
+  const selected = filterMonitorsByDisplayIds(monitors, [22], displays, point => point);
+  assert.deepEqual(selected.map(monitor => monitor.id), ['native-right']);
+  assert.deepEqual(filterMonitorsByDisplayIds(monitors, [], displays), monitors);
 });

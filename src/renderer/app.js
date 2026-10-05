@@ -895,8 +895,8 @@
       '</div></div>';
   }
 
-  function numField(label, id, val, min, max, step) {
-    return '<label class="field"><span>' + localizeText(label) + '</span><input id="' + id + '" type="number" min="' + (min || 0) + '" max="' + (max || 9999) + '" step="' + (step || 1) + '" value="' + (val != null ? val : "") + '"></label>';
+  function numField(label, id, val, min, max, step, inputClass) {
+    return '<label class="field"><span>' + localizeText(label) + '</span><input id="' + id + '" class="' + (inputClass || '') + '" type="number" min="' + (min || 0) + '" max="' + (max || 9999) + '" step="' + (step || 1) + '" value="' + (val != null ? val : "") + '"></label>';
   }
 
   function selectField(label, id, val, opts) {
@@ -1105,18 +1105,31 @@
     return html;
   }
 
+  function renderTargetDisplaySelector(target, selectedIds, title) {
+    var displays = currentState && Array.isArray(currentState.displays) ? currentState.displays : [];
+    var selected = Array.isArray(selectedIds) ? selectedIds.map(String) : [];
+    var options = displays.length ? displays.map(function (display) {
+      var displayId = String(display.id);
+      var label = t("appearance.display.item", { index: Number(display.index) + 1 }) + (display.isPrimary ? " (" + t("appearance.display.primary") + ")" : "");
+      return '<label class="switch-row"><span>' + label + '</span><input type="checkbox" id="displayTarget_' + target + '_' + escapeHtml(displayId) + '"' + (selected.indexOf(displayId) !== -1 ? ' checked' : '') + '><i></i></label>';
+    }).join("") : '<p class="desc-text">' + t("appearance.display.empty") + '</p>';
+    return panel(title, '<p class="desc-text">' + t("display.target.note") + '</p><div class="field-row cols-2">' + options + '</div>');
+  }
+
   // === 壁纸（含智能角色子模块） ===
   function renderWallpaperDetail() {
     return panel(t("wallpaper.panelTitle"), '<p class="desc-text">' + t("wallpaper.panelNote") + '</p>' +
       switchRow(t("wallpaper.enableNormal"), "wallpaperEnabled", cfg("wallpaper.enabled")) +
+      renderTargetDisplaySelector("normalWallpaper", cfg("wallpaper.normalDisplayIds", []), t("wallpaper.normalDisplays")) +
       '<div class="field-row cols-3">' +
-      numField(t("wallpaper.intervalMinutes"), "wallpaperIntervalMinutes", cfg("wallpaper.intervalMinutes", 60), 1, 10080) +
+      numField(t("wallpaper.intervalMinutes"), "wallpaperIntervalMinutes", cfg("wallpaper.intervalMinutes", 60), 1, 10080, 1, "time-number-input") +
       numField(t("wallpaper.minResolutionShort"), "wallpaperMinResolution", cfg("wallpaper.minResolution", 0), 0, 8000) +
       numField(t("wallpaper.ratioDeviationShort"), "wallpaperMaxRatioDeviation", cfg("wallpaper.maxRatioDeviation", 0.2), 0, 1, 0.01) +
       '</div>' +
       '<hr style="border-color:#2a2e36;margin:12px 0">' +
       '<h3 style="margin:0 0 8px;color:#8892a4">' + t("wallpaper.characterSection") + '</h3>' +
       switchRow(t("wallpaper.enableCharacter"), "desktopCharacterEnabled", cfg("wallpaper.characterEnabled")) +
+      renderTargetDisplaySelector("characterWallpaper", cfg("wallpaper.characterDisplayIds", []), t("wallpaper.characterDisplays")) +
       '<label class="field"><span>' + t("wallpaper.characterFolder") + '</span><div style="display:flex;gap:6px"><input id="desktopCharacterFolderPath" readonly value="' + (cfg("wallpaper.characterFolderPath") || "") + '"><button id="chooseDesktopCharacterFolderButton" class="btn">' + t("wallpaper.chooseFolder") + '</button></div></label>' +
       '<div class="field-row cols-3">' +
       selectField(t("wallpaper.blendMode"), "desktopCharacterMode", cfg("wallpaper.characterMode", "diffuse"), [["diffuse", t("wallpaper.blend.diffuse")], ["directional", t("wallpaper.blend.directional")], ["mask", t("wallpaper.blend.mask")]]) +
@@ -1268,8 +1281,8 @@
         switchRow(t("legacy.singlePopup"), "aiSinglePopupMode", cfg("ai.singlePopupMode", true)) +
         switchRow(t("legacy.immediateReply"), "aiImmediateReplyEnabled", cfg("ai.immediateReplyEnabled", true)) +
         '<div class="field-row cols-2">' +
-        '<label class="field"><span>' + t("legacy.aiProvider") + '</span><select id="aiProvider"><option value="deepseek"' + (ai.provider === "deepseek" ? " selected" : "") + '>DeepSeek</option></select></label>' +
-        '<label class="field"><span>' + t("legacy.model") + '</span><input id="aiModel" value="' + (ai.model || "deepseek-chat") + '"></label>' +
+        '<label class="field"><span>' + t("ai.apiBaseUrl") + '</span><input id="aiApiBaseUrl" type="url" placeholder="https://api.deepseek.com" value="' + escapeHtml(ai.apiBaseUrl || "https://api.deepseek.com") + '"></label>' +
+        '<label class="field"><span>' + t("legacy.model") + '</span><input id="aiModel" value="' + escapeHtml(ai.model || "auto") + '"></label>' +
         '</div>' +
         '<label class="field"><span>API Key</span><input id="aiApiKey" type="password" value="' + (ai.apiKey || "") + '"></label>' +
         '<div class="actions-row"><button id="aiShowPopupButton" class="btn primary">' + t("legacy.testAiPopup") + '</button><button id="aiTestInteractionButton" class="btn">' + t("legacy.testInteraction") + '</button></div>'
@@ -1344,9 +1357,15 @@
     );
   }
 
+  function renderVisualDisplaySelector(feature) {
+    var key = feature + "DisplayIds";
+    return renderTargetDisplaySelector(feature, cfg("visual." + key, []), t("visual.targetDisplays"));
+  }
+
   function renderGhostDetail() {
     return renderVisualGeneralSettings() + panel(t("dashboard.card.ghost"), '<p class="desc-text">' + t("legacy.ghostNote") + '</p>' +
       switchRow(t("legacy.enableGhost"), "visualGhostEnabled", cfg("visual.ghostEnabled")) +
+      renderVisualDisplaySelector("ghost") +
       switchRow(t("legacy.ghostSyncWithWallpaper"), "visualGhostSyncWithWallpaper", cfg("visual.ghostSyncWithWallpaper")) +
       '<div class="field-row cols-2">' +
       numField(t("legacy.opacity"), "visualGhostOpacity", cfg("visual.ghostOpacity", 5), 1, 100) +
@@ -1359,6 +1378,7 @@
   function renderXrayDetail() {
     return renderVisualGeneralSettings() + panel(t("dashboard.card.xray"), '<p class="desc-text">' + t("legacy.xrayNote") + '</p>' +
       switchRow(t("legacy.enableXray"), "visualXrayEnabled", cfg("visual.xrayEnabled")) +
+      renderVisualDisplaySelector("xray") +
       '<div class="field-row cols-2">' +
       numField(t("legacy.radiusPx"), "visualXrayRadius", cfg("visual.xrayRadius", 200), 50, 1000) +
       numField(t("legacy.maskOpacity"), "visualXrayOpacity", cfg("visual.xrayOpacity", 60), 0, 100) +
@@ -1370,6 +1390,7 @@
   function renderWaterfallDetail() {
     return renderVisualGeneralSettings() + panel(t("dashboard.card.waterfall"), '<p class="desc-text">' + t("legacy.waterfallNote") + '</p>' +
       switchRow(t("legacy.enableWaterfall"), "visualWaterfallEnabled", cfg("visual.waterfallEnabled")) +
+      renderVisualDisplaySelector("waterfall") +
       '<div class="field-row cols-4">' +
       numField(t("legacy.speed"), "visualWaterfallSpeed", cfg("visual.waterfallSpeed", 50), 1, 100) +
       numField(t("legacy.count"), "visualWaterfallCount", cfg("visual.waterfallCount", 15), 1, 50) +
@@ -1383,6 +1404,7 @@
   function renderFlashDetail() {
     return renderVisualGeneralSettings() + panel(t("dashboard.card.flash"), '<p class="desc-text">' + t("legacy.flashWarning") + '</p>' +
       switchRow(t("legacy.enableFlash"), "visualFlashEnabled", cfg("visual.flashEnabled")) +
+      renderVisualDisplaySelector("flash") +
       '<div class="field-row cols-2">' +
       clockField(t("legacy.triggerInterval"), "visualFlashInterval", [cfg("visual.flashIntervalHours", 0), cfg("visual.flashIntervalMinutes", 0), cfg("visual.flashIntervalSeconds", 0)]) +
       clockField(t("legacy.randomJitter"), "visualFlashJitter", [cfg("visual.flashJitterHours", 0), cfg("visual.flashJitterMinutes", 0), cfg("visual.flashJitterSeconds", 0)]) +
@@ -1406,8 +1428,8 @@
       '<div class="field-row cols-2">' +
       numField(t("legacy.corpusMin"), "pollutionCorpusMinLength", cfg("pollution.corpusMinLength", 10), 1, 1000) +
       numField(t("legacy.clipboardChance"), "pollutionClipboardChance", cfg("pollution.clipboardChance", 20), 1, 100) +
-      numField(t("legacy.inputMin"), "pollutionInputIntervalMin", cfg("pollution.inputIntervalMin", 10), 1, 10080) +
-      numField(t("legacy.inputMax"), "pollutionInputIntervalMax", cfg("pollution.inputIntervalMax", 30), 1, 10080) +
+      numField(t("legacy.inputMin"), "pollutionInputIntervalMin", cfg("pollution.inputIntervalMin", 10), 1, 10080, 1, "time-number-input") +
+      numField(t("legacy.inputMax"), "pollutionInputIntervalMax", cfg("pollution.inputIntervalMax", 30), 1, 10080, 1, "time-number-input") +
       '</div>'
     );
   }
@@ -1443,7 +1465,7 @@
       switchRow(t("legacy.autoStopBlacklist"), "processRulesStopOnBlacklist", cfg("processRules.stopOnBlacklist")) +
       switchRow(t("legacy.autoStopWhitelistExit"), "processRulesStopOnWhitelistExit", cfg("processRules.stopOnWhitelistExit")) +
       '</div>' +
-      numField(t("legacy.checkInterval"), "processRulesCheckIntervalSeconds", cfg("processRules.checkIntervalSeconds", 5), 2, 300) +
+      numField(t("legacy.checkInterval"), "processRulesCheckIntervalSeconds", cfg("processRules.checkIntervalSeconds", 5), 2, 300, 1, "time-number-input") +
       '<p id="processRulesStatus" class="desc-text"></p>'
     );
   }
@@ -2276,6 +2298,26 @@
       "closeButtonOffsetX", "closeButtonOffsetY"
     ];
     if (id === "hardcoreModeToggle") { id = "hardcoreMode"; }
+    var targetMatch = /^displayTarget_([^_]+)_(.+)$/.exec(id);
+    if (targetMatch) {
+      var targetMap = {
+        ghost: [currentConfig.visualIntervention, "ghostDisplayIds"],
+        xray: [currentConfig.visualIntervention, "xrayDisplayIds"],
+        waterfall: [currentConfig.visualIntervention, "waterfallDisplayIds"],
+        flash: [currentConfig.visualIntervention, "flashDisplayIds"],
+        normalWallpaper: [currentConfig.wallpaper, "normalDisplayIds"],
+        characterWallpaper: [currentConfig.wallpaper, "characterDisplayIds"]
+      };
+      var target = targetMap[targetMatch[1]];
+      if (target && target[0]) {
+        var selected = Array.isArray(target[0][target[1]]) ? target[0][target[1]].map(String) : [];
+        var targetId = targetMatch[2];
+        if (val && selected.indexOf(targetId) === -1) selected.push(targetId);
+        if (!val) selected = selected.filter(function (item) { return item !== targetId; });
+        target[0][target[1]] = selected;
+      }
+      return;
+    }
     if (id.indexOf("popupDisplay_") === 0) {
       var displayId = id.slice("popupDisplay_".length);
       var displayIds = Array.isArray(currentConfig.popupDisplayIds) ? currentConfig.popupDisplayIds.map(String) : [];
@@ -2413,6 +2455,7 @@
       else if (id === "aiInteractionIntervalHours") currentConfig.ai.interactionIntervalHours = Number(val);
       else if (id === "aiInteractionIntervalMinutes") currentConfig.ai.interactionIntervalMinutes = Number(val);
       else if (id === "aiInteractionIntervalSeconds") currentConfig.ai.interactionIntervalSeconds = Number(val);
+      else if (id === "aiApiBaseUrl") currentConfig.ai.apiBaseUrl = val;
       else if (id === "aiProvider") currentConfig.ai.provider = val;
       else if (id === "aiModel") currentConfig.ai.model = val;
       else if (id === "aiApiKey") currentConfig.ai.apiKey = val;

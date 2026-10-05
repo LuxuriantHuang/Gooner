@@ -1,7 +1,7 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
 const { findBestMediaForDisplay } = require('./media-utils');
-const { shouldRunVisualOverlay, shouldRunVisualFlash, getVisualMediaFiles } = require('./visual-overlay-logic');
+const { shouldRunVisualOverlay, shouldRunVisualFlash, getVisualMediaFiles, getVisualFeaturesForDisplay } = require('./visual-overlay-logic');
 const { mapWallpapersToDisplays } = require('../shared/wallpaper-monitor-mapping');
 
 let overlayWindows = [];
@@ -117,7 +117,7 @@ function scheduleNextFlash() {
   flashTimer = setTimeout(async () => {
     // Send flash trigger with specific perfectly sized media for each display
     for (const w of overlayWindows) {
-      if (w && !w.isDestroyed()) {
+      if (w && !w.isDestroyed() && getVisualFeaturesForDisplay(currentConfig.visualIntervention || {}, w.monitorId, currentConfig.hardcoreMode).flashEnabled) {
         const mediaFiles = getMediaFilesForFlash();
         const bestMedia = await findBestMediaForDisplay(mediaFiles, w.monitorBounds, currentConfig.wallpaper || {});
         w.webContents.send('visual:trigger-flash', bestMedia);
@@ -156,12 +156,12 @@ function onConfigChange(config) {
 async function sendConfigToOverlay() {
   if (overlayWindows.length > 0 && currentConfig) {
     const vc = currentConfig.visualIntervention || {};
-    const isWaterfall = currentConfig.hardcoreMode || vc.waterfallEnabled;
     const mediaFiles = getMediaFilesForFlash();
 
     // Iterate through all overlay windows
     for (const overlayWindow of overlayWindows) {
       if (overlayWindow && !overlayWindow.isDestroyed()) {
+        const features = getVisualFeaturesForDisplay(vc, overlayWindow.monitorId, currentConfig.hardcoreMode);
         // Pre-filter media specific to this monitor's resolution/ratio so ghost and xray pick nice fits
         const displayMediaFiles = [];
         
@@ -182,11 +182,11 @@ async function sendConfigToOverlay() {
         }
 
         overlayWindow.webContents.send('visual:update-config', {
-          ghostEnabled: vc.ghostEnabled || false,
+          ghostEnabled: features.ghostEnabled,
           ghostSyncWithWallpaper: vc.ghostSyncWithWallpaper || false,
           synchronizedWallpaper: synchronizedWallpaperByDisplay.get(overlayWindow.displayIndex) || null,
-          xrayEnabled: vc.xrayEnabled || false,
-          waterfallEnabled: isWaterfall,
+          xrayEnabled: features.xrayEnabled,
+          waterfallEnabled: features.waterfallEnabled,
           ghostOpacity: vc.ghostOpacity || 5,
           ghostIntervalMinutes: vc.ghostIntervalMinutes ?? 5,
           ghostIntervalSeconds: vc.ghostIntervalSeconds ?? 0,
@@ -196,7 +196,7 @@ async function sendConfigToOverlay() {
           waterfallCount: vc.waterfallCount || 15,
           waterfallSize: vc.waterfallSize || 150,
           waterfallOpacity: vc.waterfallOpacity ?? 60,
-          flashEnabled: currentConfig.hardcoreMode || vc.flashEnabled,
+          flashEnabled: features.flashEnabled,
           mediaFiles: displayMediaFiles.length > 0 ? displayMediaFiles : mediaFiles,
           allMediaFiles: mediaFiles,
           hardcore: currentConfig.hardcoreMode

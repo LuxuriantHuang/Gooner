@@ -63,6 +63,7 @@ const defaultAiPopupAppearanceConfig = {
 
 const defaultAiConfig = {
   provider: 'deepseek',
+  apiBaseUrl: 'https://api.deepseek.com',
   model: 'auto',
   apiKey: '',
   cards: [],
@@ -126,9 +127,12 @@ const defaultVisualInterventionConfig = {
   independentOfScheduler: true,
   useOnlineMedia: true,
   ghostEnabled: false,
+  ghostDisplayIds: [],
   ghostSyncWithWallpaper: false,
   xrayEnabled: false,
+  xrayDisplayIds: [],
   waterfallEnabled: false,
+  waterfallDisplayIds: [],
   ghostOpacity: 5, // percentage
   ghostIntervalMinutes: 5,
   ghostIntervalSeconds: 0,
@@ -139,6 +143,7 @@ const defaultVisualInterventionConfig = {
   waterfallSize: 150,
   waterfallOpacity: 60,
   flashEnabled: false,
+  flashDisplayIds: [],
   flashIntervalHours: 0,
   flashIntervalMinutes: 1,
   flashIntervalSeconds: 0,
@@ -165,10 +170,12 @@ const defaultProcessRulesConfig = {
 
 const defaultWallpaperConfig = {
   enabled: false,
+  normalDisplayIds: [],
   intervalMinutes: 60,
   minResolution: 0,
   maxRatioDeviation: 0.20,
   characterEnabled: false,
+  characterDisplayIds: [],
   characterFolderPath: '',
   characterMode: 'diffuse',
   characterLayerMode: 'system-wallpaper',
@@ -296,7 +303,11 @@ function cloneDefaultConfig() {
         processes: [...p.processes]
       }))
     },
-    wallpaper: { ...defaultWallpaperConfig },
+    wallpaper: {
+      ...defaultWallpaperConfig,
+      normalDisplayIds: [...defaultWallpaperConfig.normalDisplayIds],
+      characterDisplayIds: [...defaultWallpaperConfig.characterDisplayIds]
+    },
     desktopCharacter: { ...defaultDesktopCharacterConfig },
     onlineMedia: { ...defaultOnlineMediaConfig },
     peerShare: {
@@ -304,7 +315,13 @@ function cloneDefaultConfig() {
       stunServers: [...defaultPeerShareConfig.stunServers]
     },
     pollution: { ...defaultPollutionConfig },
-    visualIntervention: { ...defaultVisualInterventionConfig },
+    visualIntervention: {
+      ...defaultVisualInterventionConfig,
+      ghostDisplayIds: [...defaultVisualInterventionConfig.ghostDisplayIds],
+      xrayDisplayIds: [...defaultVisualInterventionConfig.xrayDisplayIds],
+      waterfallDisplayIds: [...defaultVisualInterventionConfig.waterfallDisplayIds],
+      flashDisplayIds: [...defaultVisualInterventionConfig.flashDisplayIds]
+    },
     websiteLibrary: { ...defaultWebsiteLibraryConfig },
     ai: {
       ...defaultAiConfig,
@@ -683,6 +700,7 @@ function normalizeAiConfig(input, root = {}) {
 
   return {
     provider: normalizeAiProvider(next.provider),
+    apiBaseUrl: normalizeText(next.apiBaseUrl, 500) || defaultAiConfig.apiBaseUrl,
     model: normalizeAiModel(next.model),
     apiKey: normalizeText(next.apiKey, 300),
     cards,
@@ -847,10 +865,12 @@ function normalizeWallpaperConfig(input) {
     : defaultWallpaperConfig.characterLayerMode;
   return {
     enabled: Boolean(next.enabled),
+    normalDisplayIds: normalizeDisplayIds(next.normalDisplayIds),
     intervalMinutes: Math.round(clampNumber(next.intervalMinutes, 1, 10080, defaultWallpaperConfig.intervalMinutes)),
     minResolution: Math.round(clampNumber(next.minResolution, 0, 8000, defaultWallpaperConfig.minResolution)),
     maxRatioDeviation: Number(clampNumber(next.maxRatioDeviation, 0, 1.0, defaultWallpaperConfig.maxRatioDeviation)),
     characterEnabled: Boolean(next.characterEnabled),
+    characterDisplayIds: normalizeDisplayIds(next.characterDisplayIds),
     characterFolderPath: typeof next.characterFolderPath === 'string' ? next.characterFolderPath.trim() : '',
     characterMode: ['diffuse', 'directional', 'mask'].includes(next.characterMode) ? next.characterMode : defaultWallpaperConfig.characterMode,
     characterLayerMode,
@@ -1196,6 +1216,10 @@ function normalizeConfig(input, getSystemLanguage = () => 'zh-CN') {
   }
 
   const vcNext = { ...defaultVisualInterventionConfig, ...vcInput };
+  vcNext.ghostDisplayIds = normalizeDisplayIds(vcNext.ghostDisplayIds);
+  vcNext.xrayDisplayIds = normalizeDisplayIds(vcNext.xrayDisplayIds);
+  vcNext.waterfallDisplayIds = normalizeDisplayIds(vcNext.waterfallDisplayIds);
+  vcNext.flashDisplayIds = normalizeDisplayIds(vcNext.flashDisplayIds);
   delete vcNext.mediaPath;
   delete vcNext.mediaPaths;
   next.visualIntervention = vcNext;

@@ -18,4 +18,18 @@ function shouldRunVisualFlash(config, schedulerRunning) {
   return shouldRunVisualOverlay(config, schedulerRunning) && !!(config.hardcoreMode || visual.flashEnabled);
 }
 
-module.exports = { shouldRunVisualOverlay, shouldRunVisualFlash, getVisualMediaFiles };
+function isDisplaySelected(displayId, selectedDisplayIds) {
+  return !Array.isArray(selectedDisplayIds) || selectedDisplayIds.length === 0
+    || selectedDisplayIds.map(String).includes(String(displayId));
+}
+
+function getVisualFeaturesForDisplay(visual = {}, displayId, hardcoreMode = false) {
+  return {
+    ghostEnabled: !!visual.ghostEnabled && isDisplaySelected(displayId, visual.ghostDisplayIds),
+    xrayEnabled: !!visual.xrayEnabled && isDisplaySelected(displayId, visual.xrayDisplayIds),
+    waterfallEnabled: !!(hardcoreMode || visual.waterfallEnabled) && isDisplaySelected(displayId, visual.waterfallDisplayIds),
+    flashEnabled: !!(hardcoreMode || visual.flashEnabled) && isDisplaySelected(displayId, visual.flashDisplayIds)
+  };
+}
+
+module.exports = { shouldRunVisualOverlay, shouldRunVisualFlash, getVisualMediaFiles, isDisplaySelected, getVisualFeaturesForDisplay };

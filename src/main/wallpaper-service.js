@@ -2,9 +2,10 @@ const { exec } = require('child_process');
 const fs = require('fs/promises');
 const path = require('path');
 const { promisify } = require('util');
-const { app } = require('electron');
+const { app, screen } = require('electron');
 const { findBestMediaForDisplay } = require('./media-utils');
 const { prepareWallpaper } = require('./wallpaper-download');
+const { filterMonitorsByDisplayIds } = require('../shared/wallpaper-monitor-mapping');
 const {
   ACTION_APPLY_MANAGED,
   ACTION_INITIALIZE_MANAGED,
@@ -554,19 +555,21 @@ if ($args[0] -eq "list") {
     }
 
     await this.initScript();
-    const monitors = await this.getMonitors();
+    const allMonitors = await this.getMonitors();
     // 更新缓存供焦点检测使用
-    if (monitors.length > 0) {
-      this.cachedMonitors = monitors;
+    if (allMonitors.length > 0) {
+      this.cachedMonitors = allMonitors;
       this.cachedMonitorsTime = Date.now();
     }
+    const mode = force ? 'normal' : this._pickMode();
+    const displayIds = mode === 'character' ? wpCfg.characterDisplayIds : wpCfg.normalDisplayIds;
+    const monitors = filterConfiguredMonitors(allMonitors, displayIds);
     if (monitors.length === 0) {
-      console.log('[WallpaperService] No monitors detected, skipping.');
-      return '未检测到任何显示器';
+      console.log('[WallpaperService] No selected monitors detected, skipping.');
+      return '没有选中可用的显示器';
     }
 
     // 选择模式
-    const mode = force ? 'normal' : this._pickMode();
     console.log(`[WallpaperService] Selected mode: ${mode}`);
 
     let result;
@@ -588,7 +591,8 @@ if ($args[0] -eq "list") {
   async tickCharacter() {
     console.log('[WallpaperService] Tick character triggered');
     await this.initScript();
-    const monitors = await this.getMonitors();
+    const allMonitors = await this.getMonitors();
+    const monitors = filterConfiguredMonitors(allMonitors, this.getConfig().wallpaper?.characterDisplayIds);
     if (monitors.length === 0) {
       return '未检测到任何显示器';
     }
@@ -848,6 +852,15 @@ if ($args[0] -eq "list") {
       }
     }
   }
+}
+
+function filterConfiguredMonitors(monitors, selectedDisplayIds) {
+  if (!Array.isArray(selectedDisplayIds) || selectedDisplayIds.length === 0) return monitors;
+  const displays = typeof screen?.getAllDisplays === 'function' ? screen.getAllDisplays() : [];
+  const toDipPoint = typeof screen?.screenToDipPoint === 'function'
+    ? point => screen.screenToDipPoint(point)
+    : null;
+  return filterMonitorsByDisplayIds(monitors, selectedDisplayIds, displays, toDipPoint);
 }
 
 module.exports = {

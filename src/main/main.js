@@ -1632,6 +1632,7 @@ ipcMain.handle('ai:listModels', async (_event, payload = {}) => {
   try {
     const models = await listDeepSeekModels({
       apiKey,
+      apiBaseUrl: aiConfig.apiBaseUrl,
       forceRefresh: Boolean(payload.forceRefresh)
     });
 

@@ -45,6 +45,18 @@ function mapWallpapersToDisplays(entries, monitors, displays, screenToDipPoint) 
   return assignments;
 }
 
+function filterMonitorsByDisplayIds(monitors, selectedDisplayIds, displays, screenToDipPoint) {
+  if (!Array.isArray(selectedDisplayIds) || selectedDisplayIds.length === 0) return monitors;
+  if (!Array.isArray(displays) || displays.length === 0) return [];
+  const selectedIds = new Set(selectedDisplayIds.map(String));
+  const entries = monitors.map(monitor => [monitor.id, String(monitor.id)]);
+  const assignments = mapWallpapersToDisplays(entries, monitors, displays, screenToDipPoint);
+  const selectedMonitorIds = new Set(assignments
+    .filter(item => selectedIds.has(String(displays[item.displayIndex]?.id)))
+    .map(item => String(item.sync.media)));
+  return monitors.filter(monitor => selectedMonitorIds.has(String(monitor.id)));
+}
+
 function findDisplayIndex(monitor, displays, assigned, screenToDipPoint, fallbackIndex) {
   if (hasBounds(monitor) && typeof screenToDipPoint === 'function') {
     const physicalCenter = {
@@ -92,5 +104,6 @@ function pickBounds(value) {
 
 module.exports = {
   getVirtualBounds,
-  mapWallpapersToDisplays
+  mapWallpapersToDisplays,
+  filterMonitorsByDisplayIds
 };

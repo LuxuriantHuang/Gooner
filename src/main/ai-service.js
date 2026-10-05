@@ -4,6 +4,7 @@ const { normalizeSingleLineText, normalizeText, uiTextTargets } = require('./con
 
 const AUTO_MODEL_KEY = 'auto';
 const DEFAULT_DEEPSEEK_MODEL = 'deepseek-chat';
+const DEFAULT_API_BASE_URL = 'https://api.deepseek.com';
 const MODEL_LIST_CACHE_TTL_MS = 10 * 60 * 1000;
 const modelListCache = new Map();
 
@@ -228,8 +229,19 @@ function normalizeModelId(value) {
   return value.trim();
 }
 
-function getCachedModelList(apiKey) {
-  const cacheKey = normalizeModelId(apiKey);
+function buildAiEndpoint(aiConfig, endpointPath) {
+  const configuredBaseUrl = normalizeModelId(aiConfig?.apiBaseUrl) || DEFAULT_API_BASE_URL;
+  const baseUrl = configuredBaseUrl.replace(/\/+$/, '');
+  const path = String(endpointPath || '').replace(/^\/+/, '');
+  return `${baseUrl}/${path}`;
+}
+
+function getModelCacheKey(apiKey, apiBaseUrl) {
+  return `${normalizeModelId(apiBaseUrl) || DEFAULT_API_BASE_URL}\n${normalizeModelId(apiKey)}`;
+}
+
+function getCachedModelList(apiKey, apiBaseUrl) {
+  const cacheKey = getModelCacheKey(apiKey, apiBaseUrl);
   if (!cacheKey) {
     return null;
   }
@@ -247,8 +259,8 @@ function getCachedModelList(apiKey) {
   return cached.models;
 }
 
-function setCachedModelList(apiKey, models) {
-  const cacheKey = normalizeModelId(apiKey);
+function setCachedModelList(apiKey, apiBaseUrl, models) {
+  const cacheKey = getModelCacheKey(apiKey, apiBaseUrl);
   if (!cacheKey) {
     return;
   }
@@ -297,7 +309,7 @@ function normalizeModelItems(data) {
     });
 }
 
-async function listDeepSeekModels({ apiKey, forceRefresh = false }) {
+async function listDeepSeekModels({ apiKey, apiBaseUrl, forceRefresh = false }) {
   const normalizedApiKey = normalizeModelId(apiKey);
   if (!normalizedApiKey) {
     throw createAiError('missing_api_key');
@@ -308,7 +320,7 @@ async function listDeepSeekModels({ apiKey, forceRefresh = false }) {
   }
 
   if (!forceRefresh) {
-    const cached = getCachedModelList(normalizedApiKey);
+    const cached = getCachedModelList(normalizedApiKey, apiBaseUrl);
     if (cached) {
       return cached;
     }
@@ -318,7 +330,7 @@ async function listDeepSeekModels({ apiKey, forceRefresh = false }) {
   const timeout = setTimeout(() => controller.abort(), 20000);
 
   try {
-    const response = await net.fetch('https://api.deepseek.com/models', {
+    const response = await net.fetch(buildAiEndpoint({ apiBaseUrl }, 'models'), {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${normalizedApiKey}`
@@ -345,7 +357,7 @@ async function listDeepSeekModels({ apiKey, forceRefresh = false }) {
       throw createAiError('empty_response');
     }
 
-    setCachedModelList(normalizedApiKey, models);
+    setCachedModelList(normalizedApiKey, apiBaseUrl, models);
     return models;
   } catch (error) {
     if (error?.name === 'AbortError') {
@@ -367,9 +379,13 @@ async function resolveDeepSeekModel(aiConfig) {
   }
 
   try {
-    const models = await listDeepSeekModels({ apiKey: aiConfig?.apiKey });
+    const models = await listDeepSeekModels({ apiKey: aiConfig?.apiKey, apiBaseUrl: aiConfig?.apiBaseUrl });
     return models[0]?.id || DEFAULT_DEEPSEEK_MODEL;
-  } catch {
+  } catch (error) {
+    const configuredBaseUrl = normalizeModelId(aiConfig?.apiBaseUrl).replace(/\/+$/, '');
+    if (configuredBaseUrl && configuredBaseUrl !== DEFAULT_API_BASE_URL) {
+      throw error;
+    }
     return DEFAULT_DEEPSEEK_MODEL;
   }
 }
@@ -389,7 +405,7 @@ async function requestDeepSeekUiText({ aiConfig, cardConfig, targetKey, locale }
   try {
     const model = await resolveDeepSeekModel(aiConfig);
 
-    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
+    const response = await net.fetch(buildAiEndpoint(aiConfig, 'chat/completions'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -456,7 +472,7 @@ async function requestDeepSeekPopupText({ aiConfig, cardConfig, locale }) {
   try {
     const model = await resolveDeepSeekModel(aiConfig);
 
-    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
+    const response = await net.fetch(buildAiEndpoint(aiConfig, 'chat/completions'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -523,7 +539,7 @@ async function requestDeepSeekContextInteractionText({ aiConfig, cardConfig, loc
   try {
     const model = await resolveDeepSeekModel(aiConfig);
 
-    const response = await net.fetch('https://api.deepseek.com/chat/completions', {
+    const response = await net.fetch(buildAiEndpoint(aiConfig, 'chat/completions'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -581,6 +597,7 @@ function getAiErrorKey(error) {
 }
 
 module.exports = {
+  buildAiEndpoint,
   buildContextInteractionMessages,
   buildPopupTextGenerationMessages,
   buildUiTextGenerationMessages,
