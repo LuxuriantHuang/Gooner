@@ -1,11 +1,12 @@
 const { app, BrowserWindow, screen, ipcMain } = require('electron');
 const path = require('path');
-const fs = require('fs');
 const { findBestMediaForDisplay } = require('./media-utils');
+const { shouldRunVisualOverlay, shouldRunVisualFlash, getVisualMediaFiles } = require('./visual-overlay-logic');
 const { mapWallpapersToDisplays } = require('../shared/wallpaper-monitor-mapping');
 
 let overlayWindows = [];
 let currentConfig = null;
+let getMediaLibrary = () => [];
 let flashTimer = null;
 let isSchedulerRunning = false;
 const synchronizedWallpaperByDisplay = new Map();
@@ -91,10 +92,8 @@ function scheduleNextFlash() {
   
   if (!currentConfig || !currentConfig.visualIntervention) return;
   const vc = currentConfig.visualIntervention;
-  const enabled = vc.enabled || currentConfig.hardcoreMode;
   const flashEnabled = vc.flashEnabled || currentConfig.hardcoreMode;
-  
-  if (!enabled || !flashEnabled) return;
+  if (!flashEnabled || !shouldRunVisualFlash(currentConfig, isSchedulerRunning)) return;
 
   // Calculate interval
   let intervalMs = 0;
@@ -129,37 +128,14 @@ function scheduleNextFlash() {
 }
 
 function getMediaFilesForFlash() {
-  let mediaFiles = [];
-  if (!currentConfig) return mediaFiles;
-  const sourceFolders = currentConfig.folders || [];
-  const folderPaths = sourceFolders.map(f => typeof f === 'string' ? f : f.path).filter(Boolean);
-  
-  if (folderPaths.length > 0) {
-    for (const p of folderPaths) {
-      if (fs.existsSync(p)) {
-        try {
-          const files = fs.readdirSync(p);
-          const validFiles = files.filter(f => {
-            const ext = path.extname(f).toLowerCase();
-            return ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.webm'].includes(ext);
-          }).map(f => path.join(p, f));
-          mediaFiles = mediaFiles.concat(validFiles);
-        } catch (err) {}
-      }
-    }
-  }
-  return mediaFiles;
+  if (!currentConfig) return [];
+  const useOnlineMedia = currentConfig.visualIntervention?.useOnlineMedia !== false;
+  return getVisualMediaFiles(getMediaLibrary(), useOnlineMedia);
 }
 
 function onConfigChange(config) {
   currentConfig = config;
-  const vc = config.visualIntervention || {};
-  const hasVisualFeature = vc.enabled
-    || vc.ghostEnabled
-    || vc.xrayEnabled
-    || vc.waterfallEnabled
-    || vc.flashEnabled;
-  const enabled = (hasVisualFeature && isSchedulerRunning) || config.hardcoreMode;
+  const enabled = shouldRunVisualOverlay(config, isSchedulerRunning);
 
   if (enabled) {
     if (overlayWindows.length === 0) {
@@ -249,6 +225,9 @@ function onWallpapersApplied(entries, monitors = []) {
 }
 
 module.exports = {
+  setMediaLibraryProvider(provider) {
+    getMediaLibrary = typeof provider === 'function' ? provider : () => [];
+  },
   onConfigChange,
   onSchedulerStateChange,
   onWallpapersApplied

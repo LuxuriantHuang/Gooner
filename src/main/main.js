@@ -1133,6 +1133,7 @@ async function scanMedia() {
   }
 
   mediaLibrary = media;
+  visualOverlay.onConfigChange(config);
   resetMediaQueue();
   sendState({ lastScanErrors: errors });
   return { media: mediaLibrary, errors };
@@ -1382,6 +1383,7 @@ async function createMainWindow() {
   }
   initStats(app);
   pollution.onConfigChange(config);
+  visualOverlay.setMediaLibraryProvider(() => mediaLibrary);
   visualOverlay.onConfigChange(config);
 
   setInterval(() => {

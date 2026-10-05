@@ -3,6 +3,7 @@ const path = require('path');
 const { translate } = require('../shared/i18n');
 const { clampNumber, normalizeSingleLineText, normalizeText } = require('./config-store');
 const statsStore = require('./stats-store');
+const { boundsOverlap, findPopupPlacementWithEviction } = require('./popup-placement');
 
 function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -224,6 +225,33 @@ class WindowManager {
     return this.viewerPayloads.get(String(viewerId)) || null;
   }
 
+  findImagePopupBounds(area, width, height, config) {
+    if (!config.avoidImageOverlap) {
+      const overflowX = Math.floor(width * 0.3);
+      const overflowY = Math.floor(height * 0.3);
+      return {
+        x: randomInt(area.x - overflowX, Math.max(area.x - overflowX, area.x + area.width - width + overflowX)),
+        y: randomInt(area.y - overflowY, Math.max(area.y - overflowY, area.y + area.height - height + overflowY)),
+        width,
+        height
+      };
+    }
+
+    const imagePopupsOnDisplay = () => [...this.popupWindows]
+      .filter(popup => this.popupMediaTypes.get(popup) === 'image'
+        && !popup.isDestroyed()
+        && boundsOverlap(popup.getBounds(), area, 0));
+    if (config.fullscreen) {
+      for (const popup of imagePopupsOnDisplay()) popup.close();
+      return { x: area.x, y: area.y, width, height };
+    }
+    // Set iteration follows creation order, so release the oldest image first.
+    const plan = findPopupPlacementWithEviction(area, width, height,
+      imagePopupsOnDisplay().map(popup => ({ popup, bounds: popup.getBounds() })));
+    for (const item of plan.evicted) item.popup.close();
+    return plan.bounds;
+  }
+
   getAiTextPayload(popupId) {
     return this.aiTextPayloads.get(String(popupId)) || null;
   }
@@ -260,11 +288,18 @@ class WindowManager {
     const height = config.fullscreen
       ? area.height
       : Math.round(clampNumber(sizeConfig.baseHeight + heightOffset, 120, area.height, Math.min(sizeConfig.baseHeight, area.height)));
-    // Allow up to 30% overflow beyond screen edges for a more random feel
-    const overflowX = Math.floor(width * 0.3);
-    const overflowY = Math.floor(height * 0.3);
-    const x = config.fullscreen ? area.x : randomInt(area.x - overflowX, Math.max(area.x - overflowX, area.x + area.width - width + overflowX));
-    const y = config.fullscreen ? area.y : randomInt(area.y - overflowY, Math.max(area.y - overflowY, area.y + area.height - height + overflowY));
+    // Keep fullscreen placement exact; other images can avoid their peers when enabled.
+    const placement = media.type === 'image' && config.avoidImageOverlap
+      ? this.findImagePopupBounds(area, width, height, config)
+      : (() => {
+        const overflowX = Math.floor(width * 0.3);
+        const overflowY = Math.floor(height * 0.3);
+        return {
+          x: config.fullscreen ? area.x : randomInt(area.x - overflowX, Math.max(area.x - overflowX, area.x + area.width - width + overflowX)),
+          y: config.fullscreen ? area.y : randomInt(area.y - overflowY, Math.max(area.y - overflowY, area.y + area.height - height + overflowY))
+        };
+      })();
+    const { x, y } = placement;
     const viewerId = String(this.nextViewerId++);
 
     this.viewerPayloads.set(viewerId, {

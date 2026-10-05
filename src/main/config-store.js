@@ -123,6 +123,8 @@ const defaultPollutionConfig = {
 
 const defaultVisualInterventionConfig = {
   enabled: false,
+  independentOfScheduler: true,
+  useOnlineMedia: true,
   ghostEnabled: false,
   ghostSyncWithWallpaper: false,
   xrayEnabled: false,
@@ -185,6 +187,7 @@ const defaultConfig = {
   folders: [],
   language: 'system',
   popupDisplayIds: [],
+  avoidImageOverlap: false,
   startShortcut: '',
   pauseShortcut: '',
   stopShortcut: '',

@@ -1072,6 +1072,7 @@
 
     html += panel(t("legacy.windowSize"), '<p class="desc-text">' + t("legacy.windowSizeNote") + '</p>' +
       switchRow(t("legacy.splitSize"), "separateMediaSizeSettings", cfg("separateMediaSizeSettings")) +
+      switchRow(t("legacy.avoidImageOverlap"), "avoidImageOverlap", cfg("avoidImageOverlap")) +
       // Shared panel
       '<div id="sharedSizePanel"><div class="field-row cols-4">' +
       numField(t("legacy.sharedWidth"), "sharedBaseWidth", cfg("imageBaseWidth", 400), 100, 2000) +
@@ -1336,8 +1337,15 @@
   }
 
   // === 幽灵底片 ===
+  function renderVisualGeneralSettings() {
+    return panel(t("visual.title"),
+      switchRow(t("visual.independent"), "visualIndependentOfScheduler", cfg("visual.independentOfScheduler", true)) +
+      switchRow(t("visual.useOnlineMedia"), "visualUseOnlineMedia", cfg("visual.useOnlineMedia", true))
+    );
+  }
+
   function renderGhostDetail() {
-    return panel(t("dashboard.card.ghost"), '<p class="desc-text">' + t("legacy.ghostNote") + '</p>' +
+    return renderVisualGeneralSettings() + panel(t("dashboard.card.ghost"), '<p class="desc-text">' + t("legacy.ghostNote") + '</p>' +
       switchRow(t("legacy.enableGhost"), "visualGhostEnabled", cfg("visual.ghostEnabled")) +
       switchRow(t("legacy.ghostSyncWithWallpaper"), "visualGhostSyncWithWallpaper", cfg("visual.ghostSyncWithWallpaper")) +
       '<div class="field-row cols-2">' +
@@ -1349,7 +1357,7 @@
 
   // === X光模式 ===
   function renderXrayDetail() {
-    return panel(t("dashboard.card.xray"), '<p class="desc-text">' + t("legacy.xrayNote") + '</p>' +
+    return renderVisualGeneralSettings() + panel(t("dashboard.card.xray"), '<p class="desc-text">' + t("legacy.xrayNote") + '</p>' +
       switchRow(t("legacy.enableXray"), "visualXrayEnabled", cfg("visual.xrayEnabled")) +
       '<div class="field-row cols-2">' +
       numField(t("legacy.radiusPx"), "visualXrayRadius", cfg("visual.xrayRadius", 200), 50, 1000) +
@@ -1360,7 +1368,7 @@
 
   // === 媒体瀑布 ===
   function renderWaterfallDetail() {
-    return panel(t("dashboard.card.waterfall"), '<p class="desc-text">' + t("legacy.waterfallNote") + '</p>' +
+    return renderVisualGeneralSettings() + panel(t("dashboard.card.waterfall"), '<p class="desc-text">' + t("legacy.waterfallNote") + '</p>' +
       switchRow(t("legacy.enableWaterfall"), "visualWaterfallEnabled", cfg("visual.waterfallEnabled")) +
       '<div class="field-row cols-4">' +
       numField(t("legacy.speed"), "visualWaterfallSpeed", cfg("visual.waterfallSpeed", 50), 1, 100) +
@@ -1373,7 +1381,7 @@
 
   // === 潜意识闪烁 ===
   function renderFlashDetail() {
-    return panel(t("dashboard.card.flash"), '<p class="desc-text">' + t("legacy.flashWarning") + '</p>' +
+    return renderVisualGeneralSettings() + panel(t("dashboard.card.flash"), '<p class="desc-text">' + t("legacy.flashWarning") + '</p>' +
       switchRow(t("legacy.enableFlash"), "visualFlashEnabled", cfg("visual.flashEnabled")) +
       '<div class="field-row cols-2">' +
       clockField(t("legacy.triggerInterval"), "visualFlashInterval", [cfg("visual.flashIntervalHours", 0), cfg("visual.flashIntervalMinutes", 0), cfg("visual.flashIntervalSeconds", 0)]) +
@@ -2263,6 +2271,7 @@
       "imageBaseWidth", "imageBaseHeight", "imageSizeJitter",
       "videoBaseWidth", "videoBaseHeight", "videoSizeJitter",
       "sharedBaseWidth", "sharedBaseHeight", "sharedSizeJitter", "separateMediaSizeSettings",
+      "avoidImageOverlap",
       "closeButtonFontSize", "closeButtonBorderRadius", "closeButtonPaddingX", "closeButtonPaddingY",
       "closeButtonOffsetX", "closeButtonOffsetY"
     ];
@@ -2905,21 +2914,8 @@
       if (e.repeat) return;
       if (e.key === "Backspace" || e.key === "Delete") { t.value = ""; return; }
       if (e.key === "Escape") { t.blur(); return; }
-      var parts = [];
-      if (e.ctrlKey) parts.push("Ctrl");
-      if (e.altKey) parts.push("Alt");
-      if (e.shiftKey) parts.push("Shift");
-      if (e.metaKey) parts.push("Super");
-      var k = e.key;
-      if (k.length === 1) parts.push(k.toUpperCase());
-      else if (k === " ") parts.push("Space");
-      else if (k === "ArrowUp") parts.push("Up");
-      else if (k === "ArrowDown") parts.push("Down");
-      else if (k === "ArrowLeft") parts.push("Left");
-      else if (k === "ArrowRight") parts.push("Right");
-      else if (k.length > 1 && k.indexOf("F") === 0) parts.push(k.toUpperCase());
-      else parts.push(k);
-      t.value = parts.join("+");
+      var shortcut = window.GoonerShortcutRecorder.formatKeyEvent(e);
+      if (shortcut) t.value = shortcut;
     });
   }
 
