@@ -649,9 +649,12 @@ internal sealed class DesktopHostContext : ApplicationContext
             NativeMethods.DESKTOP_WALLPAPER_POSITION position = wallpaper.GetPosition();
             for (uint i = 0; i < count; i++)
             {
+              try
+              {
                 string monitorId = wallpaper.GetMonitorDevicePathAt(i);
                 NativeMethods.RECT rect;
                 wallpaper.GetMonitorRECT(monitorId, out rect);
+                if (rect.Right <= rect.Left || rect.Bottom <= rect.Top) continue;
                 Console.WriteLine(
                     "MONITOR\t" + monitorId
                     + "\t" + rect.Left
@@ -659,6 +662,11 @@ internal sealed class DesktopHostContext : ApplicationContext
                     + "\t" + (rect.Right - rect.Left)
                     + "\t" + (rect.Bottom - rect.Top)
                     + "\t" + position.ToString().ToLowerInvariant());
+              }
+              catch (COMException)
+              {
+                // A disconnected display must not prevent MONITORS_END from being sent.
+              }
             }
             Console.WriteLine("MONITORS_END\t" + count);
         }

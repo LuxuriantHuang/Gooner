@@ -9,6 +9,7 @@ const { imageSize } = require('image-size');
 const execAsync = promisify(exec);
 
 const DESKTOP_WALLPAPER_HELPER_PS = `
+$ErrorActionPreference = 'Stop'
 Add-Type -TypeDefinition @"
 using System;
 using System.Runtime.InteropServices;
@@ -34,13 +35,18 @@ namespace DCW {
             var w = (IDesktopWallpaper)new DesktopWallpaperClass();
             uint c = w.GetMonitorDevicePathCount();
             DESKTOP_WALLPAPER_POSITION position = w.GetPosition();
-            string[] result = new string[c];
+            var result = new System.Collections.Generic.List<string>();
             for (uint i = 0; i < c; i++) {
+              try {
                 string p = w.GetMonitorDevicePathAt(i);
                 RECT r; w.GetMonitorRECT(p, out r);
-                result[i] = p + "|" + r.Left + "|" + r.Top + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top) + "|" + position.ToString().ToLowerInvariant();
+                if (r.Right <= r.Left || r.Bottom <= r.Top) continue;
+                result.Add(p + "|" + r.Left + "|" + r.Top + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top) + "|" + position.ToString().ToLowerInvariant());
+              } catch (COMException) {
+                // Ignore disconnected displays without discarding working monitors.
+              }
             }
-            return result;
+            return result.ToArray();
         }
         public static string Get(string m) { var w = (IDesktopWallpaper)new DesktopWallpaperClass(); return w.GetWallpaper(m); }
         public static void Set(string m, string p) { var w = (IDesktopWallpaper)new DesktopWallpaperClass(); w.SetWallpaper(m, p); }

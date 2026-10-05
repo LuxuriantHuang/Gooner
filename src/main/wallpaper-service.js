@@ -4,6 +4,7 @@ const path = require('path');
 const { promisify } = require('util');
 const { app } = require('electron');
 const { findBestMediaForDisplay } = require('./media-utils');
+const { prepareWallpaper } = require('./wallpaper-download');
 const {
   ACTION_APPLY_MANAGED,
   ACTION_INITIALIZE_MANAGED,
@@ -47,14 +48,19 @@ namespace WH {
             var w = (IDesktopWallpaper)new DesktopWallpaperClass();
             uint c = w.GetMonitorDevicePathCount();
             DESKTOP_WALLPAPER_POSITION position = w.GetPosition();
-            string[] result = new string[c];
+            var result = new System.Collections.Generic.List<string>();
             for(uint i = 0; i < c; i++) {
+              try {
                 string p = w.GetMonitorDevicePathAt(i);
                 RECT r;
                 w.GetMonitorRECT(p, out r);
-                result[i] = p + "|" + r.Left + "|" + r.Top + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top) + "|" + position.ToString().ToLowerInvariant();
+                if (r.Right <= r.Left || r.Bottom <= r.Top) continue;
+                result.Add(p + "|" + r.Left + "|" + r.Top + "|" + (r.Right - r.Left) + "|" + (r.Bottom - r.Top) + "|" + position.ToString().ToLowerInvariant());
+              } catch (COMException) {
+                // Windows also enumerates disconnected displays.
+              }
             }
-            return result;
+            return result.ToArray();
         }
         public static string Get(string m) {
             var w = (IDesktopWallpaper)new DesktopWallpaperClass();
@@ -76,6 +82,7 @@ class WallpaperService {
     this.onWallpapersApplied = onWallpapersApplied;
     this.timer = null;
     this.scriptPath = path.join(app.getPath('userData'), 'wallpaper-helper.ps1');
+    this.wallpaperCacheDir = path.join(app.getPath('userData'), 'wallpaper-cache');
     this.initialized = false;
     // 失焦自动换回
     this.originalWallpapers = new Map(); // monitorId -> imagePath (启动时的原始壁纸)
@@ -93,12 +100,14 @@ class WallpaperService {
     this._focusSyncRequested = false;
     this._focusSyncScheduled = false;
     this._wallpaperTransition = Promise.resolve();
+    this._generation = 0;
   }
 
   async initScript() {
     if (this.initialized) return;
     try {
       const content = `
+$ErrorActionPreference = 'Stop'
 Add-Type -TypeDefinition @"
 ${psScriptContent}
 "@
@@ -264,7 +273,7 @@ if ($args[0] -eq "list") {
       if (nativeMonitors.length > 0) return nativeMonitors;
     }
     try {
-      const { stdout } = await execAsync(`powershell -ExecutionPolicy Bypass -File "${this.scriptPath}" list`, { windowsHide: true });
+      const { stdout } = await execAsync(`powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${this.scriptPath}" list`, { windowsHide: true, timeout: 15000 });
       const lines = stdout.trim().split('\n').map(l => l.trim()).filter(Boolean);
       return lines.map(line => {
         const [id, x, y, w, h, position] = line.split('|');
@@ -302,7 +311,7 @@ if ($args[0] -eq "list") {
   async getCurrentWallpaper(monitorId) {
     try {
       const { stdout } = await execAsync(
-        `powershell -ExecutionPolicy Bypass -File "${this.scriptPath}" get "${monitorId}"`,
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${this.scriptPath}" get "${monitorId}"`,
         { windowsHide: true, timeout: 10000 }
       );
       return stdout.trim();
@@ -331,7 +340,7 @@ if ($args[0] -eq "list") {
       const updates = entries.map(([monitorId, imagePath]) => ({ monitorId, imagePath }));
       const encodedUpdates = Buffer.from(JSON.stringify(updates), 'utf8').toString('base64');
       await execAsync(
-        `powershell -ExecutionPolicy Bypass -File "${this.scriptPath}" set-many "${encodedUpdates}"`,
+        `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "${this.scriptPath}" set-many "${encodedUpdates}"`,
         { windowsHide: true, timeout: 10000 }
       );
       return true;
@@ -393,7 +402,8 @@ if ($args[0] -eq "list") {
   /**
    * 普通模式：从媒体库选图片设壁纸
    */
-  async _tickNormal(monitors, { apply = true } = {}) {
+  async _tickNormal(monitors, { apply = true, ignoreFocus = false } = {}) {
+    const generation = this._generation;
     const mediaLibrary = this.getMediaLibrary();
     const images = mediaLibrary.filter(m => m.type === 'image');
     if (images.length === 0) {
@@ -406,9 +416,24 @@ if ($args[0] -eq "list") {
 
     for (const monitor of monitors) {
       let lastRejection = '';
-      const bestImage = await findBestMediaForDisplay(images.map(i => i.path), monitor, cfg);
+      let bestImage = null;
+      const candidates = images.map(i => i.path);
+      // Skip stale links, with a bounded number of attempts per monitor.
+      for (let attempt = 0; attempt < 5 && candidates.length; attempt++) {
+        const candidate = await findBestMediaForDisplay(candidates, monitor, cfg);
+        if (!candidate) break;
+        candidates.splice(candidates.indexOf(candidate), 1);
+        try {
+          bestImage = await prepareWallpaper(candidate, this.wallpaperCacheDir);
+          if (generation !== this._generation) return { changedCount: 0, errors: ['壁纸任务已停止'], entries: [] };
+          break;
+        } catch (error) {
+          lastRejection = error.message;
+          console.warn('[WallpaperService] Wallpaper image unavailable:', error.message);
+        }
+      }
       if (!bestImage) {
-        lastRejection = 'No suitable images found';
+        lastRejection = lastRejection || 'No suitable images found';
       }
       if (bestImage) {
         console.log(`[WallpaperService] Setting normal wallpaper for monitor ${monitor.id} to ${bestImage}`);
@@ -420,6 +445,10 @@ if ($args[0] -eq "list") {
     }
     if (entries.length === 0) return { changedCount: 0, errors, entries };
     if (!apply) return { changedCount: entries.length, errors, entries };
+    if (!ignoreFocus && this.getConfig().wallpaper?.focusRestoreEnabled && !await this._isDesktopFocused({ refresh: true })) {
+      return { changedCount: 0, errors: ['桌面当前不可见，已跳过本轮壁纸更换'], entries: [] };
+    }
+    if (generation !== this._generation) return { changedCount: 0, errors: ['壁纸任务已停止'], entries: [] };
     if (!await this.setWallpapers(entries)) {
       errors.push('无法应用本轮壁纸');
       return { changedCount: 0, errors, entries: [] };
@@ -544,7 +573,7 @@ if ($args[0] -eq "list") {
     if (mode === 'character') {
       result = await this._tickCharacter(monitors);
     } else {
-      result = await this._tickNormal(monitors);
+      result = await this._tickNormal(monitors, { ignoreFocus: force || ignoreFocus });
     }
 
     const { changedCount, errors } = result;
@@ -743,6 +772,7 @@ if ($args[0] -eq "list") {
   }
 
   async stop() {
+    this._generation++;
     clearTimeout(this.timer);
     this.timer = null;
     this._stopFocusPolling();

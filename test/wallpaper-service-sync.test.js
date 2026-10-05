@@ -25,6 +25,12 @@ function createService(config, notifications = []) {
     { id: 'display-1', x: 0, y: 0, width: 1920, height: 1080, position: 'fill' }
   ];
   service.scheduleNextTick = () => {};
+  // These are state-machine tests; never query or change the developer's desktop.
+  service.initScript = async () => {};
+  service.getMonitors = async () => service.cachedMonitors || [];
+  service.getCurrentWallpaper = async () => 'original.jpg';
+  service.setWallpapers = async () => true;
+  service._startFocusPolling = () => {};
   return service;
 }
 
