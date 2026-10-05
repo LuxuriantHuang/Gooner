@@ -2043,51 +2043,6 @@
   }
 
   // ═════════════════════════════════════════════════
-  // 数值拖动调整 (scrubber)
-  // ═════════════════════════════════════════════════
-
-  function initNumericScrubbers() {
-    document.addEventListener("pointerdown", function(e) {
-      var t = e.target;
-      if (e.button !== 0 || t.type !== "number" || t.disabled || t.classList.contains("no-scrub")) return;
-      var startX = e.clientX;
-      var step = Number(t.step) || 1;
-      var startVal = Number(t.value) || 0;
-      var min = Number(t.min);
-      var max = Number(t.max);
-      if (!Number.isFinite(min)) min = -Infinity;
-      if (!Number.isFinite(max)) max = Infinity;
-      var moved = false;
-      t.setPointerCapture(e.pointerId);
-      document.body.classList.add("scrub-active");
-
-      function onMove(ev) {
-        if (ev.pointerId !== e.pointerId) return;
-        var delta = ev.clientX - startX;
-        if (Math.abs(delta) < 4 && !moved) return;
-        moved = true;
-        var newVal = startVal + Math.round(delta / 18) * step;
-        newVal = Math.min(max, Math.max(min, newVal));
-        t.value = String(step >= 1 ? Math.round(newVal) : newVal.toFixed(2));
-        t.dispatchEvent(new Event("input", { bubbles: true }));
-      }
-
-      function onUp(ev) {
-        if (ev.pointerId !== e.pointerId) return;
-        document.removeEventListener("pointermove", onMove);
-        document.removeEventListener("pointerup", onUp);
-        document.body.classList.remove("scrub-active");
-        if (!moved) { t.focus(); t.select(); }
-        else { t.dispatchEvent(new Event("change", { bubbles: true })); }
-      }
-
-      document.addEventListener("pointermove", onMove);
-      document.addEventListener("pointerup", onUp);
-      e.preventDefault();
-    });
-  }
-
-  // ═════════════════════════════════════════════════
   // 状态栏更新
   // ═════════════════════════════════════════════════
 
@@ -3242,7 +3197,6 @@
     bindAiPreviewEvents();
     bindWebsitePreviewEvents();
     bindCalendarEvents();
-    initNumericScrubbers();
     loadCalendarData();
 
     // 尺寸面板切换
