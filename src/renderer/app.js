@@ -908,8 +908,8 @@
     return html;
   }
 
-  function colorField(label, id, val) {
-    return '<label class="field"><span>' + localizeText(label) + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="1" style="width:52px;text-align:center" title="' + t("ui.opacity") + '"></div></label>';
+  function colorField(label, id, val, opacity) {
+    return '<label class="field"><span>' + localizeText(label) + '</span><div style="display:flex;align-items:center;gap:6px"><input id="' + id + '" type="color" value="' + (val || "#000000") + '" style="width:36px;height:28px;padding:2px;border:1px solid var(--line);border-radius:2px;background:transparent;cursor:pointer"><input id="' + id + 'Opacity" type="number" min="0" max="1" step="0.01" value="' + clampOpacity(opacity, 1) + '" style="width:52px;text-align:center" title="' + t("ui.opacity") + '"></div></label>';
   }
 
   function clampOpacity(v, fb) { var n = Number(v); return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : (fb != null ? fb : 1); }
@@ -1291,16 +1291,16 @@
         numField(t("renderer.popupWidth"), "aiPopupWidth", nn(pa.popupWidth, 420), 200, 2000) +
         numField(t("renderer.popupHeight"), "aiPopupHeight", nn(pa.popupHeight, 320), 150, 2000) +
         numField(t("renderer.previewScale"), "aiPopupPreviewScale", 1, 0.2, 2, 0.1) +
-        colorField(t("renderer.backgroundColor"), "aiPopupBodyBackgroundColor", pa.bodyBackgroundColor || "#050505") +
+        colorField(t("renderer.backgroundColor"), "aiPopupBodyBackgroundColor", pa.bodyBackgroundColor || "#050505", pa.bodyBackgroundOpacity) +
         numField(t("renderer.textSize"), "aiPopupTextFontSize", nn(pa.textFontSize, 16), 10, 48) +
         numField(t("renderer.lineHeight"), "aiPopupTextLineHeight", nn(pa.textLineHeight, 1.5), 0.5, 3, 0.1) +
         selectField(t("renderer.align"), "aiPopupTextAlign", pa.textAlign || "left", [["left",t("renderer.left")],["center",t("renderer.center")],["right",t("renderer.right")]]) +
-        colorField(t("renderer.textColor"), "aiPopupTextColor", pa.textColor || "#f4f7fb") +
+        colorField(t("renderer.textColor"), "aiPopupTextColor", pa.textColor || "#f4f7fb", pa.textOpacity) +
         '</div>'
       ) +
       panel(t("legacy.popupAppearanceCard"), '<div class="field-row cols-3">' +
-        colorField(t("renderer.cardBackground"), "aiPopupCardBackgroundColor", pa.cardBackgroundColor || "#050505") +
-        colorField(t("renderer.cardBorder"), "aiPopupCardBorderColor", pa.cardBorderColor || "#1f2b33") +
+        colorField(t("renderer.cardBackground"), "aiPopupCardBackgroundColor", pa.cardBackgroundColor || "#050505", pa.cardBackgroundOpacity) +
+        colorField(t("renderer.cardBorder"), "aiPopupCardBorderColor", pa.cardBorderColor || "#1f2b33", pa.cardBorderOpacity) +
         numField(t("renderer.borderWidth"), "aiPopupCardBorderWidth", nn(pa.cardBorderWidth, 0), 0, 20) +
         numField(t("legacy.radius"), "aiPopupCardBorderRadius", nn(pa.cardBorderRadius, 8), 0, 40) +
         numField(t("renderer.innerPaddingX"), "aiPopupCardPaddingX", nn(pa.cardPaddingX, 2), 0, 80) +
@@ -1308,12 +1308,12 @@
         '</div>'
       ) +
       panel(t("legacy.popupAppearanceShadow"), '<div class="field-row cols-3">' +
-        colorField(t("renderer.shadowColor"), "aiPopupCardShadowColor", pa.cardShadowColor || "#000000") +
+        colorField(t("renderer.shadowColor"), "aiPopupCardShadowColor", pa.cardShadowColor || "#000000", pa.cardShadowOpacity) +
         numField(t("renderer.shadowBlur"), "aiPopupCardShadowBlur", nn(pa.cardShadowBlur, 24), 0, 100) +
         numField(t("renderer.shadowSpread"), "aiPopupCardShadowSpread", nn(pa.cardShadowSpread, 0), 0, 50) +
         numField(t("renderer.shadowX"), "aiPopupCardShadowOffsetX", nn(pa.cardShadowOffsetX, 0), -50, 50) +
         numField(t("renderer.shadowY"), "aiPopupCardShadowOffsetY", nn(pa.cardShadowOffsetY, 8), -50, 50) +
-        colorField(t("renderer.textShadowColor"), "aiPopupTextShadowColor", pa.textShadowColor || "#000000") +
+        colorField(t("renderer.textShadowColor"), "aiPopupTextShadowColor", pa.textShadowColor || "#000000", pa.textShadowOpacity) +
         numField(t("renderer.textShadowBlur"), "aiPopupTextShadowBlur", nn(pa.textShadowBlur, 10), 0, 50) +
         numField(t("renderer.textShadowSpread"), "aiPopupTextShadowSpread", nn(pa.textShadowSpread, 0), 0, 20) +
         numField(t("renderer.textShadowX"), "aiPopupTextShadowOffsetX", nn(pa.textShadowOffsetX, 0), -20, 20) +
@@ -1327,11 +1327,11 @@
         numField(t("renderer.innerPaddingY"), "aiPopupCloseButtonPaddingY", nn(pa.closeButtonPaddingY, 6), 2, 20) +
         numField(t("renderer.offsetX"), "aiPopupCloseButtonOffsetX", nn(pa.closeButtonOffsetX, 6), 0, 80) +
         numField(t("renderer.offsetY"), "aiPopupCloseButtonOffsetY", nn(pa.closeButtonOffsetY, 6), 0, 80) +
-        colorField(t("renderer.backgroundColor"), "aiPopupCloseButtonBackgroundColor", pa.closeButtonBackgroundColor || "#000000") +
-        colorField(t("renderer.textColor"), "aiPopupCloseButtonTextColor", pa.closeButtonTextColor || "#ffffff") +
-        colorField(t("renderer.borderColor"), "aiPopupCloseButtonBorderColor", pa.closeButtonBorderColor || "#ffffff") +
-        colorField(t("renderer.hoverBackground"), "aiPopupCloseButtonHoverBackgroundColor", pa.closeButtonHoverBackgroundColor || "#2f3b45") +
-        colorField(t("renderer.hoverText"), "aiPopupCloseButtonHoverTextColor", pa.closeButtonHoverTextColor || "#ffffff") +
+        colorField(t("renderer.backgroundColor"), "aiPopupCloseButtonBackgroundColor", pa.closeButtonBackgroundColor || "#000000", pa.closeButtonBackgroundOpacity) +
+        colorField(t("renderer.textColor"), "aiPopupCloseButtonTextColor", pa.closeButtonTextColor || "#ffffff", pa.closeButtonTextOpacity) +
+        colorField(t("renderer.borderColor"), "aiPopupCloseButtonBorderColor", pa.closeButtonBorderColor || "#ffffff", pa.closeButtonBorderOpacity) +
+        colorField(t("renderer.hoverBackground"), "aiPopupCloseButtonHoverBackgroundColor", pa.closeButtonHoverBackgroundColor || "#2f3b45", pa.closeButtonHoverBackgroundOpacity) +
+        colorField(t("renderer.hoverText"), "aiPopupCloseButtonHoverTextColor", pa.closeButtonHoverTextColor || "#ffffff", pa.closeButtonHoverTextOpacity) +
         '</div>'
       ) +
       panel(t("legacy.interaction"), '<p class="desc-text">' + t("legacy.interactionNote") + '</p>' +
