@@ -60,6 +60,10 @@ input, textarea, select, [contenteditable="true"] {
   user-select: text;
 }
 
+/* scrubber 拖动 */
+body.scrub-active { cursor: ew-resize; }
+body.scrub-active * { cursor: ew-resize !important; }
+
 /* ── SCROLLBAR ── */
 * {
   scrollbar-width: thin;
